@@ -1,13 +1,325 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client-js"
 }
 
-
 datasource db {
   provider = "postgresql"
+}
+
+model areas {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String        @unique
+  newsletters newsletters[]
+  templates   templates[]
+  users       users[]
+}
+
+model asset_types {
+  id     String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code   String   @unique
+  name   String
+  assets assets[]
+}
+
+model assets {
+  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name            String
+  url             String
+  description     String?
+  created_at      DateTime          @default(now()) @db.Timestamptz(6)
+  type_id         String            @db.Uuid
+  asset_types     asset_types       @relation(fields: [type_id], references: [id], onUpdate: NoAction)
+  assets_block    assets_block[]
+  brandkit_assets brandkit_assets[]
+
+  @@index([type_id])
+}
+
+model assets_block {
+  block_id      String        @db.Uuid
+  asset_id      String        @db.Uuid
+  assets        assets        @relation(fields: [asset_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  block_content block_content @relation(fields: [block_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([block_id, asset_id])
+  @@index([asset_id])
+  @@index([block_id])
+}
+
+model block_content {
+  id                  String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type_id             String              @db.Uuid
+  content             String?
+  display_order       Int?
+  must_fill           Boolean             @default(false)
+  assets_block        assets_block[]
+  block_content_types block_content_types @relation(fields: [type_id], references: [id], onUpdate: NoAction)
+  commentary          commentary[]
+  hyperlinks          hyperlinks[]
+  newsletter_blocks   newsletter_blocks[]
+
+  @@index([type_id])
+}
+
+model block_content_types {
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code          String          @unique
+  name          String
+  block_content block_content[]
+}
+
+model brand_kit {
+  id                 String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  font_id            String?           @db.Uuid
+  created_by_user_id String?           @db.Uuid
+  name               String
+  active             Boolean           @default(true)
+  created_at         DateTime          @default(now()) @db.Timestamptz(6)
+  users              users?            @relation(fields: [created_by_user_id], references: [id], onUpdate: NoAction)
+  fonts              fonts?            @relation(fields: [font_id], references: [id], onUpdate: NoAction)
+  brandkit_assets    brandkit_assets[]
+  color_palette      color_palette[]
+  newsletters        newsletters[]
+}
+
+model brandkit_assets {
+  brand_kit_id String    @db.Uuid
+  asset_id     String    @db.Uuid
+  assets       assets    @relation(fields: [asset_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  brand_kit    brand_kit @relation(fields: [brand_kit_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([brand_kit_id, asset_id])
+  @@index([asset_id])
+  @@index([brand_kit_id])
+}
+
+model color_palette {
+  brand_kit_id String    @db.Uuid
+  color_id     String    @db.Uuid
+  brand_kit    brand_kit @relation(fields: [brand_kit_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  colors       colors    @relation(fields: [color_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([brand_kit_id, color_id])
+  @@index([brand_kit_id])
+  @@index([color_id])
+}
+
+model colors {
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name          String
+  hex           String          @unique
+  color_palette color_palette[]
+}
+
+model commentary {
+  id                   String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  block_content_id     String?        @db.Uuid
+  commented_by_user_id String?        @db.Uuid
+  show                 Boolean        @default(true)
+  content              String?
+  created_at           DateTime       @default(now()) @db.Timestamptz(6)
+  block_content        block_content? @relation(fields: [block_content_id], references: [id], onUpdate: NoAction)
+  users                users?         @relation(fields: [commented_by_user_id], references: [id], onUpdate: NoAction)
+
+  @@index([block_content_id])
+  @@index([commented_by_user_id])
+}
+
+model export_types {
+  id      String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code    String    @unique
+  name    String
+  exports exports[]
+}
+
+model exports {
+  id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  export_type_id     String               @db.Uuid
+  export_types       export_types         @relation(fields: [export_type_id], references: [id], onUpdate: NoAction)
+  newsletter_exports newsletter_exports[]
+
+  @@index([export_type_id])
+}
+
+model fonts {
+  id         String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String
+  url        String
+  created_at DateTime    @default(now()) @db.Timestamptz(6)
+  brand_kit  brand_kit[]
+}
+
+model hyperlinks {
+  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  block_content_id String?        @db.Uuid
+  url              String
+  label            String?
+  block_content    block_content? @relation(fields: [block_content_id], references: [id], onUpdate: NoAction)
+
+  @@index([block_content_id])
+}
+
+model languages {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code        String        @unique
+  name        String
+  newsletters newsletters[]
+}
+
+model newsletter_blocks {
+  newsletter_id    String        @db.Uuid
+  block_content_id String        @db.Uuid
+  display_order    Int?
+  row              Int?
+  grid_column      Int?
+  block_content    block_content @relation(fields: [block_content_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  newsletters      newsletters   @relation(fields: [newsletter_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([newsletter_id, block_content_id])
+  @@index([block_content_id])
+  @@index([newsletter_id])
+}
+
+model newsletter_exports {
+  export_id     String      @db.Uuid
+  newsletter_id String      @db.Uuid
+  url_file      String?
+  created_at    DateTime    @default(now()) @db.Timestamptz(6)
+  exports       exports     @relation(fields: [export_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  newsletters   newsletters @relation(fields: [newsletter_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([export_id, newsletter_id])
+  @@index([export_id])
+  @@index([newsletter_id])
+}
+
+model newsletter_formats {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code        String        @unique
+  name        String
+  newsletters newsletters[]
+}
+
+model newsletter_state_log {
+  id                  String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  newsletter_id       String      @db.Uuid
+  previous_state      String?
+  new_state           String?
+  reviewed_by_user_id String?     @db.Uuid
+  all_commentaries    String?
+  created_at          DateTime    @default(now()) @db.Timestamptz(6)
+  newsletters         newsletters @relation(fields: [newsletter_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  users               users?      @relation(fields: [reviewed_by_user_id], references: [id], onUpdate: NoAction)
+
+  @@index([newsletter_id])
+  @@index([reviewed_by_user_id])
+}
+
+model newsletter_states {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code        String        @unique
+  name        String
+  newsletters newsletters[]
+}
+
+model newsletters {
+  id                                           String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title                                        String
+  state_id                                     String                 @db.Uuid
+  area_id                                      String?                @db.Uuid
+  theme_tag                                    String?
+  language_id                                  String?                @db.Uuid
+  format_id                                    String?                @db.Uuid
+  created_at                                   DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at                                   DateTime               @default(now()) @db.Timestamptz(6)
+  publish_date                                 DateTime?              @db.Timestamptz(6)
+  brand_kit_id                                 String?                @db.Uuid
+  template_id                                  String?                @db.Uuid
+  approved_by_user_id                          String?                @db.Uuid
+  created_by_user_id                           String?                @db.Uuid
+  newsletter_blocks                            newsletter_blocks[]
+  newsletter_exports                           newsletter_exports[]
+  newsletter_state_log                         newsletter_state_log[]
+  users_newsletters_approved_by_user_idTousers users?                 @relation("newsletters_approved_by_user_idTousers", fields: [approved_by_user_id], references: [id], onUpdate: NoAction)
+  areas                                        areas?                 @relation(fields: [area_id], references: [id], onUpdate: NoAction)
+  brand_kit                                    brand_kit?             @relation(fields: [brand_kit_id], references: [id], onUpdate: NoAction)
+  users_newsletters_created_by_user_idTousers  users?                 @relation("newsletters_created_by_user_idTousers", fields: [created_by_user_id], references: [id], onUpdate: NoAction)
+  newsletter_formats                           newsletter_formats?    @relation(fields: [format_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  languages                                    languages?             @relation(fields: [language_id], references: [id], onDelete: Restrict, onUpdate: NoAction)
+  newsletter_states                            newsletter_states      @relation(fields: [state_id], references: [id], onUpdate: NoAction)
+  templates                                    templates?             @relation(fields: [template_id], references: [id], onUpdate: NoAction)
+
+  @@index([approved_by_user_id])
+  @@index([area_id])
+  @@index([brand_kit_id])
+  @@index([created_by_user_id])
+  @@index([format_id])
+  @@index([language_id])
+  @@index([state_id])
+  @@index([template_id])
+}
+
+model template_states {
+  id        String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code      String      @unique
+  name      String
+  templates templates[]
+}
+
+model templates {
+  id                 String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name               String
+  description        String?
+  area_id            String?         @db.Uuid
+  layout             String?
+  state_id           String          @db.Uuid
+  prompt_base        String?
+  created_by_user_id String?         @db.Uuid
+  created_at         DateTime        @default(now()) @db.Timestamptz(6)
+  newsletters        newsletters[]
+  areas              areas?          @relation(fields: [area_id], references: [id], onUpdate: NoAction)
+  users              users?          @relation(fields: [created_by_user_id], references: [id], onUpdate: NoAction)
+  template_states    template_states @relation(fields: [state_id], references: [id], onUpdate: NoAction)
+
+  @@index([area_id])
+  @@index([created_by_user_id])
+  @@index([state_id])
+}
+
+model user_roles {
+  id    String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code  String  @unique
+  name  String
+  users users[]
+}
+
+model user_states {
+  id    String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code  String  @unique
+  name  String
+  users users[]
+}
+
+model users {
+  id                                                 String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name                                               String
+  last_name                                          String
+  email                                              String                 @unique
+  role_id                                            String                 @db.Uuid
+  state_id                                           String                 @db.Uuid
+  area_id                                            String?                @db.Uuid
+  created_at                                         DateTime               @default(now()) @db.Timestamptz(6)
+  brand_kit                                          brand_kit[]
+  commentary                                         commentary[]
+  newsletter_state_log                               newsletter_state_log[]
+  newsletters_newsletters_approved_by_user_idTousers newsletters[]          @relation("newsletters_approved_by_user_idTousers")
+  newsletters_newsletters_created_by_user_idTousers  newsletters[]          @relation("newsletters_created_by_user_idTousers")
+  templates                                          templates[]
+  areas                                              areas?                 @relation(fields: [area_id], references: [id], onUpdate: NoAction)
+  user_roles                                         user_roles             @relation(fields: [role_id], references: [id], onUpdate: NoAction)
+  user_states                                        user_states            @relation(fields: [state_id], references: [id], onUpdate: NoAction)
+
+  @@index([area_id])
+  @@index([role_id])
+  @@index([state_id])
 }

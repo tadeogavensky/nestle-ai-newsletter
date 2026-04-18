@@ -1,120 +1,173 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import {
+  Box,
+  Button,
+  Chip,
+  Container,
+  Paper,
+  Stack,
+  Typography,
+  useTheme,
+} from '@mui/material'
+import nestleBlackLogo from './assets/nestle-black.png'
+import nestleWhiteLogo from './assets/nestle-white.png'
+
+const fontSamples = [
+  {
+    label: 'Nestle Text TF Book',
+    family: 'Nestle Text TF Book',
+    weight: 400,
+    text: 'Newsletter clara para decisiones rapidas.',
+  },
+  {
+    label: 'Nestle Text TF Bold',
+    family: 'Nestle Text TF Bold',
+    weight: 700,
+    text: 'Titulares con peso visual de marca.',
+  },
+  {
+    label: 'Nestle Text TF Italic',
+    family: 'Nestle Text TF Italic',
+    weight: 400,
+    text: 'Notas editoriales con enfasis suave.',
+  },
+]
 
 function App() {
-  const [count, setCount] = useState(0)
+  const theme = useTheme()
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <Box
+      component="main"
+      sx={{
+        minHeight: '100vh',
+        bgcolor: 'background.default',
+        color: 'text.primary',
+        py: { xs: 4, md: 7 },
+      }}
+    >
+      <Container maxWidth="lg">
+        <Stack spacing={4}>
+          <Paper
+            elevation={0}
+            sx={{
+              bgcolor: 'primary.main',
+              color: 'primary.contrastText',
+              overflow: 'hidden',
+              p: { xs: 3, md: 5 },
+              borderRadius: 2,
+            }}
+          >
+            <Stack spacing={4}>
+              <Box
+                component="img"
+                src={nestleWhiteLogo}
+                alt="Nestle"
+                sx={{ width: 180, maxWidth: '60%' }}
+              />
+              <Stack spacing={2} sx={{ maxWidth: 720 }}>
+                <Chip
+                  label="AI Newsletter"
+                  sx={{
+                    alignSelf: 'flex-start',
+                    bgcolor: 'brand.yellowLight',
+                    color: 'brand.darkOak',
+                  }}
+                />
+                <Typography variant="h1">
+                  Inteligencia para comunicar mejor.
+                </Typography>
+                <Typography variant="subtitle1">
+                  Validacion visual de logos, fuentes y tokens de marca en MUI.
+                </Typography>
+                <Button
+                  variant="contained"
+                  color="warning"
+                  sx={{ alignSelf: 'flex-start' }}
+                >
+                  Ver sistema visual
+                </Button>
+              </Stack>
+            </Stack>
+          </Paper>
 
-      <div className="ticks"></div>
+          <Stack
+            direction={{ xs: 'column', md: 'row' }}
+            spacing={3}
+            sx={{ alignItems: 'stretch' }}
+          >
+            <Paper
+              elevation={0}
+              sx={{
+                flex: 1,
+                p: 3,
+                border: `1px solid ${theme.palette.divider}`,
+              }}
+            >
+              <Stack spacing={2}>
+                <Typography variant="overline">Logo positivo</Typography>
+                <Box
+                  component="img"
+                  src={nestleBlackLogo}
+                  alt="Nestle logo negro"
+                  sx={{ width: 220, maxWidth: '100%' }}
+                />
+              </Stack>
+            </Paper>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+            <Paper
+              elevation={0}
+              sx={{
+                flex: 1,
+                p: 3,
+                bgcolor: 'brand.darkOak',
+                color: 'brand.white',
+              }}
+            >
+              <Stack spacing={2}>
+                <Typography variant="overline">Logo negativo</Typography>
+                <Box
+                  component="img"
+                  src={nestleWhiteLogo}
+                  alt="Nestle logo blanco"
+                  sx={{ width: 220, maxWidth: '100%' }}
+                />
+              </Stack>
+            </Paper>
+          </Stack>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+          <Stack spacing={2}>
+            <Typography variant="h2">Fuentes cargadas</Typography>
+            <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+              {fontSamples.map((sample) => (
+                <Paper
+                  key={sample.label}
+                  elevation={0}
+                  sx={{
+                    flex: 1,
+                    p: 3,
+                    border: `1px solid ${theme.palette.divider}`,
+                  }}
+                >
+                  <Stack spacing={1.5}>
+                    <Typography variant="caption">{sample.label}</Typography>
+                    <Typography
+                      sx={{
+                        fontFamily: sample.family,
+                        fontWeight: sample.weight,
+                        fontSize: '1.5rem',
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      {sample.text}
+                    </Typography>
+                  </Stack>
+                </Paper>
+              ))}
+            </Stack>
+          </Stack>
+        </Stack>
+      </Container>
+    </Box>
   )
 }
 

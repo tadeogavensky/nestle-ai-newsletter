@@ -1,14 +1,20 @@
-import { createTheme, responsiveFontSizes } from '@mui/material/styles';
+import { createTheme } from '@mui/material/styles';
+import nestleBoldTtf from '../assets/fonts/NestleTextTF-Bold.ttf';
+import nestleBoldWoff from '../assets/fonts/NestleTextTF-Bold.woff';
+import nestleBoldWoff2 from '../assets/fonts/NestleTextTF-Bold.woff2';
+import nestleBookTtf from '../assets/fonts/NestleTextTF-Book.ttf';
+import nestleBookWoff from '../assets/fonts/NestleTextTF-Book.woff';
+import nestleBookWoff2 from '../assets/fonts/NestleTextTF-Book.woff2';
+import nestleItalicTtf from '../assets/fonts/NestleTextTF-Italic.ttf';
+import nestleItalicWoff from '../assets/fonts/NestleTextTF-Italic.woff';
+import nestleItalicWoff2 from '../assets/fonts/NestleTextTF-Italic.woff2';
 
-/**
- * We make Nestlé – MUI Theme
- *
- * Notes:
- * - Colors and font roles are taken from the Nestlé internal communication guidelines.
- * - Typography sizes are proposed for product UI usage because the guide defines font families
- *   and usage roles, but does not publish a UI type scale.
- * - Nestlé proprietary fonts must be available in the app (self-hosted or loaded separately).
- */
+const nestleBookFontFamily = 'Nestle Text TF Book';
+const nestleBoldFontFamily = 'Nestle Text TF Bold';
+const nestleItalicFontFamily = 'Nestle Text TF Italic';
+
+const bodyFontStack = [nestleBookFontFamily, 'Arial', 'sans-serif'].join(',');
+const boldFontStack = [nestleBoldFontFamily, 'Arial', 'sans-serif'].join(',');
 
 declare module '@mui/material/styles' {
   interface Palette {
@@ -66,18 +72,18 @@ declare module '@mui/material/styles' {
   }
 }
 
-const baseTheme = createTheme({
+const theme = createTheme({
   shape: {
-    borderRadius: 12,
+    borderRadius: 8,
   },
   palette: {
     mode: 'light',
     primary: {
-      main: '#FF595A', // Red
+      main: '#FF595A',
       contrastText: '#FFFFFF',
     },
     secondary: {
-      main: '#00A0DF', // Blue dark
+      main: '#00A0DF',
       contrastText: '#FFFFFF',
     },
     error: {
@@ -132,194 +138,154 @@ const baseTheme = createTheme({
   },
   typography: {
     htmlFontSize: 16,
-    fontFamily: [
-      'Nestle Text TF Book Cnd',
-      'Nestlé Text TF Book Cnd',
-      'Arial Narrow',
-      'Arial',
-      'sans-serif',
-    ].join(','),
+    fontFamily: bodyFontStack,
     h1: {
-      fontFamily: [
-        'Nestle Text TF Bold Cnd',
-        'Nestlé Text TF Bold Cnd',
-        'Arial Narrow',
-        'Arial',
-        'sans-serif',
-      ].join(','),
+      fontFamily: boldFontStack,
       fontWeight: 700,
       fontSize: '3.5rem',
       lineHeight: 1,
-      letterSpacing: '0.01em',
-      textTransform: 'none',
+      letterSpacing: 0,
     },
     h2: {
-      fontFamily: [
-        'Nestle Text TF Bold Cnd',
-        'Nestlé Text TF Bold Cnd',
-        'Arial Narrow',
-        'Arial',
-        'sans-serif',
-      ].join(','),
-      fontWeight: 700,
-      fontSize: '3rem',
-      lineHeight: 1.05,
-      letterSpacing: '0.01em',
-    },
-    h3: {
-      fontFamily: [
-        'Nestle Text TF Bold Cnd',
-        'Nestlé Text TF Bold Cnd',
-        'Arial Narrow',
-        'Arial',
-        'sans-serif',
-      ].join(','),
+      fontFamily: boldFontStack,
       fontWeight: 700,
       fontSize: '2.5rem',
-      lineHeight: 1.08,
+      lineHeight: 1.05,
+      letterSpacing: 0,
     },
-    h4: {
-      fontFamily: [
-        'Nestle Text TF Bold Cnd',
-        'Nestlé Text TF Bold Cnd',
-        'Arial Narrow',
-        'Arial',
-        'sans-serif',
-      ].join(','),
+    h3: {
+      fontFamily: boldFontStack,
       fontWeight: 700,
       fontSize: '2rem',
-      lineHeight: 1.1,
+      lineHeight: 1.08,
+      letterSpacing: 0,
+    },
+    h4: {
+      fontFamily: boldFontStack,
+      fontWeight: 700,
+      fontSize: '1.75rem',
+      lineHeight: 1.12,
+      letterSpacing: 0,
     },
     h5: {
-      fontFamily: [
-        'Nestle Text TF Bold Cnd',
-        'Nestlé Text TF Bold Cnd',
-        'Arial Narrow',
-        'Arial',
-        'sans-serif',
-      ].join(','),
+      fontFamily: boldFontStack,
       fontWeight: 700,
       fontSize: '1.5rem',
       lineHeight: 1.15,
+      letterSpacing: 0,
     },
     h6: {
-      fontFamily: [
-        'Nestle Text TF Bold Cnd',
-        'Nestlé Text TF Bold Cnd',
-        'Arial Narrow',
-        'Arial',
-        'sans-serif',
-      ].join(','),
+      fontFamily: boldFontStack,
       fontWeight: 700,
       fontSize: '1.25rem',
       lineHeight: 1.2,
+      letterSpacing: 0,
     },
     subtitle1: {
-      fontFamily: [
-        'Nestle Text TF Bold',
-        'Nestlé Text TF Bold',
-        'Arial',
-        'sans-serif',
-      ].join(','),
+      fontFamily: boldFontStack,
       fontWeight: 700,
       fontSize: '1.125rem',
       lineHeight: 1.4,
+      letterSpacing: 0,
     },
     subtitle2: {
-      fontFamily: [
-        'Nestle Text TF Bold',
-        'Nestlé Text TF Bold',
-        'Arial',
-        'sans-serif',
-      ].join(','),
+      fontFamily: boldFontStack,
       fontWeight: 700,
       fontSize: '1rem',
       lineHeight: 1.35,
+      letterSpacing: 0,
     },
     body1: {
-      fontFamily: [
-        'Nestle Text TF Book Cnd',
-        'Nestlé Text TF Book Cnd',
-        'Arial Narrow',
-        'Arial',
-        'sans-serif',
-      ].join(','),
+      fontFamily: bodyFontStack,
       fontWeight: 400,
       fontSize: '1rem',
       lineHeight: 1.6,
+      letterSpacing: 0,
     },
     body2: {
-      fontFamily: [
-        'Nestle Text TF Book Cnd',
-        'Nestlé Text TF Book Cnd',
-        'Arial Narrow',
-        'Arial',
-        'sans-serif',
-      ].join(','),
+      fontFamily: bodyFontStack,
       fontWeight: 400,
       fontSize: '0.875rem',
       lineHeight: 1.55,
+      letterSpacing: 0,
     },
     button: {
-      fontFamily: [
-        'Nestle Text TF Bold Cnd',
-        'Nestlé Text TF Bold Cnd',
-        'Arial Narrow',
-        'Arial',
-        'sans-serif',
-      ].join(','),
+      fontFamily: boldFontStack,
       fontWeight: 700,
       fontSize: '0.95rem',
       lineHeight: 1.2,
+      letterSpacing: 0,
       textTransform: 'none',
     },
     caption: {
-      fontFamily: [
-        'Nestle Text TF Book Cnd',
-        'Nestlé Text TF Book Cnd',
-        'Arial Narrow',
-        'Arial',
-        'sans-serif',
-      ].join(','),
+      fontFamily: bodyFontStack,
       fontWeight: 400,
       fontSize: '0.75rem',
       lineHeight: 1.4,
+      letterSpacing: 0,
     },
     overline: {
-      fontFamily: [
-        'Nestle Text TF Bold Cnd',
-        'Nestlé Text TF Bold Cnd',
-        'Arial Narrow',
-        'Arial',
-        'sans-serif',
-      ].join(','),
+      fontFamily: boldFontStack,
       fontWeight: 700,
       fontSize: '0.75rem',
       lineHeight: 1.4,
-      letterSpacing: '0.06em',
+      letterSpacing: 0,
       textTransform: 'uppercase',
     },
   },
   components: {
     MuiCssBaseline: {
-      styleOverrides: {
-        ':root': {
-          '--nestle-red': '#FF595A',
-          '--nestle-dark-oak': '#30261D',
-          '--nestle-white': '#FFFFFF',
-          '--nestle-blue-dark': '#00A0DF',
-          '--nestle-blue-light': '#97CAEB',
-          '--nestle-green-dark': '#61A60E',
-          '--nestle-green-light': '#A2D45E',
-          '--nestle-turquoise-dark': '#00AFAA',
-          '--nestle-turquoise-light': '#99D9D9',
-          '--nestle-purple-dark': '#B14FC5',
-          '--nestle-purple-light': '#CB8BDA',
-          '--nestle-orange': '#FF8300',
-          '--nestle-yellow-dark': '#F5A800',
-          '--nestle-yellow-light': '#FFC600',
-        },
-      },
+      styleOverrides: `
+        @font-face {
+          font-family: '${nestleBookFontFamily}';
+          src:
+            url('${nestleBookWoff2}') format('woff2'),
+            url('${nestleBookWoff}') format('woff'),
+            url('${nestleBookTtf}') format('truetype');
+          font-weight: 400;
+          font-style: normal;
+          font-display: swap;
+        }
+
+        @font-face {
+          font-family: '${nestleBoldFontFamily}';
+          src:
+            url('${nestleBoldWoff2}') format('woff2'),
+            url('${nestleBoldWoff}') format('woff'),
+            url('${nestleBoldTtf}') format('truetype');
+          font-weight: 700;
+          font-style: normal;
+          font-display: swap;
+        }
+
+        @font-face {
+          font-family: '${nestleItalicFontFamily}';
+          src:
+            url('${nestleItalicWoff2}') format('woff2'),
+            url('${nestleItalicWoff}') format('woff'),
+            url('${nestleItalicTtf}') format('truetype');
+          font-weight: 400;
+          font-style: italic;
+          font-display: swap;
+        }
+
+        :root {
+          --nestle-red: #FF595A;
+          --nestle-dark-oak: #30261D;
+          --nestle-white: #FFFFFF;
+          --nestle-blue-dark: #00A0DF;
+          --nestle-blue-light: #97CAEB;
+          --nestle-green-dark: #61A60E;
+          --nestle-green-light: #A2D45E;
+          --nestle-turquoise-dark: #00AFAA;
+          --nestle-turquoise-light: #99D9D9;
+          --nestle-purple-dark: #B14FC5;
+          --nestle-purple-light: #CB8BDA;
+          --nestle-orange: #FF8300;
+          --nestle-yellow-dark: #F5A800;
+          --nestle-yellow-light: #FFC600;
+        }
+      `,
     },
     MuiButton: {
       defaultProps: {
@@ -327,7 +293,7 @@ const baseTheme = createTheme({
       },
       styleOverrides: {
         root: {
-          borderRadius: 999,
+          borderRadius: 8,
           paddingInline: 20,
           paddingBlock: 10,
         },
@@ -336,14 +302,8 @@ const baseTheme = createTheme({
     MuiChip: {
       styleOverrides: {
         root: {
-          borderRadius: 999,
-          fontFamily: [
-            'Nestle Text TF Bold Cnd',
-            'Nestlé Text TF Bold Cnd',
-            'Arial Narrow',
-            'Arial',
-            'sans-serif',
-          ].join(','),
+          borderRadius: 8,
+          fontFamily: boldFontStack,
           fontWeight: 700,
         },
         filled: {
@@ -356,16 +316,11 @@ const baseTheme = createTheme({
     MuiPaper: {
       styleOverrides: {
         rounded: {
-          borderRadius: 16,
+          borderRadius: 8,
         },
       },
     },
   },
-});
-
-const theme = responsiveFontSizes(baseTheme, {
-  factor: 2,
-  variants: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'subtitle1', 'subtitle2', 'body1'],
 });
 
 export default theme;

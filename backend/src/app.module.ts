@@ -3,14 +3,14 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { SupabaseModule } from './supabase/supabase.module';
-import { FilesModule } from './files/files.module';
 import { ConfigModule } from '@nestjs/config';
+import { AreasModule } from './areas/areas.module';
 
 @Module({
   imports: [
     PrismaModule,
     SupabaseModule,
-    FilesModule,
+    AreasModule,
     ConfigModule.forRoot({
       isGlobal: true, // no tener que importarlo en cada módulo
     }),
