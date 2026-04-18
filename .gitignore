@@ -1,3 +1,10 @@
 node_modules/
-app/frontend/dist/
+
+# Environment variables
+backend/.env
+frontend/.env
+
+# Build output
+backend/dist/
 frontend/dist/
+frontend/build/

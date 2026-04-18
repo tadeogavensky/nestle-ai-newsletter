@@ -30,5 +30,6 @@ jobs:
           cache-dependency-path: backend/pnpm-lock.yaml
 
       - run: pnpm --dir backend install --frozen-lockfile
+      - run: pnpm --dir backend exec prisma generate
       - run: pnpm --dir backend run build
       - run: docker build -t nestle-backend ./backend
