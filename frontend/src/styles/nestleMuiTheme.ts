@@ -6,8 +6,8 @@ import nestleTextBoldItalic from '../assets/web/fonts/NestleTextTF-BoldItalic.tt
 import nestleTextBookCnd from '../assets/web/fonts/NestleTextTF-BookCnd.ttf';
 import nestleTextBookCndItalic from '../assets/web/fonts/NestleTextTF-BookCndItalic.ttf';
 import nestleTextLightCnd from '../assets/web/fonts/NestleTextTF-LightCnd.ttf';
-import nestleLogoSignatureWhite from '../assets/web/logo/Nestle_GoodFoodGoodLifeLogo_White_RGB.png';
-import nestleLogoNestWhite from '../assets/web/logo/Nestle_NestLogo_White_RGB.png';
+import nestleLogoSignatureWhite from '../assets/web/logos/Nestle_GoodFoodGoodLifeLogo_White_RGB.png';
+import nestleLogoNestWhite from '../assets/web/logos/Nestle_NestLogo_White_RGB.png';
 
 const nestleTextBoldFamily = 'Nestle Text TF Bold';
 const nestleTextBoldCndFamily = 'Nestle Text TF Bold Condensed';
