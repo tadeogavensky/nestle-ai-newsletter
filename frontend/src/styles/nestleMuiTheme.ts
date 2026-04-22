@@ -1,13 +1,13 @@
 import { createTheme } from '@mui/material/styles';
-import nestleTextBold from '../assets/web/fonts/NestleTextTF-Bold.ttf';
-import nestleTextBoldCnd from '../assets/web/fonts/NestleTextTF-BoldCnd.ttf';
-import nestleTextBoldCndItalic from '../assets/web/fonts/NestleTextTF-BoldCndItalic.ttf';
-import nestleTextBoldItalic from '../assets/web/fonts/NestleTextTF-BoldItalic.ttf';
-import nestleTextBookCnd from '../assets/web/fonts/NestleTextTF-BookCnd.ttf';
-import nestleTextBookCndItalic from '../assets/web/fonts/NestleTextTF-BookCndItalic.ttf';
-import nestleTextLightCnd from '../assets/web/fonts/NestleTextTF-LightCnd.ttf';
-import nestleLogoSignatureWhite from '../assets/web/logos/Nestle_GoodFoodGoodLifeLogo_White_RGB.png';
-import nestleLogoNestWhite from '../assets/web/logos/Nestle_NestLogo_White_RGB.png';
+import nestleTextBold from '../assets/fonts/NestleTextTF-Bold.ttf';
+import nestleTextBoldCnd from '../assets/fonts/NestleTextTF-BoldCnd.ttf';
+import nestleTextBoldCndItalic from '../assets/fonts/NestleTextTF-BoldCndItalic.ttf';
+import nestleTextBoldItalic from '../assets/fonts/NestleTextTF-BoldItalic.ttf';
+import nestleTextBookCnd from '../assets/fonts/NestleTextTF-BookCnd.ttf';
+import nestleTextBookCndItalic from '../assets/fonts/NestleTextTF-BookCndItalic.ttf';
+import nestleTextLightCnd from '../assets/fonts/NestleTextTF-LightCnd.ttf';
+import nestleLogoSignatureWhite from '../assets/logos/Nestle_GoodFoodGoodLifeLogo_White_RGB.png';
+import nestleLogoNestWhite from '../assets/logos/Nestle_NestLogo_White_RGB.png';
 
 const nestleTextBoldFamily = 'Nestle Text TF Bold';
 const nestleTextBoldCndFamily = 'Nestle Text TF Bold Condensed';
