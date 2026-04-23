@@ -1,5 +1,6 @@
 import { AppBar, Box, Button, Toolbar, Typography } from '@mui/material'
 import { Link as RouterLink, useLocation } from 'react-router'
+import nestleLogo from "../assets/we_make_nestle/wmn-lockup-three-lines-dark-oak-on-white.jpg";
 
 type NavLinkItem = {
   href: string
@@ -20,61 +21,68 @@ export function Header() {
     <AppBar
       position="sticky"
       color="transparent"
-      elevation={0}
+      elevation={0.5}
       sx={{
-        bgcolor: 'background.paper',
-        borderBottom: '1px solid',
-        borderColor: 'divider',
+        bgcolor: "background.paper",
+        borderBottom: "1px solid",
+        borderColor: "divider",
+        px: "125px",
       }}
     >
       <Toolbar
         sx={{
           minHeight: 72,
-          display: 'flex',
-          justifyContent: 'space-between',
+          display: "flex",
+          justifyContent: "space-between",
           gap: 2,
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
           <Box
+            component="img"
+            src={nestleLogo}
+            alt="Nestlé Logo"
             sx={{
-              width: 42,
-              height: 42,
-              borderRadius: '50%',
-              border: '2px solid',
-              borderColor: 'text.primary',
-              display: 'grid',
-              placeItems: 'center',
-              fontSize: 11,
-              fontWeight: 700,
+              width: 125,
+              height: "auto", // Adjust this if the logo looks stretched
+              display: "block",
             }}
-          >
-            N
-          </Box>
+          />
+
           <Typography variant="subtitle1">Nestle AI Newsletter</Typography>
         </Box>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            flexWrap: "wrap",
+          }}
+        >
           {navLinks.map((link) => {
             const isActive =
               location.pathname === link.href ||
-              (link.href !== '/dashboard' && location.pathname.startsWith(link.href))
+              (link.href !== "/dashboard" &&
+                location.pathname.startsWith(link.href));
 
             return (
               <Button
                 key={link.href}
                 component={RouterLink}
                 to={link.href}
-                color={isActive ? 'primary' : 'inherit'}
+                color={isActive ? "primary" : "inherit"}
                 sx={{
-                  borderBottom: isActive ? '2px solid' : '2px solid transparent',
+                  borderBottom: isActive
+                    ? "2px solid"
+                    : "2px solid transparent",
                   borderRadius: 0,
                   px: 1,
                 }}
               >
                 {link.label}
               </Button>
-            )
+            );
           })}
         </Box>
 
@@ -82,18 +90,19 @@ export function Header() {
           sx={{
             width: 40,
             height: 40,
-            borderRadius: '50%',
-            bgcolor: 'grey.100',
-            display: 'grid',
-            placeItems: 'center',
+            borderRadius: "50%",
+            bgcolor: "grey.100",
+            display: "grid",
+            placeItems: "center",
             fontWeight: 700,
+            marginRight: 5,
           }}
         >
-          U
+          JD
         </Box>
       </Toolbar>
     </AppBar>
-  )
+  );
 }
 
 export default Header
