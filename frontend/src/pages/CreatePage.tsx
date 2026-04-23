@@ -3,7 +3,7 @@ import { Box } from "@mui/material";
 // --- Child Component 1 ---
 const LeftComponent = () => {
   return (
-    <Box sx={{ height: "100%", border: "1px dashed #ccc" }}>
+    <Box sx={{ height: "100%", border: "1px solid #ccc" }}>
       <h2>Left Side</h2>
     </Box>
   );
@@ -12,7 +12,7 @@ const LeftComponent = () => {
 // --- Child Component 2 ---
 const RightComponent = () => {
   return (
-    <Box sx={{ height: "100%", border: "1px dashed #ccc" }}>
+    <Box sx={{ height: "100%", border: "1px solid #ccc" }}>
       <h2>Right Side</h2>
     </Box>
   );
