@@ -1,40 +1,88 @@
 # Frontend AGENTS.md
 
-## English
-
-### Scope
+## Scope
 
 These instructions apply to `frontend`, a React + Vite + MUI application for Spanish-speaking Nestle internal users.
 
-The app should help users generate, edit, preview, review, approve, and export newsletters. The primary UI language is Spanish. Source code remains English.
+The frontend helps users generate, edit, preview, review, approve, and export newsletters. The UI language is Spanish. Source code remains English.
 
-### Brand and design
+Follow the root `AGENTS.md` first. This file adds frontend-specific rules.
+
+## Product UX
+
+- Build product screens for newsletter workflows, not generic marketing pages, unless the task explicitly asks for a landing page.
+- Every page must make the next user action obvious.
+- Keep primary, secondary, and destructive actions visually distinct.
+- Use concise Spanish copy for labels, instructions, validation messages, empty states, and errors.
+- Design for non-technical internal users who need clear workflows and low-friction recovery from mistakes.
+- Handle loading, empty, error, success, and permission-denied states for async UI.
+
+## Brand and Design
 
 - Use `src/styles/nestleMuiTheme.ts` as the source of truth for MUI theme tokens.
-- Reuse assets from `src/assets`; do not duplicate fonts, logos, brand shapes, or keyword graphics.
-- Follow Nestle brand guidance from `/ref/WemakeNestlé_DesignGuidelines_Final (2).pdf` when designing new pages.
-- Keep UI aligned to newsletter creation workflows, not generic marketing pages.
-- Use responsive layouts for desktop and mobile previews.
-- Avoid decorative asset use that does not support the page task.
+- Use MUI components and theme tokens before custom CSS.
+- Reuse assets from `src/assets`.
+- Do not duplicate fonts, logos, brand shapes, or keyword graphics.
+- Follow the Nestle brand guideline PDF in `/ref` when designing new pages.
+- Keep layouts responsive for desktop, tablet, and mobile preview widths.
+- Do not add decorative assets that do not support the page task.
+- Do not create one-off visual systems outside the Nestle theme.
 
-### Frontend implementation
+## Implementation
 
 - Use React components with TypeScript.
 - Keep component, hook, variable, and file names in English.
-- Keep user-facing labels, HTML copy, validation messages, and demo content in Spanish.
-- Prefer MUI components and theme tokens before custom CSS.
+- Keep user-facing text in Spanish.
 - Use Axios for backend calls when an HTTP client is needed.
 - Read the backend base URL from environment configuration such as `VITE_API_URL`.
-- Do not hardcode production secrets or backend credentials in the frontend.
+- Do not hardcode production secrets, backend credentials, Supabase keys, AI credentials, or tenant-specific values in frontend code.
+- Do not use `any`.
+- Define explicit prop, state, and API response types.
+- Keep API adapters isolated from presentation components.
+- Do not store sensitive data in `localStorage` or `sessionStorage` unless the task explicitly requires it and the security impact is reviewed.
+- Avoid `dangerouslySetInnerHTML`. If HTML rendering is required, sanitize the content first and document the trust boundary in code.
 
-### Newsletter-specific guidance
+## API and State Handling
 
-- Treat newsletter HTML/export compatibility as a product requirement.
-- Keep future MJML/export constraints in mind when creating editor or preview structures.
-- Preserve clear separation between authoring UI, preview UI, and exported newsletter markup.
-- Prioritize Edge compatibility for corporate browser usage.
+- Treat backend responses as untrusted until validated or narrowed at the boundary.
+- Keep request and response handling in typed API modules or hooks.
+- Use the backend/database enum values from the root `AGENTS.md` for API contracts and state comparisons.
+- Display enum values with Spanish UI labels instead of showing raw enum identifiers to users.
+- Map backend errors to Spanish user-facing messages.
+- Do not reveal stack traces, provider details, tokens, or raw backend error payloads in the UI.
+- Disable or guard actions that the authenticated user cannot perform, but never rely on frontend checks for authorization.
+- Preserve version IDs and `newsletter_state` values returned by the backend; do not invent approval state on the client.
 
-### Commands
+## Accessibility
+
+- Use semantic HTML for structure.
+- Inputs must have visible labels or accessible names.
+- Buttons and interactive controls must be keyboard accessible.
+- Focus order must follow the visual workflow.
+- Color contrast must remain readable against the Nestle theme.
+- Do not communicate state using color alone.
+- Error messages must identify the field or action that failed.
+
+## Newsletter Authoring and Preview
+
+- Keep authoring UI, preview UI, and exported newsletter markup separate.
+- Do not include editor controls, debug metadata, or React-only markup in exported newsletter output.
+- Preview structures must be able to map cleanly to MJML or email-safe HTML.
+- Treat export compatibility as a product requirement, not a visual afterthought.
+- Prioritize Microsoft Edge compatibility for corporate browser usage.
+- Test meaningful visual changes at desktop and mobile preview widths.
+
+## Testing
+
+Required for PRs that touch the related behavior:
+
+- Component or integration tests for complex forms, async workflows, and permission-sensitive UI when test tooling exists.
+- Regression tests for bug fixes when the behavior can be reproduced with existing tooling.
+- Manual verification notes for visual changes, responsive behavior, preview rendering, and export-facing markup when automated coverage is unavailable.
+
+Frontend changes must not be handed off with known TypeScript, lint, or production build failures.
+
+## Commands
 
 Run from `frontend`:
 
@@ -44,50 +92,9 @@ Run from `frontend`:
 - Build: `pnpm run build`
 - Preview production build: `pnpm run preview`
 
-Before finishing frontend code changes, run `pnpm run lint` and `pnpm run build`.
+Before finishing frontend code changes, run:
 
-## Español
+- `pnpm run lint`
+- `pnpm run build`
 
-### Alcance
-
-Estas instrucciones aplican a `frontend`, una aplicación React + Vite + MUI para usuarios internos de Nestle que hablan español.
-
-La app debe ayudar a generar, editar, previsualizar, revisar, aprobar y exportar newsletters. El idioma principal de la UI es español. El código fuente se mantiene en inglés.
-
-### Marca y diseño
-
-- Usar `src/styles/nestleMuiTheme.ts` como fuente de verdad para tokens del theme MUI.
-- Reutilizar assets desde `src/assets`; no duplicar fuentes, logos, brand shapes o gráficos de keywords.
-- Seguir los guidelines de marca Nestle de `/ref/WemakeNestlé_DesignGuidelines_Final (2).pdf` al diseñar nuevas páginas.
-- Mantener la UI enfocada en workflows de creación de newsletters, no en páginas genéricas de marketing.
-- Usar layouts responsive para previews desktop y mobile.
-- Evitar uso decorativo de assets que no ayude a la tarea de la página.
-
-### Implementación frontend
-
-- Usar componentes React con TypeScript.
-- Mantener nombres de componentes, hooks, variables y archivos en inglés.
-- Mantener labels, copy HTML, mensajes de validación y contenido demo visibles al usuario en español.
-- Preferir componentes MUI y tokens del theme antes que CSS custom.
-- Usar Axios para llamadas al backend cuando haga falta un cliente HTTP.
-- Leer la URL base del backend desde configuración de entorno como `VITE_API_URL`.
-- No hardcodear secretos de producción ni credenciales backend en frontend.
-
-### Guía específica de newsletters
-
-- Tratar la compatibilidad HTML/export de newsletters como requerimiento de producto.
-- Tener en cuenta futuras restricciones de MJML/export al crear estructuras de editor o preview.
-- Mantener separación clara entre UI de edición, UI de preview y markup exportado del newsletter.
-- Priorizar compatibilidad con Edge por uso de navegador corporativo.
-
-### Comandos
-
-Correr desde `frontend`:
-
-- Instalar dependencias: `pnpm install`
-- Servidor de desarrollo: `pnpm run dev`
-- Lint: `pnpm run lint`
-- Build: `pnpm run build`
-- Preview del build de producción: `pnpm run preview`
-
-Antes de terminar cambios frontend, correr `pnpm run lint` y `pnpm run build`.
+If a command cannot run because local services or environment variables are missing, report the exact command and blocker.
