@@ -1,11 +1,31 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 
+const allowedOrigins = new Set(['https://nestle-ai-newsletter.vercel.app']);
+const localhostOriginPattern = /^http:\/\/(localhost|127\.0\.0\.1):\d+$/;
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
   app.enableCors({
-    origin: ['http://localhost:5173', 'http://127.0.0.1:5173'],
+    origin(
+      origin: string | undefined,
+      callback: (error: Error | null, allow?: boolean) => void,
+    ) {
+      if (
+        !origin ||
+        allowedOrigins.has(origin) ||
+        localhostOriginPattern.test(origin)
+      ) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error(`Origin ${origin} is not allowed by CORS`));
+    },
+    credentials: true,
   });
+
   await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

@@ -5,4 +5,12 @@ export class AppService {
   getHello(): string {
     return 'Hello World!';
   }
+
+  getHealth() {
+    return {
+      ok: true,
+      service: 'nestle-ai-newsletter-api',
+      timestamp: new Date().toISOString(),
+    };
+  }
 }
