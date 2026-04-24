@@ -1,7 +1,23 @@
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { Box } from '@mui/material'
+import { AuthProvider } from './contexts/AuthContext'
+import { NotificationProvider } from './contexts/NotificationContext'
+import { AlertProvider, useNotification } from './hooks/useNotification'
+import { NotificationManager } from './components/NotificationManager'
+import { ProtectedRoute } from './components/ProtectedRoute'
+import { ProtectedLayout } from './components/ProtectedLayout'
+import { LoginPage } from './pages/LoginPage'
+import { DashboardPage } from './pages/DashboardPage'
+import { CampaignsPage } from './pages/CampaignsPage'
+import { AnalyticsPage } from './pages/AnalyticsPage'
+import { ReviewsPage } from './pages/ReviewsPage'
+import { UsersPage } from './pages/UsersPage'
+import { SettingsPage } from './pages/SettingsPage'
+
+// Legacy demo pages
 import axios from 'axios'
 import { useMemo, useState } from 'react'
 import {
-  Box,
   Button,
   Chip,
   Container,
@@ -595,7 +611,7 @@ function ComponentsPage() {
   )
 }
 
-function App() {
+function AppContent() {
   const [currentPage, setCurrentPage] = useState<DemoPage>('assets')
   const theme = useTheme()
 
@@ -678,6 +694,105 @@ function App() {
         </Container>
       </Box>
     </Box>
+  )
+}
+
+function AppRouter() {
+  const { notifications, removeNotification } = useNotification()
+
+  return (
+    <Box sx={{ position: 'relative' }}>
+      <Router>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/demo" element={<AppContent />} />
+
+          {/* Protected routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <ProtectedLayout>
+                  <DashboardPage />
+                </ProtectedLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/campaigns"
+            element={
+              <ProtectedRoute>
+                <ProtectedLayout>
+                  <CampaignsPage />
+                </ProtectedLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/analytics"
+            element={
+              <ProtectedRoute allowedRoles={['super-admin', 'revisor']}>
+                <ProtectedLayout>
+                  <AnalyticsPage />
+                </ProtectedLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/reviews"
+            element={
+              <ProtectedRoute allowedRoles={['super-admin', 'revisor']}>
+                <ProtectedLayout>
+                  <ReviewsPage />
+                </ProtectedLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/users"
+            element={
+              <ProtectedRoute allowedRoles={['super-admin']}>
+                <ProtectedLayout>
+                  <UsersPage />
+                </ProtectedLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <ProtectedLayout>
+                  <SettingsPage />
+                </ProtectedLayout>
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Redirect to login by default */}
+          <Route path="/" element={<LoginPage />} />
+        </Routes>
+      </Router>
+
+      {/* Global notification manager */}
+      <NotificationManager
+        notifications={notifications}
+        onClose={removeNotification}
+      />
+    </Box>
+  )
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AlertProvider>
+        <NotificationProvider>
+          <AppRouter />
+        </NotificationProvider>
+      </AlertProvider>
+    </AuthProvider>
   )
 }
 
