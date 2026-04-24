@@ -1,46 +1,94 @@
-import { Box, Button, InputAdornment, TextField, Typography } from '@mui/material'
-import { useNavigate } from 'react-router' // 1. Import the hook
+import {
+  Box,
+  Button,
+  InputAdornment,
+  Paper,
+  Stack,
+  TextField,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+} from '@mui/material'
+import { useNavigate } from 'react-router'
 
-export function Toolbar() {
-  const navigate = useNavigate();
+interface ToolbarProps {
+  canCreateNewsletter?: boolean
+  modeLabel?: string
+}
+
+export function Toolbar({
+  canCreateNewsletter = false,
+  modeLabel = 'Vista general',
+}: ToolbarProps) {
+  const navigate = useNavigate()
 
   const route = () => {
-    navigate('/crear');
-  };
+    navigate('/crear')
+  }
 
   return (
-    <Box
+    <Paper
+      elevation={0}
       sx={{
-        display: 'flex',
-        flexDirection: { xs: 'column', md: 'row' },
-        alignItems: { xs: 'stretch', md: 'center' },
-        justifyContent: 'space-between',
-        gap: 2,
+        border: '1px solid',
+        borderColor: 'divider',
+        p: 2,
       }}
     >
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
-        <Button variant="contained" onClick={route}>Nuevo newsletter</Button>
-        <Button variant="outlined">Filtrar</Button>
-        <Button variant="outlined">Ordenar</Button>
-      </Box>
-
-      <TextField
-        placeholder="Buscar newsletters..."
-        size="small"
-        sx={{ width: { xs: '100%', md: 320 } }}
-        slotProps={{
-          input: {
-            startAdornment: (
-              <InputAdornment position="start">
-                <Typography variant="body2" color="text.secondary">
-                  Buscar
-                </Typography>
-              </InputAdornment>
-            ),
-          },
+      <Stack
+        direction={{ xs: 'column', md: 'row' }}
+        spacing={2}
+        sx={{
+          alignItems: { xs: 'stretch', md: 'center' },
+          justifyContent: 'space-between',
         }}
-      />
-    </Box>
+      >
+        <Box>
+          <Typography variant="h4">Newsletters</Typography>
+          <Typography variant="caption" color="text.secondary">
+            {modeLabel}
+          </Typography>
+        </Box>
+
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={1.5}
+          sx={{ alignItems: { xs: 'stretch', sm: 'center' } }}
+        >
+          <TextField
+            size="small"
+            placeholder="Buscar"
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Typography variant="caption" aria-hidden="true">
+                      ?
+                    </Typography>
+                  </InputAdornment>
+                ),
+              },
+            }}
+            sx={{ minWidth: { xs: '100%', sm: 220 } }}
+          />
+
+          <ToggleButtonGroup exclusive size="small" value="todos">
+            <ToggleButton value="todos">Todos</ToggleButton>
+            <ToggleButton value="pendientes">Pendientes</ToggleButton>
+          </ToggleButtonGroup>
+
+          <Button variant="outlined">
+            Filtros
+          </Button>
+
+          {canCreateNewsletter && (
+            <Button variant="contained" onClick={route}>
+              Nuevo
+            </Button>
+          )}
+        </Stack>
+      </Stack>
+    </Paper>
   )
 }
 

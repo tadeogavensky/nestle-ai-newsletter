@@ -1,6 +1,6 @@
 import { AppBar, Box, Button, Toolbar, Typography } from '@mui/material'
 import { Link as RouterLink, useLocation } from 'react-router'
-import nestleLogo from "../assets/we_make_nestle/wmn-lockup-three-lines-dark-oak-on-white.jpg";
+import nestleLogo from '../assets/we_make_nestle/wmn-lockup-three-lines-dark-oak-on-white.jpg'
 
 type NavLinkItem = {
   href: string
@@ -44,7 +44,7 @@ export function Header() {
             alt="Nestlé Logo"
             sx={{
               width: 125,
-              height: "auto", // Adjust this if the logo looks stretched
+              height: "auto",
               display: "block",
             }}
           />
