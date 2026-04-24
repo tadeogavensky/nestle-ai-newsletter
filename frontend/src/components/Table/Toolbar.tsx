@@ -9,16 +9,23 @@ import {
   ToggleButtonGroup,
   Typography,
 } from '@mui/material'
-import AddIcon from '@mui/icons-material/Add'
-import SearchIcon from '@mui/icons-material/Search'
-import TuneIcon from '@mui/icons-material/Tune'
+import { useNavigate } from 'react-router'
 
 interface ToolbarProps {
-  canCreateNewsletter: boolean
-  modeLabel: string
+  canCreateNewsletter?: boolean
+  modeLabel?: string
 }
 
-export function Toolbar({ canCreateNewsletter, modeLabel }: ToolbarProps) {
+export function Toolbar({
+  canCreateNewsletter = false,
+  modeLabel = 'Vista general',
+}: ToolbarProps) {
+  const navigate = useNavigate()
+
+  const route = () => {
+    navigate('/crear')
+  }
+
   return (
     <Paper
       elevation={0}
@@ -55,7 +62,9 @@ export function Toolbar({ canCreateNewsletter, modeLabel }: ToolbarProps) {
               input: {
                 startAdornment: (
                   <InputAdornment position="start">
-                    <SearchIcon fontSize="small" />
+                    <Typography variant="caption" aria-hidden="true">
+                      ?
+                    </Typography>
                   </InputAdornment>
                 ),
               },
@@ -68,12 +77,12 @@ export function Toolbar({ canCreateNewsletter, modeLabel }: ToolbarProps) {
             <ToggleButton value="pendientes">Pendientes</ToggleButton>
           </ToggleButtonGroup>
 
-          <Button variant="outlined" startIcon={<TuneIcon />}>
+          <Button variant="outlined">
             Filtros
           </Button>
 
           {canCreateNewsletter && (
-            <Button variant="contained" startIcon={<AddIcon />}>
+            <Button variant="contained" onClick={route}>
               Nuevo
             </Button>
           )}
@@ -82,3 +91,5 @@ export function Toolbar({ canCreateNewsletter, modeLabel }: ToolbarProps) {
     </Paper>
   )
 }
+
+export default Toolbar

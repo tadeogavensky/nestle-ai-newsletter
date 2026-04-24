@@ -12,29 +12,22 @@ import {
   Stack,
   IconButton,
 } from '@mui/material'
-import NotificationsIcon from '@mui/icons-material/Notifications'
-import DescriptionIcon from '@mui/icons-material/Description'
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'
-import CancelIcon from '@mui/icons-material/Cancel'
-import InfoIcon from '@mui/icons-material/Info'
-import WarningIcon from '@mui/icons-material/Warning'
-import CloseIcon from '@mui/icons-material/Close'
 import { useState, useRef, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { useAppNotifications, type AppNotification } from '../contexts/NotificationContext'
 
-const getNotificationIcon = (type: string) => {
+const getNotificationIconLabel = (type: string) => {
   switch (type) {
     case 'pending-review':
-      return DescriptionIcon
+      return 'R'
     case 'approved':
-      return CheckCircleIcon
+      return 'A'
     case 'rejected':
-      return CancelIcon
+      return '!'
     case 'reminder':
-      return WarningIcon
+      return '!'
     default:
-      return InfoIcon
+      return 'i'
   }
 }
 
@@ -149,7 +142,9 @@ export function NotificationsBanner() {
               },
             }}
           >
-            <NotificationsIcon sx={{ fontSize: 20, color: 'brand.red' }} />
+            <Typography variant="body2" sx={{ color: 'brand.red', fontWeight: 700 }}>
+              N
+            </Typography>
           </Badge>
           <Typography variant="body2" sx={{ fontWeight: 500 }}>
             Notificaciones
@@ -218,7 +213,7 @@ export function NotificationsBanner() {
               }}
             >
               {notifications.map((notification, index) => {
-                const Icon = getNotificationIcon(notification.type)
+                const iconLabel = getNotificationIconLabel(notification.type)
                 const notifColor = getNotificationColor(notification.type)
 
                 return (
@@ -265,7 +260,9 @@ export function NotificationsBanner() {
                           justifyContent: 'center',
                         }}
                       >
-                        <Icon sx={{ fontSize: 18, color: notifColor }} />
+                        <Typography variant="caption" sx={{ color: notifColor, fontWeight: 700 }}>
+                          {iconLabel}
+                        </Typography>
                       </Box>
                     </ListItemIcon>
 
@@ -305,7 +302,9 @@ export function NotificationsBanner() {
                         },
                       }}
                     >
-                      <CloseIcon sx={{ fontSize: 16 }} />
+                      <Typography variant="caption" aria-hidden="true">
+                        x
+                      </Typography>
                     </IconButton>
                   </ListItem>
                 )

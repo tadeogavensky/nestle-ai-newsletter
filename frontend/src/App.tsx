@@ -1,5 +1,5 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Box } from '@mui/material'
+import { BrowserRouter as Router, Route, Routes } from 'react-router'
 import { AuthProvider } from './contexts/AuthContext'
 import { NotificationProvider } from './contexts/NotificationContext'
 import { AlertProvider, useNotification } from './hooks/useNotification'
@@ -8,6 +8,7 @@ import { ProtectedRoute } from './components/ProtectedRoute'
 import { ProtectedLayout } from './components/ProtectedLayout'
 import { LoginPage } from './pages/LoginPage'
 import { DashboardPage } from './pages/DashboardPage'
+import CreatePage from './pages/CreatePage'
 import { CampaignsPage } from './pages/CampaignsPage'
 import { AnalyticsPage } from './pages/AnalyticsPage'
 import { ReviewsPage } from './pages/ReviewsPage'
@@ -720,6 +721,16 @@ function AppRouter() {
             }
           />
           <Route
+            path="/crear"
+            element={
+              <ProtectedRoute>
+                <ProtectedLayout>
+                  <CreatePage />
+                </ProtectedLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/campaigns"
             element={
               <ProtectedRoute>
@@ -732,7 +743,7 @@ function AppRouter() {
           <Route
             path="/analytics"
             element={
-              <ProtectedRoute allowedRoles={['super-admin', 'revisor']}>
+              <ProtectedRoute allowedRoles={['ADMIN', 'FUNCTIONAL']}>
                 <ProtectedLayout>
                   <AnalyticsPage />
                 </ProtectedLayout>
@@ -742,7 +753,7 @@ function AppRouter() {
           <Route
             path="/reviews"
             element={
-              <ProtectedRoute allowedRoles={['super-admin', 'revisor']}>
+              <ProtectedRoute allowedRoles={['ADMIN', 'FUNCTIONAL']}>
                 <ProtectedLayout>
                   <ReviewsPage />
                 </ProtectedLayout>
@@ -752,7 +763,7 @@ function AppRouter() {
           <Route
             path="/users"
             element={
-              <ProtectedRoute allowedRoles={['super-admin']}>
+              <ProtectedRoute allowedRoles={['ADMIN']}>
                 <ProtectedLayout>
                   <UsersPage />
                 </ProtectedLayout>

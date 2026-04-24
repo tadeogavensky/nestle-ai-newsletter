@@ -14,10 +14,6 @@ import {
   TableRow,
   Typography,
 } from '@mui/material'
-import MoreVertIcon from '@mui/icons-material/MoreVert'
-import VisibilityIcon from '@mui/icons-material/Visibility'
-import EditIcon from '@mui/icons-material/Edit'
-import RateReviewIcon from '@mui/icons-material/RateReview'
 import type { UserRole } from '../../contexts/AuthContext'
 
 type NewsletterStatus = 'Pendiente' | 'Aprobado' | 'Programado' | 'Borrador'
@@ -82,10 +78,10 @@ const getStatusColor = (status: NewsletterStatus) => {
 }
 
 interface NewslettersTableProps {
-  role: UserRole
+  role?: UserRole
 }
 
-export function NewslettersTable({ role }: NewslettersTableProps) {
+export function NewslettersTable({ role = 'USER' }: NewslettersTableProps) {
   return (
     <TableContainer
       component={Paper}
@@ -155,23 +151,25 @@ export function NewslettersTable({ role }: NewslettersTableProps) {
               <TableCell>{newsletter.updatedAt}</TableCell>
               <TableCell align="right">
                 <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'flex-end' }}>
-                  {role === 'revisor' && newsletter.status === 'Pendiente' ? (
-                    <Button size="small" variant="text" startIcon={<RateReviewIcon />}>
+                  {role === 'FUNCTIONAL' && newsletter.status === 'Pendiente' ? (
+                    <Button size="small" variant="text">
                       Revisar
                     </Button>
                   ) : (
-                    <Button size="small" variant="text" startIcon={<VisibilityIcon />}>
+                    <Button size="small" variant="text">
                       Ver
                     </Button>
                   )}
-                  {(role === 'super-admin' ||
-                    (role === 'user' && newsletter.status === 'Borrador')) && (
-                    <Button size="small" variant="text" startIcon={<EditIcon />}>
+                  {(role === 'ADMIN' ||
+                    (role === 'USER' && newsletter.status === 'Borrador')) && (
+                    <Button size="small" variant="text">
                       Editar
                     </Button>
                   )}
                   <IconButton size="small" aria-label={`Mas acciones para ${newsletter.title}`}>
-                    <MoreVertIcon fontSize="small" />
+                    <Typography variant="body2" aria-hidden="true">
+                      ...
+                    </Typography>
                   </IconButton>
                 </Stack>
               </TableCell>
@@ -182,3 +180,5 @@ export function NewslettersTable({ role }: NewslettersTableProps) {
     </TableContainer>
   )
 }
+
+export default NewslettersTable

@@ -13,7 +13,7 @@ import {
   Divider,
 } from '@mui/material'
 import { useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router'
 import { useAuth } from '../contexts/AuthContext'
 import type { UserRole } from '../contexts/AuthContext'
 import { getRoleLabel } from '../utils/role-label'
@@ -25,12 +25,12 @@ interface NavLink {
 }
 
 const navLinks: NavLink[] = [
-  { label: 'Inicio', path: '/dashboard', roles: ['super-admin', 'revisor', 'user'] },
-  { label: 'Campanias', path: '/campaigns', roles: ['super-admin', 'revisor', 'user'] },
-  { label: 'Analitica', path: '/analytics', roles: ['super-admin', 'revisor'] },
-  { label: 'Revisiones', path: '/reviews', roles: ['super-admin', 'revisor'] },
-  { label: 'Usuarios', path: '/users', roles: ['super-admin'] },
-  { label: 'Configuracion', path: '/settings', roles: ['super-admin', 'revisor', 'user'] },
+  { label: 'Inicio', path: '/dashboard', roles: ['ADMIN', 'FUNCTIONAL', 'USER'] },
+  { label: 'Campanias', path: '/campaigns', roles: ['ADMIN', 'FUNCTIONAL', 'USER'] },
+  { label: 'Analitica', path: '/analytics', roles: ['ADMIN', 'FUNCTIONAL'] },
+  { label: 'Revisiones', path: '/reviews', roles: ['ADMIN', 'FUNCTIONAL'] },
+  { label: 'Usuarios', path: '/users', roles: ['ADMIN'] },
+  { label: 'Configuracion', path: '/settings', roles: ['ADMIN', 'FUNCTIONAL', 'USER'] },
 ]
 
 export function Navigation() {

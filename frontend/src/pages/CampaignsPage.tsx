@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 export function CampaignsPage() {
   const { user } = useAuth()
   const theme = useTheme()
-  const role = user?.role ?? 'user'
+  const role = user?.role ?? 'USER'
 
   const campaigns = [
     { id: 1, name: 'Verano 2024', status: 'Publicado', subscribers: 3200 },
@@ -29,9 +29,9 @@ export function CampaignsPage() {
             </Typography>
             <Chip
               label={
-                role === 'super-admin'
+                role === 'ADMIN'
                   ? 'Permisos: administrar y publicar'
-                  : role === 'revisor'
+                  : role === 'FUNCTIONAL'
                     ? 'Permisos: revisar contenido'
                     : 'Permisos: crear y editar borradores propios'
               }
@@ -93,7 +93,7 @@ export function CampaignsPage() {
                     <Button size="small" variant="text">
                       Ver
                     </Button>
-                    {role === 'super-admin' && (
+                    {role === 'ADMIN' && (
                       <>
                         <Button size="small" variant="outlined">
                           Editar
@@ -103,12 +103,12 @@ export function CampaignsPage() {
                         </Button>
                       </>
                     )}
-                    {role === 'revisor' && campaign.status !== 'En borrador' && (
+                    {role === 'FUNCTIONAL' && campaign.status !== 'En borrador' && (
                       <Button size="small" variant="outlined">
                         Revisar
                       </Button>
                     )}
-                    {role === 'user' && campaign.status === 'En borrador' && (
+                    {role === 'USER' && campaign.status === 'En borrador' && (
                       <Button size="small" variant="outlined">
                         Editar borrador
                       </Button>

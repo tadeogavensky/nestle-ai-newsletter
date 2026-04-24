@@ -6,12 +6,12 @@ import { useAuth } from '../contexts/AuthContext'
 
 export function DashboardPage() {
   const { user } = useAuth()
-  const userRole = user?.role ?? 'user'
-  const canCreateNewsletter = userRole === 'super-admin' || userRole === 'user'
+  const userRole = user?.role ?? 'USER'
+  const canCreateNewsletter = userRole === 'ADMIN' || userRole === 'USER'
   const modeLabel =
-    userRole === 'super-admin'
+    userRole === 'ADMIN'
       ? 'Vista de administracion completa'
-      : userRole === 'revisor'
+      : userRole === 'FUNCTIONAL'
         ? 'Vista de revision y aprobacion'
         : 'Vista de usuario creador'
 

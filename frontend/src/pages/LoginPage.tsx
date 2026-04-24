@@ -12,9 +12,8 @@ import {
   Typography,
   useTheme,
 } from '@mui/material'
-import LoginIcon from '@mui/icons-material/Login'
 import { useState, type FormEvent } from 'react'
-import { Navigate, useLocation, useNavigate } from 'react-router-dom'
+import { Navigate, useLocation, useNavigate } from 'react-router'
 
 import { MICROSOFT_SSO_USERS, useAuth } from '../contexts/AuthContext'
 import { useNotification } from '../hooks/useNotification'
@@ -232,7 +231,6 @@ export function LoginPage() {
                     color="primary"
                     size="large"
                     type="submit"
-                    startIcon={!loading ? <LoginIcon /> : undefined}
                     disabled={loading}
                   >
                     {loading ? <CircularProgress size={24} color="inherit" /> : 'Continuar con Microsoft'}

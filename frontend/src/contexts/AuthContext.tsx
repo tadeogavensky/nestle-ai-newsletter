@@ -2,7 +2,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 import axios from 'axios'
 
-export type UserRole = 'super-admin' | 'revisor' | 'user'
+export type UserRole = 'ADMIN' | 'FUNCTIONAL' | 'USER'
 
 export interface User {
   id: string
@@ -33,20 +33,20 @@ export const MICROSOFT_SSO_USERS: User[] = [
   {
     id: '1',
     email: 'superadmin@example.com',
-    name: 'Super Admin',
-    role: 'super-admin',
+    name: 'Administrador',
+    role: 'ADMIN',
   },
   {
     id: '2',
-    email: 'revisor@example.com',
-    name: 'Revisor',
-    role: 'revisor',
+    email: 'funcional@example.com',
+    name: 'Funcional',
+    role: 'FUNCTIONAL',
   },
   {
     id: '3',
     email: 'user@example.com',
     name: 'Usuario Normal',
-    role: 'user',
+    role: 'USER',
   },
 ]
 

@@ -35,9 +35,9 @@ const STORAGE_PREFIX = 'nestle-ai-newsletter:notifications'
 const initialNotificationBaseTime = Date.now()
 
 const roleByUserId: Record<string, UserRole> = {
-  '1': 'super-admin',
-  '2': 'revisor',
-  '3': 'user',
+  '1': 'ADMIN',
+  '2': 'FUNCTIONAL',
+  '3': 'USER',
 }
 
 const cloneNotifications = (notifications: AppNotification[]) =>
@@ -56,7 +56,7 @@ const createDefaultNotifications = (role: UserRole, userId: string): AppNotifica
     },
   ]
 
-  if (role === 'super-admin') {
+  if (role === 'ADMIN') {
     return [
       {
         id: `${userId}-pending-review`,
@@ -80,7 +80,7 @@ const createDefaultNotifications = (role: UserRole, userId: string): AppNotifica
     ]
   }
 
-  if (role === 'revisor') {
+  if (role === 'FUNCTIONAL') {
     return [
       {
         id: `${userId}-review-queue`,
@@ -129,7 +129,7 @@ const createDefaultNotifications = (role: UserRole, userId: string): AppNotifica
 
 const getStorageKey = (userId: string) => `${STORAGE_PREFIX}:${userId}`
 
-const getRoleForUserId = (userId: string): UserRole => roleByUserId[userId] ?? 'user'
+const getRoleForUserId = (userId: string): UserRole => roleByUserId[userId] ?? 'USER'
 
 const readStoredNotifications = (userId: string): AppNotification[] | null => {
   const storedNotifications = localStorage.getItem(getStorageKey(userId))

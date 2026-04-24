@@ -9,8 +9,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material'
-import RefreshIcon from '@mui/icons-material/Refresh'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router'
 import { useAuth } from '../contexts/AuthContext'
 import { useNotification } from '../hooks/useNotification'
 
@@ -92,7 +91,7 @@ export function SettingsPage() {
                 La autenticacion se simula con Microsoft SSO y tokens hardcoded.
               </Typography>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-                <Button variant="outlined" startIcon={<RefreshIcon />} onClick={handleRefreshSession}>
+                <Button variant="outlined" onClick={handleRefreshSession}>
                   Renovar token
                 </Button>
                 <Button variant="outlined" color="error" onClick={handleLogout}>

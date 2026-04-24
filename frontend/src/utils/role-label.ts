@@ -4,11 +4,11 @@ import type { UserRole } from '../contexts/AuthContext'
 
 export function getRoleLabel(role: UserRole): string {
   switch (role) {
-    case 'super-admin':
-      return 'Super admin'
-    case 'revisor':
-      return 'Revisor'
-    case 'user':
+    case 'ADMIN':
+      return 'Administrador'
+    case 'FUNCTIONAL':
+      return 'Funcional'
+    case 'USER':
       return 'Usuario normal'
     default:
       return role

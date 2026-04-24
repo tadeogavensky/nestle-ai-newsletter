@@ -56,7 +56,7 @@ export function ReviewsPage() {
   ]
 
   const pendingReviews = reviews.filter((review) => review.status === 'pending')
-  const canAssignReview = user?.role === 'super-admin'
+  const canAssignReview = user?.role === 'ADMIN'
 
   const handleApprove = (id: string) => {
     success(`Newsletter #${id} aprobado correctamente`)

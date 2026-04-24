@@ -1,12 +1,10 @@
 import { Box, Button, Card, Chip, Container, Stack, Typography, useTheme } from '@mui/material'
-import DownloadIcon from '@mui/icons-material/Download'
-import VisibilityIcon from '@mui/icons-material/Visibility'
 import { useAuth } from '../contexts/AuthContext'
 
 export function AnalyticsPage() {
   const { user } = useAuth()
   const theme = useTheme()
-  const role = user?.role ?? 'user'
+  const role = user?.role ?? 'USER'
 
   const metrics = [
     { label: 'Total abiertos', value: '2,156', trend: '+12%' },
@@ -37,7 +35,7 @@ export function AnalyticsPage() {
               </Typography>
               <Chip
                 label={
-                  role === 'super-admin'
+                  role === 'ADMIN'
                     ? 'Vista global de todas las campanias'
                     : 'Vista de campanias asignadas a revision'
                 }
@@ -45,12 +43,12 @@ export function AnalyticsPage() {
               />
             </Stack>
 
-            {role === 'super-admin' ? (
-              <Button variant="contained" startIcon={<DownloadIcon />}>
+            {role === 'ADMIN' ? (
+              <Button variant="contained">
                 Exportar reporte
               </Button>
             ) : (
-              <Button variant="outlined" startIcon={<VisibilityIcon />}>
+              <Button variant="outlined">
                 Ver detalle
               </Button>
             )}
