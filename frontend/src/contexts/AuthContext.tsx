@@ -53,6 +53,7 @@ export const MICROSOFT_SSO_USERS: User[] = [
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 const SESSION_STORAGE_KEY = 'nestle-ai-newsletter:session'
+// MOCK_PASSWORD solo para desarrollo local/demo. No usar en producción.
 const MOCK_PASSWORD = 'password123'
 const ACCESS_TOKEN_TTL = 10 * 60 * 1000
 const REFRESH_TOKEN_TTL = 8 * 60 * 60 * 1000
@@ -212,6 +213,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (!storedSession || isExpired(storedSession.refreshTokenExpiresAt)) {
       logout()
+      // Lanzar error para notificar al usuario
       throw new Error('La sesion expiro')
     }
 

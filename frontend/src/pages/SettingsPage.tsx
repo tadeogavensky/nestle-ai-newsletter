@@ -31,7 +31,10 @@ export function SettingsPage() {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'No se pudo renovar la sesion'
       error(message)
-      navigate('/login', { replace: true })
+      // Notificar visualmente al usuario y redirigir
+      setTimeout(() => {
+        navigate('/login', { replace: true })
+      }, 1500)
     }
   }
 

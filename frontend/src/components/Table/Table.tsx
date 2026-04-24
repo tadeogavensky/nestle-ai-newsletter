@@ -76,6 +76,8 @@ const getStatusColor = (status: NewsletterStatus) => {
       return 'info'
     case 'Borrador':
       return 'default'
+    default:
+      return 'default'
   }
 }
 

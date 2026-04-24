@@ -15,24 +15,17 @@ import {
 import LoginIcon from '@mui/icons-material/Login'
 import { useState, type FormEvent } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { MICROSOFT_SSO_USERS, useAuth, type UserRole } from '../contexts/AuthContext'
+
+import { MICROSOFT_SSO_USERS, useAuth } from '../contexts/AuthContext'
 import { useNotification } from '../hooks/useNotification'
+import { getRoleLabel } from '../utils/role-label'
+
 
 interface LoginFormErrors {
   email?: string
   password?: string
 }
 
-const getRoleLabel = (role: UserRole) => {
-  switch (role) {
-    case 'super-admin':
-      return 'Super admin'
-    case 'revisor':
-      return 'Revisor'
-    case 'user':
-      return 'Usuario normal'
-  }
-}
 
 const getSafeRedirectPath = (search: string) => {
   const redirectPath = new URLSearchParams(search).get('redirect')

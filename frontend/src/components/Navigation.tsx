@@ -16,6 +16,7 @@ import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import type { UserRole } from '../contexts/AuthContext'
+import { getRoleLabel } from '../utils/role-label'
 
 interface NavLink {
   label: string
@@ -31,19 +32,6 @@ const navLinks: NavLink[] = [
   { label: 'Usuarios', path: '/users', roles: ['super-admin'] },
   { label: 'Configuracion', path: '/settings', roles: ['super-admin', 'revisor', 'user'] },
 ]
-
-const getRoleLabel = (role: UserRole): string => {
-  switch (role) {
-    case 'super-admin':
-      return 'Super Administrador'
-    case 'revisor':
-      return 'Revisor'
-    case 'user':
-      return 'Usuario'
-    default:
-      return role
-  }
-}
 
 export function Navigation() {
   const navigate = useNavigate()

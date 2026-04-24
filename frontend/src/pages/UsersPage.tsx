@@ -13,18 +13,8 @@ import {
   Typography,
   useTheme,
 } from '@mui/material'
-import { MICROSOFT_SSO_USERS, type UserRole } from '../contexts/AuthContext'
-
-const getRoleLabel = (role: UserRole) => {
-  switch (role) {
-    case 'super-admin':
-      return 'Super admin'
-    case 'revisor':
-      return 'Revisor'
-    case 'user':
-      return 'Usuario normal'
-  }
-}
+import { MICROSOFT_SSO_USERS } from '../contexts/AuthContext'
+import { getRoleLabel } from '../utils/role-label'
 
 export function UsersPage() {
   const theme = useTheme()
