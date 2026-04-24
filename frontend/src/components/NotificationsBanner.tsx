@@ -11,38 +11,38 @@ import {
   ButtonBase,
   Stack,
   IconButton,
+  useTheme,
+  type Theme,
 } from '@mui/material'
+import NotificationsIcon from '@mui/icons-material/Notifications' //pnpm add @mui/icons-material
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router'
 import { useAppNotifications, type AppNotification } from '../contexts/NotificationContext'
 
+// 1. Lógica de iniciales limpia
 const getNotificationIconLabel = (type: string) => {
   switch (type) {
-    case 'pending-review':
-      return 'R'
-    case 'approved':
-      return 'A'
-    case 'rejected':
-      return '!'
-    case 'reminder':
-      return '!'
-    default:
-      return 'i'
+    case 'pending-review': return 'R'
+    case 'approved': return 'A'
+    case 'rejected': return '!'
+    case 'reminder': return '!'
+    default: return 'i'
   }
 }
 
-const getNotificationColor = (type: string) => {
+// Uso dinámico del Theme de MUI en lugar de colores hardcodeados
+const getNotificationColor = (type: string, theme: Theme) => {
   switch (type) {
     case 'pending-review':
-      return '#FFB81C' // Nestle Orange
+      return theme.palette.warning.main
     case 'approved':
-      return '#6BB33D' // Nestle Green
+      return theme.palette.success.main
     case 'rejected':
-      return '#D41D3D' // Nestle Red
+      return theme.palette.error.main
     case 'reminder':
-      return '#FF9800' // Warning Orange
+      return theme.palette.info.main
     default:
-      return '#00BCD4' // Turquoise
+      return theme.palette.primary.main
   }
 }
 
@@ -62,10 +62,12 @@ const formatTime = (timestamp: number, now: number): string => {
 }
 
 export function NotificationsBanner() {
+  const theme = useTheme()
   const [isOpen, setIsOpen] = useState(false)
   const [currentTime, setCurrentTime] = useState(initialCurrentTime)
   const panelRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
+
   const { notifications, unreadCount, markAsRead, markAllAsRead, removeNotification } =
     useAppNotifications()
 
@@ -105,46 +107,40 @@ export function NotificationsBanner() {
 
   return (
     <Box ref={panelRef} sx={{ position: 'relative' }}>
-      {/* Banner */}
+      {/* Banner de botón principal */}
       <ButtonBase
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => setIsOpen((prev) => !prev)}
         sx={{
           width: '100%',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'flex-start',
           borderRadius: 1.5,
-          bgcolor: 'brand.white',
+          bgcolor: 'background.paper',
           px: 2,
           py: 1.5,
-          color: 'brand.darkOak',
-          transition: 'all 0.2s',
+          color: 'text.primary',
+          transition: 'all 0.2s ease',
           border: '1px solid',
           borderColor: 'divider',
           '&:hover': {
-            bgcolor: 'grey.50',
-            borderColor: 'brand.red',
+            bgcolor: 'action.hover',
           },
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           <Badge
             badgeContent={unreadCount}
+            color="error"
             sx={{
               '& .MuiBadge-badge': {
-                bgcolor: 'brand.red',
-                color: 'brand.white',
                 fontWeight: 700,
                 fontSize: 11,
-                minWidth: 20,
-                height: 20,
-                borderRadius: '50%',
               },
             }}
           >
-            <Typography variant="body2" sx={{ color: 'brand.red', fontWeight: 700 }}>
-              N
-            </Typography>
+            {/* Se corrigió el color para usar la paleta del tema */}
+            <NotificationsIcon sx={{ fontSize: 20, color: theme.palette.error.main }} />
           </Badge>
           <Typography variant="body2" sx={{ fontWeight: 500 }}>
             Notificaciones
@@ -152,17 +148,16 @@ export function NotificationsBanner() {
         </Box>
       </ButtonBase>
 
-      {/* Dropdown Panel */}
+      {/* Panel Desplegable */}
       <Collapse in={isOpen}>
         <Paper
-          elevation={3}
+          elevation={4}
           sx={{
             position: 'absolute',
             left: 0,
             right: 0,
-            top: '100%',
-            zIndex: 9999,
-            mt: 1,
+            top: 'calc(100% + 8px)',
+            zIndex: theme.zIndex.tooltip,
             borderRadius: 1.5,
             overflow: 'hidden',
             maxHeight: 400,
@@ -170,7 +165,7 @@ export function NotificationsBanner() {
             flexDirection: 'column',
           }}
         >
-          {/* Header */}
+          {/* Cabecera del Panel */}
           <Box
             sx={{
               px: 2,
@@ -180,32 +175,36 @@ export function NotificationsBanner() {
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
-              bgcolor: 'background.paper',
+              bgcolor: 'background.default',
             }}
           >
             <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
               {notifications.length} notificaciones
             </Typography>
             {unreadCount > 0 && (
-              <ButtonBase onClick={markAllAsRead} sx={{ fontSize: 12, color: 'brand.red' }}>
+              <ButtonBase
+                onClick={markAllAsRead}
+                sx={{
+                  fontSize: 12,
+                  color: theme.palette.primary.main,
+                  fontWeight: 500,
+                  '&:hover': { textDecoration: 'underline' }
+                }}
+              >
                 Marcar todo como leído
               </ButtonBase>
             )}
           </Box>
 
-          {/* Notifications List */}
+          {/* Lista de Notificaciones */}
           {notifications.length > 0 ? (
             <List
               disablePadding
               sx={{
                 overflowY: 'auto',
                 flex: 1,
-                '&::-webkit-scrollbar': {
-                  width: 6,
-                },
-                '&::-webkit-scrollbar-track': {
-                  bgcolor: 'transparent',
-                },
+                '&::-webkit-scrollbar': { width: 6 },
+                '&::-webkit-scrollbar-track': { bgcolor: 'transparent' },
                 '&::-webkit-scrollbar-thumb': {
                   bgcolor: 'divider',
                   borderRadius: 3,
@@ -214,7 +213,7 @@ export function NotificationsBanner() {
             >
               {notifications.map((notification, index) => {
                 const iconLabel = getNotificationIconLabel(notification.type)
-                const notifColor = getNotificationColor(notification.type)
+                const notifColor = getNotificationColor(notification.type, theme)
 
                 return (
                   <ListItem
@@ -226,15 +225,15 @@ export function NotificationsBanner() {
                       borderColor: 'divider',
                       bgcolor: notification.isRead ? 'transparent' : 'action.hover',
                       cursor: 'pointer',
-                      transition: 'all 0.2s',
-                      '&:hover': {
-                        bgcolor: notification.isRead ? 'grey.50' : 'action.selected',
-                      },
+                      transition: 'all 0.2s ease',
                       position: 'relative',
+                      alignItems: 'flex-start',
+                      '&:hover': {
+                        bgcolor: 'action.selected',
+                      },
                     }}
                     onClick={() => handleNotificationClick(notification)}
                   >
-                    {/* Unread indicator */}
                     {!notification.isRead && (
                       <Box
                         sx={{
@@ -242,25 +241,26 @@ export function NotificationsBanner() {
                           left: 0,
                           top: 0,
                           bottom: 0,
-                          width: 3,
-                          bgcolor: 'brand.red',
+                          width: 4,
+                          bgcolor: theme.palette.primary.main,
                         }}
                       />
                     )}
 
-                    <ListItemIcon sx={{ minWidth: 40 }}>
+                    <ListItemIcon sx={{ minWidth: 40, mt: 0.5 }}>
                       <Box
                         sx={{
-                          width: 36,
-                          height: 36,
+                          width: 32,
+                          height: 32,
                           borderRadius: '50%',
-                          bgcolor: `${notifColor}20`,
+                          bgcolor: `${notifColor}15`,
+                          border: `1px solid ${notifColor}30`,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                         }}
                       >
-                        <Typography variant="caption" sx={{ color: notifColor, fontWeight: 700 }}>
+                        <Typography variant="caption" sx={{ color: notifColor, fontWeight: 800 }}>
                           {iconLabel}
                         </Typography>
                       </Box>
@@ -269,11 +269,14 @@ export function NotificationsBanner() {
                     <ListItemText
                       primary={notification.title}
                       secondary={
-                        <Stack spacing={0.5}>
+                        <Stack spacing={0.5} sx={{ mt: 0.5 }}>
                           <Typography variant="caption" color="text.secondary">
                             {notification.message}
                           </Typography>
-                          <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+                          <Typography
+                            variant="caption"
+                            sx={{ color: 'text.disabled', fontWeight: 500 }}
+                          >
                             {formatTime(notification.timestamp, currentTime)}
                           </Typography>
                         </Stack>
@@ -286,6 +289,10 @@ export function NotificationsBanner() {
                             color: 'text.primary',
                           },
                         },
+                        // CORRECCIÓN AQUÍ: Esto evita el error de validación de DOM
+                        secondary: {
+                          component: 'div',
+                        },
                       }}
                     />
 
@@ -296,14 +303,16 @@ export function NotificationsBanner() {
                         removeNotification(notification.id)
                       }}
                       sx={{
-                        opacity: 0.5,
-                        '&:hover': {
-                          opacity: 1,
+                        opacity: 0,
+                        transition: 'opacity 0.2s',
+                        '.MuiListItem-root:hover &': {
+                          opacity: 0.6,
                         },
+                        '&:hover': { opacity: 1 },
                       }}
                     >
                       <Typography variant="caption" aria-hidden="true">
-                        x
+                        ✕
                       </Typography>
                     </IconButton>
                   </ListItem>
@@ -313,14 +322,14 @@ export function NotificationsBanner() {
           ) : (
             <Box
               sx={{
-                py: 4,
+                py: 5,
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
                 color: 'text.secondary',
               }}
             >
-              <Typography variant="body2">No hay notificaciones</Typography>
+              <Typography variant="body2">No hay notificaciones pendientes</Typography>
             </Box>
           )}
         </Paper>
@@ -328,3 +337,5 @@ export function NotificationsBanner() {
     </Box>
   )
 }
+
+export default NotificationsBanner
