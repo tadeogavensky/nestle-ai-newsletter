@@ -35,6 +35,11 @@ export class NewslettersController {
     return this.newslettersService.updateStatus(id);
   }
 
+  @Post(':id/logs')
+  addLog(@Param('id') id: string) {
+    return this.newslettersService.addLog(id);
+  }
+
   @Get(':id/logs')
   getLogs(@Param('id') id: string) {
     return this.newslettersService.getLogs(id);
@@ -48,5 +53,23 @@ export class NewslettersController {
   @Post(':id/comments')
   addComment(@Param('id') id: string) {
     return this.newslettersService.addComment(id);
+  }
+
+  @Patch(':id/comments/:commentId')
+  updateComment(
+    @Param('id') id: string,
+    @Param('commentId') commentId: string,
+  ) {
+    return this.newslettersService.updateComment(id, commentId);
+  }
+
+  @Patch(':id/exports/:exportId')
+  updateExports(@Param('id') id: string, @Param('exportId') exportId: string) {
+    return this.newslettersService.updateExports(id, exportId);
+  }
+
+  @Get(':id/exports')
+  getExports(@Param('id') id: string) {
+    return this.newslettersService.getExports(id);
   }
 }

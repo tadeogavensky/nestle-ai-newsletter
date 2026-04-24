@@ -31,4 +31,16 @@ export class TemplatesService {
   defineBlocks(id: string) {
     return 'Desde define blocks templates con ID' + id;
   }
+
+  getAssets(templateId: string) {
+    return `Desde assets templates con ID ${templateId}`;
+  }
+
+  addAsset(templateId: string) {
+    return `Desde add asset templates con ID ${templateId}`;
+  }
+
+  updateAsset(templateId: string, assetId: string) {
+    return `Desde update asset templates con ID ${templateId} y asset ID ${assetId}`;
+  }
 }

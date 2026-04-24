@@ -32,11 +32,27 @@ export class NewsLettersService {
     return 'Desde logs newsletters con ID' + id;
   }
 
+  addLog(id: string) {
+    return 'Desde add log newsletters con ID' + id;
+  }
+
   getComments(id: string) {
     return 'Desde comments newsletters con ID' + id;
   }
 
   addComment(id: string) {
     return 'Desde add comment newsletters con ID' + id;
+  }
+
+  updateComment(id: string, commentId: string) {
+    return `Desde update comment newsletters con ID ${id} y commentId ${commentId}`;
+  }
+
+  updateExports(id: string, exportId: string) {
+    return `Desde update exports newsletters con ID ${id} y exportId ${exportId}`;
+  }
+
+  getExports(id: string) {
+    return `Desde exports newsletters con ID ${id}`;
   }
 }

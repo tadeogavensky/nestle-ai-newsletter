@@ -39,4 +39,19 @@ export class TemplatesController {
   defineBlocks(@Param('id') id: string) {
     return this.templatesService.defineBlocks(id);
   }
+
+  @Get(':id/assets')
+  getAssets(@Param('id') id: string) {
+    return this.templatesService.getAssets(id);
+  }
+
+  @Post(':id/assets')
+  addAsset(@Param('id') id: string) {
+    return this.templatesService.addAsset(id);
+  }
+
+  @Patch(':id/assets/:assetId')
+  updateAsset(@Param('id') id: string, @Param('assetId') assetId: string) {
+    return this.templatesService.updateAsset(id, assetId);
+  }
 }
