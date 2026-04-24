@@ -1,9 +1,11 @@
 import { Box, Button, Card, Chip, Container, Stack, Typography, useTheme } from '@mui/material'
+import { useNavigate } from 'react-router'
 import { useAuth } from '../contexts/AuthContext'
 
 export function CampaignsPage() {
   const { user } = useAuth()
   const theme = useTheme()
+  const navigate = useNavigate()
   const role = user?.role ?? 'USER'
 
   const campaigns = [
@@ -95,7 +97,7 @@ export function CampaignsPage() {
                     </Button>
                     {role === 'ADMIN' && (
                       <>
-                        <Button size="small" variant="outlined">
+                        <Button size="small" variant="outlined" onClick={() => navigate(`/editar/${campaign.id}`)}>
                           Editar
                         </Button>
                         <Button size="small" variant="contained">
@@ -109,7 +111,7 @@ export function CampaignsPage() {
                       </Button>
                     )}
                     {role === 'USER' && campaign.status === 'En borrador' && (
-                      <Button size="small" variant="outlined">
+                      <Button size="small" variant="outlined" onClick={() => navigate(`/editar/${campaign.id}`)}>
                         Editar borrador
                       </Button>
                     )}

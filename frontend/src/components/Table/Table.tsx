@@ -14,6 +14,7 @@ import {
   TableRow,
   Typography,
 } from '@mui/material'
+import { useNavigate } from 'react-router'
 import type { UserRole } from '../../contexts/AuthContext'
 
 type NewsletterStatus = 'Pendiente' | 'Aprobado' | 'Programado' | 'Borrador'
@@ -82,6 +83,8 @@ interface NewslettersTableProps {
 }
 
 export function NewslettersTable({ role = 'USER' }: NewslettersTableProps) {
+  const navigate = useNavigate()
+
   return (
     <TableContainer
       component={Paper}
@@ -162,7 +165,7 @@ export function NewslettersTable({ role = 'USER' }: NewslettersTableProps) {
                   )}
                   {(role === 'ADMIN' ||
                     (role === 'USER' && newsletter.status === 'Borrador')) && (
-                    <Button size="small" variant="text">
+                    <Button size="small" variant="text" onClick={() => navigate(`/editar/${newsletter.id}`)}>
                       Editar
                     </Button>
                   )}
