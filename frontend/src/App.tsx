@@ -9,6 +9,7 @@ import { ProtectedLayout } from './components/ProtectedLayout'
 import { LoginPage } from './pages/LoginPage'
 import { DashboardPage } from './pages/DashboardPage'
 import CreatePage from './pages/CreatePage'
+import { EditPage } from './pages/EditPage'
 import { CampaignsPage } from './pages/CampaignsPage'
 import { AnalyticsPage } from './pages/AnalyticsPage'
 import { ReviewsPage } from './pages/ReviewsPage'
@@ -726,6 +727,16 @@ function AppRouter() {
               <ProtectedRoute>
                 <ProtectedLayout>
                   <CreatePage />
+                </ProtectedLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/editar/:id"
+            element={
+              <ProtectedRoute>
+                <ProtectedLayout>
+                  <EditPage />
                 </ProtectedLayout>
               </ProtectedRoute>
             }
