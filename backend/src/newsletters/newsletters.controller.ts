@@ -1,5 +1,42 @@
-import { Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { NewsLettersService } from './newsletters.service';
+import {
+  idAndCommentIdParamSchema,
+  idAndExportIdParamSchema,
+  idParamSchema,
+} from '../common/zod/route-params.schema';
+import type {
+  IdAndCommentIdParam,
+  IdAndExportIdParam,
+  IdParam,
+} from '../common/zod/route-params.schema';
+import { ZodValidationPipe } from '../common/zod/zod-validation.pipe';
+import {
+  addNewsletterCommentBodySchema,
+  addNewsletterLogBodySchema,
+  createNewsletterBodySchema,
+  updateNewsletterBodySchema,
+  updateNewsletterCommentBodySchema,
+  updateNewsletterExportBodySchema,
+  updateNewsletterStatusBodySchema,
+} from './newsletters.schemas';
+import type {
+  AddNewsletterCommentBody,
+  AddNewsletterLogBody,
+  CreateNewsletterBody,
+  UpdateNewsletterBody,
+  UpdateNewsletterCommentBody,
+  UpdateNewsletterExportBody,
+  UpdateNewsletterStatusBody,
+} from './newsletters.schemas';
 
 @Controller('newsletters')
 export class NewslettersController {
@@ -11,65 +48,98 @@ export class NewslettersController {
   }
 
   @Post()
-  create() {
+  create(
+    @Body(new ZodValidationPipe(createNewsletterBodySchema))
+    body: CreateNewsletterBody,
+  ) {
+    void body;
     return this.newslettersService.create();
   }
 
   @Get(':id')
-  getById(@Param('id') id: string) {
-    return this.newslettersService.getById(id);
+  getById(@Param(new ZodValidationPipe(idParamSchema)) params: IdParam) {
+    return this.newslettersService.getById(params.id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string) {
-    return this.newslettersService.update(id);
+  update(
+    @Param(new ZodValidationPipe(idParamSchema)) params: IdParam,
+    @Body(new ZodValidationPipe(updateNewsletterBodySchema))
+    body: UpdateNewsletterBody,
+  ) {
+    void body;
+    return this.newslettersService.update(params.id);
   }
 
   @Delete(':id')
-  delete(@Param('id') id: string) {
-    return this.newslettersService.delete(id);
+  delete(@Param(new ZodValidationPipe(idParamSchema)) params: IdParam) {
+    return this.newslettersService.delete(params.id);
   }
 
   @Post(':id/status')
-  updateStatus(@Param('id') id: string) {
-    return this.newslettersService.updateStatus(id);
+  updateStatus(
+    @Param(new ZodValidationPipe(idParamSchema)) params: IdParam,
+    @Body(new ZodValidationPipe(updateNewsletterStatusBodySchema))
+    body: UpdateNewsletterStatusBody,
+  ) {
+    void body;
+    return this.newslettersService.updateStatus(params.id);
   }
 
   @Post(':id/logs')
-  addLog(@Param('id') id: string) {
-    return this.newslettersService.addLog(id);
+  addLog(
+    @Param(new ZodValidationPipe(idParamSchema)) params: IdParam,
+    @Body(new ZodValidationPipe(addNewsletterLogBodySchema))
+    body: AddNewsletterLogBody,
+  ) {
+    void body;
+    return this.newslettersService.addLog(params.id);
   }
 
   @Get(':id/logs')
-  getLogs(@Param('id') id: string) {
-    return this.newslettersService.getLogs(id);
+  getLogs(@Param(new ZodValidationPipe(idParamSchema)) params: IdParam) {
+    return this.newslettersService.getLogs(params.id);
   }
 
   @Get(':id/comments')
-  getComments(@Param('id') id: string) {
-    return this.newslettersService.getComments(id);
+  getComments(@Param(new ZodValidationPipe(idParamSchema)) params: IdParam) {
+    return this.newslettersService.getComments(params.id);
   }
 
   @Post(':id/comments')
-  addComment(@Param('id') id: string) {
-    return this.newslettersService.addComment(id);
+  addComment(
+    @Param(new ZodValidationPipe(idParamSchema)) params: IdParam,
+    @Body(new ZodValidationPipe(addNewsletterCommentBodySchema))
+    body: AddNewsletterCommentBody,
+  ) {
+    void body;
+    return this.newslettersService.addComment(params.id);
   }
 
   @Patch(':id/comments/:commentId')
   updateComment(
-    @Param('id') id: string,
-    @Param('commentId') commentId: string,
+    @Param(new ZodValidationPipe(idAndCommentIdParamSchema))
+    params: IdAndCommentIdParam,
+    @Body(new ZodValidationPipe(updateNewsletterCommentBodySchema))
+    body: UpdateNewsletterCommentBody,
   ) {
-    return this.newslettersService.updateComment(id, commentId);
+    void body;
+    return this.newslettersService.updateComment(params.id, params.commentId);
   }
 
   @Patch(':id/exports/:exportId')
-  updateExports(@Param('id') id: string, @Param('exportId') exportId: string) {
-    return this.newslettersService.updateExports(id, exportId);
+  updateExports(
+    @Param(new ZodValidationPipe(idAndExportIdParamSchema))
+    params: IdAndExportIdParam,
+    @Body(new ZodValidationPipe(updateNewsletterExportBodySchema))
+    body: UpdateNewsletterExportBody,
+  ) {
+    void body;
+    return this.newslettersService.updateExports(params.id, params.exportId);
   }
 
   @Get(':id/exports')
-  getExports(@Param('id') id: string) {
-    return this.newslettersService.getExports(id);
+  getExports(@Param(new ZodValidationPipe(idParamSchema)) params: IdParam) {
+    return this.newslettersService.getExports(params.id);
   }
 }
