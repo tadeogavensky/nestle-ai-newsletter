@@ -88,7 +88,7 @@ export function LoginPage() {
 
     try {
       await login(email.trim().toLowerCase(), password)
-      notifySuccess('Sesion iniciada con Microsoft')
+      notifySuccess('Sesion iniciada con Microsoft',)
       navigate(redirectPath, { replace: true })
     } catch (err) {
       const message = err instanceof Error ? err.message : 'No se pudo iniciar sesion'
