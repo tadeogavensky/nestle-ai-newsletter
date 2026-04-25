@@ -110,9 +110,9 @@ export function CampaignsPage() {
                         Revisar
                       </Button>
                     )}
-                    {role === 'USER' && campaign.status === 'En borrador' && (
+                    {role === 'USER' && (
                       <Button size="small" variant="outlined" onClick={() => navigate(`/editar/${campaign.id}`)}>
-                        Editar borrador
+                        Editar
                       </Button>
                     )}
                   </Stack>

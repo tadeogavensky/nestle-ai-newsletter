@@ -163,8 +163,7 @@ export function NewslettersTable({ role = 'USER' }: NewslettersTableProps) {
                       Ver
                     </Button>
                   )}
-                  {(role === 'ADMIN' ||
-                    (role === 'USER' && newsletter.status === 'Borrador')) && (
+                  {(role === 'ADMIN' || role === 'USER') && (
                     <Button size="small" variant="text" onClick={() => navigate(`/editar/${newsletter.id}`)}>
                       Editar
                     </Button>
