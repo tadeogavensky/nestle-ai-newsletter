@@ -838,7 +838,6 @@ function AppRouter() {
               </h1>
             }
           />
-          {/* Esta ruta entiendo deberia ser lo que generó Hernan */}
           <Route
             path="/admin/templates/edit/:id"
             element={
@@ -847,7 +846,6 @@ function AppRouter() {
               </h1>
             }
           />
-          {/* Esta ruta podria ser para la visual con la revisión final y la exportación a los formatos */}
           <Route
             path="/newsletters/preview/:id"
             element={
