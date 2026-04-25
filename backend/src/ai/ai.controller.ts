@@ -1,12 +1,29 @@
-import { Controller, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Headers,
+  Post,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AiService } from './ai.service';
+import type {
+  ImproveTextRequestDto,
+  ImproveTextResponseDto,
+} from './dto/improve-text.dto';
 
 @Controller('ai')
 export class AiController {
   constructor(private readonly aiService: AiService) {}
 
-  @Post('generate-text')
-  generateTextContent() {
-    return this.aiService.generateTextContent();
+  @Post('improve-text')
+  improveText(
+    @Headers('authorization') authorization: string | undefined,
+    @Body() body: ImproveTextRequestDto,
+  ): Promise<ImproveTextResponseDto> {
+    if (!authorization?.startsWith('Bearer ')) {
+      throw new UnauthorizedException('Authentication is required');
+    }
+
+    return this.aiService.improveText(body);
   }
 }
