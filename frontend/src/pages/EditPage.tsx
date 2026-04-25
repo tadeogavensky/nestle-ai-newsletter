@@ -33,7 +33,7 @@ interface Block {
   content: string
 }
 
-interface MockNewsletter {
+interface MockTemplate {
   id: string
   title: string
   category: string
@@ -41,21 +41,21 @@ interface MockNewsletter {
   blocks: Block[]
 }
 
-const MOCK_NEWSLETTERS: MockNewsletter[] = [
+const MOCK_TEMPLATES: MockTemplate[] = [
   {
     id: '1',
-    title: 'Newsletter Semanal #42',
+    title: 'Template Actualizacion Interna',
     category: 'Comunicacion',
     subject: 'Las novedades más importantes del equipo esta semana',
     blocks: [
       { id: 'block-a', label: 'Bloque A', type: 'CONTENT', content: 'Introducción al contenido de la semana con las novedades más importantes del equipo. Este espacio resume los logros, noticias y actualizaciones relevantes para todos.' },
-      { id: 'block-b', label: 'Bloque B', type: 'MULTIMEDIA', content: 'Imagen principal del newsletter con el mensaje de la semana.' },
+      { id: 'block-b', label: 'Bloque B', type: 'MULTIMEDIA', content: 'Imagen principal del template con el mensaje de la semana.' },
       { id: 'block-c', label: 'Bloque C', type: 'CONTENT', content: 'Sección de cierre con los próximos eventos y recordatorios importantes para el equipo durante la semana.' },
     ],
   },
   {
     id: '2',
-    title: 'Newsletter Institucional #12',
+    title: 'Template Newsletter Institucional',
     category: 'Marketing',
     subject: 'Resultados del trimestre y próximos objetivos',
     blocks: [
@@ -208,14 +208,14 @@ export function EditPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
 
-  const initialIndex = MOCK_NEWSLETTERS.findIndex(n => n.id === id)
-  const [newsletterIndex, setNewsletterIndex] = useState(initialIndex >= 0 ? initialIndex : 0)
+  const initialIndex = MOCK_TEMPLATES.findIndex(n => n.id === id)
+  const [templateIndex, setTemplateIndex] = useState(initialIndex >= 0 ? initialIndex : 0)
   const [activeTab, setActiveTab] = useState(1)
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null)
   const [leftView, setLeftView] = useState<'blocks' | 'preview'>('blocks')
 
-  const newsletter = MOCK_NEWSLETTERS[newsletterIndex]
-  const selectedBlock = newsletter.blocks.find(b => b.id === selectedBlockId) ?? null
+  const template = MOCK_TEMPLATES[templateIndex]
+  const selectedBlock = template.blocks.find(b => b.id === selectedBlockId) ?? null
 
   const handleBlockClick = (blockId: string) => {
     setSelectedBlockId(blockId === selectedBlockId ? null : blockId)
@@ -223,12 +223,12 @@ export function EditPage() {
   }
 
   const handlePrev = () => {
-    setNewsletterIndex(i => Math.max(0, i - 1))
+    setTemplateIndex(i => Math.max(0, i - 1))
     setSelectedBlockId(null)
   }
 
   const handleNext = () => {
-    setNewsletterIndex(i => Math.min(MOCK_NEWSLETTERS.length - 1, i + 1))
+    setTemplateIndex(i => Math.min(MOCK_TEMPLATES.length - 1, i + 1))
     setSelectedBlockId(null)
   }
 
@@ -253,10 +253,10 @@ export function EditPage() {
 
         <Box sx={{ flex: 1 }}>
           <Typography variant="caption" color="text.secondary" display="block">
-            {newsletter.category}
+            {template.category}
           </Typography>
           <Typography variant="subtitle1" fontWeight={700} lineHeight={1.2}>
-            {newsletter.title}
+            {template.title}
           </Typography>
         </Box>
 
@@ -264,18 +264,18 @@ export function EditPage() {
           <IconButton
             size="small"
             onClick={handlePrev}
-            disabled={newsletterIndex === 0}
+            disabled={templateIndex === 0}
             sx={{ color: 'brand.red' }}
           >
             <ArrowBackIosNewIcon fontSize="small" />
           </IconButton>
           <Typography variant="caption" color="text.secondary" sx={{ minWidth: 40, textAlign: 'center' }}>
-            {newsletterIndex + 1} / {MOCK_NEWSLETTERS.length}
+            {templateIndex + 1} / {MOCK_TEMPLATES.length}
           </Typography>
           <IconButton
             size="small"
             onClick={handleNext}
-            disabled={newsletterIndex === MOCK_NEWSLETTERS.length - 1}
+            disabled={templateIndex === MOCK_TEMPLATES.length - 1}
             sx={{ color: 'brand.red' }}
           >
             <ArrowForwardIosIcon fontSize="small" />
@@ -364,7 +364,7 @@ export function EditPage() {
           {leftView === 'blocks' && (
             <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
               <Stack spacing={1.5}>
-                {newsletter.blocks.map(block => {
+                {template.blocks.map(block => {
                   const config = BLOCK_TYPE_CONFIG[block.type]
                   const isSelected = selectedBlockId === block.id
                   return (
@@ -431,30 +431,30 @@ export function EditPage() {
                 {/* Header del email */}
                 <Box sx={{ bgcolor: '#FF595A', px: 3, py: 2 }}>
                   <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)', display: 'block', mb: 0.25 }}>
-                    {newsletter.category}
+                    {template.category}
                   </Typography>
                   <Typography sx={{ color: 'white', fontWeight: 700, fontSize: 16, lineHeight: 1.3 }}>
-                    {newsletter.title}
+                    {template.title}
                   </Typography>
                 </Box>
 
                 {/* Asunto */}
                 <Box sx={{ px: 3, py: 1.5, bgcolor: '#FFF8F8', borderBottom: '1px solid #FFE0E0' }}>
                   <Typography variant="caption" color="text.secondary">
-                    <strong>Asunto:</strong> {newsletter.subject}
+                    <strong>Asunto:</strong> {template.subject}
                   </Typography>
                 </Box>
 
                 {/* Bloques del email */}
                 <Box>
-                  {newsletter.blocks.map((block, index) => (
+                  {template.blocks.map((block, index) => (
                     <Box key={block.id}>
                       <EmailBlockPreview
                         block={block}
                         isSelected={selectedBlockId === block.id}
                         onClick={() => handleBlockClick(block.id)}
                       />
-                      {index < newsletter.blocks.length - 1 && (
+                      {index < template.blocks.length - 1 && (
                         <Divider sx={{ mx: 3, borderColor: '#F0F0F0' }} />
                       )}
                     </Box>
@@ -464,7 +464,7 @@ export function EditPage() {
                 {/* Footer del email */}
                 <Box sx={{ bgcolor: '#F5F5F5', px: 3, py: 2, borderTop: '1px solid #E0E0E0' }}>
                   <Typography variant="caption" color="text.disabled" display="block" textAlign="center">
-                    Nestlé Argentina · Newsletter interno
+                    Nestlé Argentina · Template interno
                   </Typography>
                   <Typography variant="caption" color="text.disabled" display="block" textAlign="center">
                     Para cancelar suscripción, hacé clic aquí
@@ -475,7 +475,7 @@ export function EditPage() {
               {selectedBlockId && (
                 <Box sx={{ maxWidth: 520, mx: 'auto', mt: 1.5 }}>
                   <Typography variant="caption" sx={{ color: '#FF595A', fontWeight: 600 }}>
-                    {newsletter.blocks.find(b => b.id === selectedBlockId)?.label} seleccionado — editalo en el panel derecho
+                    {template.blocks.find(b => b.id === selectedBlockId)?.label} seleccionado — editalo en el panel derecho
                   </Typography>
                 </Box>
               )}
@@ -496,11 +496,11 @@ export function EditPage() {
             }}
           >
             <Typography variant="caption" color="text.secondary">
-              {newsletter.blocks.length} bloques
+              {template.blocks.length} bloques
             </Typography>
             {selectedBlockId && (
               <Typography variant="caption" sx={{ color: 'brand.red' }} fontWeight={600}>
-                {newsletter.blocks.find(b => b.id === selectedBlockId)?.label} seleccionado
+                {template.blocks.find(b => b.id === selectedBlockId)?.label} seleccionado
               </Typography>
             )}
           </Box>
