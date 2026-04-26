@@ -1,3 +1,5 @@
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 import {
   Avatar,
   Box,
@@ -12,6 +14,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TablePagination,
   Typography,
 } from '@mui/material'
 import type { UserRole } from '../../contexts/AuthContext'
@@ -82,7 +85,47 @@ interface NewslettersTableProps {
 }
 
 export function NewslettersTable({ role = 'USER' }: NewslettersTableProps) {
-  return (
+  const [data, setData] = useState<NewsletterRow[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Estados para el paginado
+  const [page, setPage] = useState(0); // MUI usa base 0 para el paginado
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [totalRecords, setTotalRecords] = useState(0);
+
+  const fetchNewsletters = async () => {
+    setLoading(true);
+    try {
+      // Llamamos a tu backend (ajusta la URL según tu config)
+      const response = await axios.get(`http://localhost:3000/newsletters`, {
+        params: {
+          page: page + 1, // El backend usa base 1
+          limit: rowsPerPage
+        }
+      });
+      setData(response.data.data);
+      setTotalRecords(response.data.meta.total);
+    } catch (error) {
+      console.error("Error cargando newsletters", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchNewsletters();
+  }, [page, rowsPerPage]); // Se ejecuta cada vez que cambias de página
+
+  const handleChangePage = (_: unknown, newPage: number) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
+  /*return (
     <TableContainer
       component={Paper}
       elevation={0}
@@ -178,7 +221,30 @@ export function NewslettersTable({ role = 'USER' }: NewslettersTableProps) {
         </TableBody>
       </MuiTable>
     </TableContainer>
-  )
+  )*/
+
+  return (
+    <Paper>
+      <TableContainer>
+        <MuiTable>
+          {/* ... tu TableHead y TableBody usando 'data' en lugar de 'newsletters' ... */}
+        </MuiTable>
+      </TableContainer>
+      
+      {/* EL COMPONENTE DE PAGINADO */}
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 25]}
+        component="div"
+        count={totalRecords}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+        labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
+        labelRowsPerPage="Filas por página:"
+      />
+    </Paper>
+  );
 }
 
 export default NewslettersTable

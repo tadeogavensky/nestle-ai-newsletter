@@ -1,11 +1,39 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service'; // Asegúrate de que la ruta sea correcta
+import { newsletter_states } from '@prisma/client';
 
 @Injectable()
 export class NewsLettersService {
-  constructor() {}
+  constructor(private prisma: PrismaService) {}
 
-  getAll(): string {
-    return 'Desde newsletters';
+  async getAll(page: number = 1, limit: number = 10) {
+    // Calculamos cuántos registros saltar
+    const skip = (page - 1) * limit;
+
+    // Ejecutamos dos tareas en paralelo para ser más rápidos
+    const [data, total] = await Promise.all([
+      this.prisma.newsletters.findMany({
+        skip: skip,
+        take: limit,
+        orderBy: { created_at: 'desc' }, // Los más nuevos primero
+        include: {
+          // Esto trae los datos del creador (su nombre) en lugar de solo el ID
+          users_newsletters_created_by_user_idTousers: {
+            select: { name: true, last_name: true }
+          }
+        }
+      }),
+      this.prisma.newsletters.count(), // Necesitamos el total para que el front sepa cuántas páginas hay
+    ]);
+
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        lastPage: Math.ceil(total / limit),
+      },
+    };
   }
 
   create() {
