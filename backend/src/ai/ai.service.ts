@@ -37,11 +37,15 @@ export class AiService {
     const originalText = request.text?.trim();
 
     if (!originalText) {
-      throw new BadRequestException('Text is required');
+      throw new BadRequestException(
+        'El texto es requerido y no puede estar vacío',
+      );
     }
 
     if (originalText.length > 3000) {
-      throw new BadRequestException('Text must be 3000 characters or fewer');
+      throw new BadRequestException(
+        'El texto debe tener 3000 caracteres o menos',
+      );
     }
 
     if (this.readProvider() === 'nestle') {
