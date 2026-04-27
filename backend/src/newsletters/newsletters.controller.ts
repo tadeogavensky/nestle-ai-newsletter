@@ -42,11 +42,11 @@ import type {
 @Controller('newsletters')
 export class NewslettersController {
   constructor(private readonly newslettersService: NewsLettersService) {}
- 
+
   @Get()
   getAll(
     @Query('page') page: string = '1',
-    @Query('limit') limit: string = '10'
+    @Query('limit') limit: string = '10',
   ) {
     // Los Query params vienen como string, los convertimos a números
     return this.newslettersService.getAll(Number(page), Number(limit));
