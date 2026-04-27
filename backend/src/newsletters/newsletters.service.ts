@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service'; // Asegúrate de que la ruta sea correcta
-import { newsletter_states } from '@prisma/client';
 
 @Injectable()
 export class NewsLettersService {
@@ -19,9 +18,9 @@ export class NewsLettersService {
         include: {
           // Esto trae los datos del creador (su nombre) en lugar de solo el ID
           users_newsletters_created_by_user_idTousers: {
-            select: { name: true, last_name: true }
-          }
-        }
+            select: { name: true, last_name: true },
+          },
+        },
       }),
       this.prisma.newsletters.count(), // Necesitamos el total para que el front sepa cuántas páginas hay
     ]);
