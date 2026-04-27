@@ -7,7 +7,7 @@ export type ImproveTextRequest = {
 export type ImproveTextResponse = {
   originalText: string
   improvedText: string
-  provider: 'openai' | 'gemini'
+  provider: 'nestle' | 'gemini'
   model: string
 }
 
