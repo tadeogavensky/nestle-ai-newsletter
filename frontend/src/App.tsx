@@ -854,6 +854,30 @@ function AppRouter() {
               </h1>
             }
           />
+          <Route
+            path="/logs"
+            element={
+              <h1 style={{ padding: 40, textAlign: 'center' }}>
+                Página de logs en construcción
+              </h1>
+            }
+          />
+          <Route
+            path="/backoffice"
+            element={
+              <h1 style={{ padding: 40, textAlign: 'center' }}>
+                Página de backoffice en construcción
+              </h1>
+            }
+          />
+          <Route
+            path="/branding"
+            element={
+              <h1 style={{ padding: 40, textAlign: 'center' }}>
+                Página de branding en construcción
+              </h1>
+            }
+          />
           {/* Redirect to login by default */}
           <Route path="/" element={<LoginPage />} />
         </Routes>
