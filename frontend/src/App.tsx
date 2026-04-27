@@ -395,7 +395,7 @@ function ColorsPage() {
           {keywordSwatches.map((swatch) => {
             const shadow =
               theme.palette.brand.keywordShadows[
-                swatch.name as keyof typeof theme.palette.brand.keywordShadows
+              swatch.name as keyof typeof theme.palette.brand.keywordShadows
               ]
 
             return (
@@ -571,11 +571,10 @@ function ComponentsPage() {
                   sx={{
                     bgcolor: color,
                     color: 'brand.darkOak',
-                    boxShadow: `4px 4px 0 ${
-                      theme.palette.brand.keywordShadows[
-                        name as keyof typeof theme.palette.brand.keywordShadows
-                      ]
-                    }`,
+                    boxShadow: `4px 4px 0 ${theme.palette.brand.keywordShadows[
+                      name as keyof typeof theme.palette.brand.keywordShadows
+                    ]
+                      }`,
                   }}
                 />
               ))}
@@ -791,7 +790,70 @@ function AppRouter() {
               </ProtectedRoute>
             }
           />
-
+          <Route
+            path="/templates"
+            element={
+              <h1 style={{ padding: 40, textAlign: 'center' }}>
+                Página de templates en construcción
+              </h1>
+            }
+          />
+          <Route
+            path="/newsletters"
+            element={
+              <h1 style={{ padding: 40, textAlign: 'center' }}>
+                Página de newsletters en construcción
+              </h1>
+            }
+          />
+          <Route
+            path="/newsletters/edit/:id"
+            element={
+              <h1 style={{ padding: 40, textAlign: 'center' }}>
+                Página de newsletters por ID en construcción
+              </h1>
+            }
+          />
+          <Route
+            path="/reviews/:id"
+            element={
+              <h1 style={{ padding: 40, textAlign: 'center' }}>
+                Página de reviews por newsletter id en construcción
+              </h1>
+            }
+          />
+          <Route
+            path="/admin/templates"
+            element={
+              <h1 style={{ padding: 40, textAlign: 'center' }}>
+                Página de templates SUPER ADMIN en construcción
+              </h1>
+            }
+          />
+          <Route
+            path="/admin/templates/create"
+            element={
+              <h1 style={{ padding: 40, textAlign: 'center' }}>
+                Página de templates creación SUPER ADMIN en construcción
+              </h1>
+            }
+          />
+          <Route
+            path="/admin/templates/edit/:id"
+            element={
+              <h1 style={{ padding: 40, textAlign: 'center' }}>
+                Página de templates edición SUPER ADMIN en construcción
+              </h1>
+            }
+          />
+          <Route
+            path="/newsletters/preview/:id"
+            element={
+              <h1 style={{ padding: 40, textAlign: 'center' }}>
+                Página de newsletters preview en construcción
+              </h1>
+            }
+          />
           {/* Redirect to login by default */}
           <Route path="/" element={<LoginPage />} />
         </Routes>
