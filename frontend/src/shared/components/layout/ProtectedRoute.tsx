@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from 'react-router'
-import { useAuth } from '../contexts/AuthContext'
-import type { UserRole } from '../contexts/AuthContext'
+import { useAuth } from '../../../features/auth/AuthContext'
+import type { UserRole } from '../../../features/auth/AuthContext'
 import { Box, CircularProgress } from '@mui/material'
 
 interface ProtectedRouteProps {

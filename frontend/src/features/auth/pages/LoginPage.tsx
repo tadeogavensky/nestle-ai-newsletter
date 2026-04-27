@@ -15,9 +15,9 @@ import {
 import { useState, type FormEvent } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router'
 
-import { MICROSOFT_SSO_USERS, useAuth } from '../contexts/AuthContext'
-import { useNotification } from '../hooks/useNotification'
-import { getRoleLabel } from '../utils/role-label'
+import { MICROSOFT_SSO_USERS, useAuth } from '../AuthContext'
+import { useNotification } from '../../../shared/hooks/useNotification'
+import { getRoleLabel } from '../../../shared/utils/role-label'
 
 
 interface LoginFormErrors {

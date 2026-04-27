@@ -10,8 +10,8 @@ import {
   useTheme,
 } from '@mui/material'
 import { useNavigate } from 'react-router'
-import { useAuth } from '../contexts/AuthContext'
-import { useNotification } from '../hooks/useNotification'
+import { useAuth } from '../../auth/AuthContext'
+import { useNotification } from '../../../shared/hooks/useNotification'
 
 export function SettingsPage() {
   const { user, refreshToken, logout } = useAuth()

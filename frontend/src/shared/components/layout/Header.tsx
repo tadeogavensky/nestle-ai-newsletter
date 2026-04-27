@@ -1,6 +1,6 @@
 import { AppBar, Box, Button, Toolbar, Typography } from '@mui/material'
 import { Link as RouterLink, useLocation } from 'react-router'
-import nestleLogo from '../assets/we_make_nestle/wmn-lockup-three-lines-dark-oak-on-white.jpg'
+import nestleLogo from '../../../assets/we_make_nestle/wmn-lockup-three-lines-dark-oak-on-white.jpg'
 
 type NavLinkItem = {
   href: string

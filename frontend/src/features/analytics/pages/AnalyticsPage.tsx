@@ -1,5 +1,5 @@
 import { Box, Button, Card, Chip, Container, Stack, Typography, useTheme } from '@mui/material'
-import { useAuth } from '../contexts/AuthContext'
+import { useAuth } from '../../auth/AuthContext'
 
 export function AnalyticsPage() {
   const { user } = useAuth()

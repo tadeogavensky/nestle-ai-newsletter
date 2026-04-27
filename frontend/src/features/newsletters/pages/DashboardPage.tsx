@@ -1,8 +1,8 @@
 import { Box, Container } from '@mui/material'
-import { NotificationsBanner } from '../components/NotificationsBanner'
-import { NewslettersTable } from '../components/Table/Table'
-import { Toolbar as NewslettersToolbar } from '../components/Table/Toolbar'
-import { useAuth } from '../contexts/AuthContext'
+import { NotificationsBanner } from '../../../shared/components/notifications/NotificationsBanner'
+import { NewslettersTable } from '../components/NewslettersTable'
+import { Toolbar as NewslettersToolbar } from '../components/NewslettersToolbar'
+import { useAuth } from '../../auth/AuthContext'
 
 export function DashboardPage() {
   const { user } = useAuth()

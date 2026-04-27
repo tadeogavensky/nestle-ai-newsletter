@@ -26,11 +26,11 @@ import {
   Typography,
   type SelectChangeEvent,
 } from '@mui/material'
-import type { UserRole } from '../contexts/AuthContext'
-import { useAuth } from '../contexts/AuthContext'
-import templateClassicImage from '../assets/we_make_nestle/wmn-lockup-one-line-dark-oak-on-white.jpg'
-import templateEditorialImage from '../assets/we_make_nestle/wmn-lockup-two-lines-dark-oak-on-white.jpg'
-import templateBriefImage from '../assets/we_make_nestle/wmn-lockup-three-lines-dark-oak-on-white.jpg'
+import type { UserRole } from '../../auth/AuthContext'
+import { useAuth } from '../../auth/AuthContext'
+import templateClassicImage from '../../../assets/we_make_nestle/wmn-lockup-one-line-dark-oak-on-white.jpg'
+import templateEditorialImage from '../../../assets/we_make_nestle/wmn-lockup-two-lines-dark-oak-on-white.jpg'
+import templateBriefImage from '../../../assets/we_make_nestle/wmn-lockup-three-lines-dark-oak-on-white.jpg'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 

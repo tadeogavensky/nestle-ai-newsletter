@@ -14,9 +14,9 @@ import {
 } from '@mui/material'
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router'
-import { useAuth } from '../contexts/AuthContext'
-import type { UserRole } from '../contexts/AuthContext'
-import { getRoleLabel } from '../utils/role-label'
+import { useAuth } from '../../../features/auth/AuthContext'
+import type { UserRole } from '../../../features/auth/AuthContext'
+import { getRoleLabel } from '../../utils/role-label'
 
 interface NavLink {
   label: string

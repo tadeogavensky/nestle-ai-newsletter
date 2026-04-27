@@ -17,7 +17,7 @@ import {
 import NotificationsIcon from '@mui/icons-material/Notifications' //pnpm add @mui/icons-material
 import { useState, useRef, useEffect } from 'react'
 import { useNavigate } from 'react-router'
-import { useAppNotifications, type AppNotification } from '../contexts/NotificationContext'
+import { useAppNotifications, type AppNotification } from '../../contexts/NotificationContext'
 
 // 1. Lógica de iniciales limpia
 const getNotificationIconLabel = (type: string) => {

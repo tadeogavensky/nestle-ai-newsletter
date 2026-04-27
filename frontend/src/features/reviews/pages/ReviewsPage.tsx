@@ -9,9 +9,9 @@ import {
   useTheme,
 } from '@mui/material'
 import type { ChipProps } from '@mui/material'
-import { useAuth } from '../contexts/AuthContext'
-import { useAppNotifications } from '../contexts/NotificationContext'
-import { useNotification } from '../hooks/useNotification'
+import { useAuth } from '../../auth/AuthContext'
+import { useAppNotifications } from '../../../shared/contexts/NotificationContext'
+import { useNotification } from '../../../shared/hooks/useNotification'
 
 interface NewsletterReview {
   id: string

@@ -1,6 +1,6 @@
 import { Box, Button, Card, Chip, Container, Stack, Typography, useTheme } from '@mui/material'
 import { useNavigate } from 'react-router'
-import { useAuth } from '../contexts/AuthContext'
+import { useAuth } from '../../auth/AuthContext'
 
 export function CampaignsPage() {
   const { user } = useAuth()

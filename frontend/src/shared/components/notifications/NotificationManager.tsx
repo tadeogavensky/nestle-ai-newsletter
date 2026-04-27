@@ -1,5 +1,5 @@
 import { Alert, Snackbar, Stack } from '@mui/material'
-import type { Notification } from '../hooks/useNotification'
+import type { Notification } from '../../hooks/useNotification'
 
 interface NotificationManagerProps {
   notifications: Notification[]

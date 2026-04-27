@@ -18,7 +18,7 @@ import {
   Typography,
 } from '@mui/material';
 import { useNavigate } from 'react-router'; // <--- De 'Incoming'
-import type { UserRole } from '../../contexts/AuthContext';
+import type { UserRole } from '../../auth/AuthContext';
 
 type NewsletterStatus = 'Pendiente' | 'Aprobado' | 'Programado' | 'Borrador';
 

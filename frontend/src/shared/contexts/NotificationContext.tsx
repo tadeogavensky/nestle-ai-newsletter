@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useCallback, useContext, useState, type ReactNode } from 'react'
-import { useAuth, type UserRole } from './AuthContext'
+import { useAuth, type UserRole } from '../../features/auth/AuthContext'
 
 export type NotificationType = 'pending-review' | 'approved' | 'rejected' | 'reminder' | 'info'
 

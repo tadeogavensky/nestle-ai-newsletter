@@ -13,8 +13,8 @@ import {
   Typography,
   useTheme,
 } from '@mui/material'
-import { MICROSOFT_SSO_USERS } from '../contexts/AuthContext'
-import { getRoleLabel } from '../utils/role-label'
+import { MICROSOFT_SSO_USERS } from '../../auth/AuthContext'
+import { getRoleLabel } from '../../../shared/utils/role-label'
 
 export function UsersPage() {
   const theme = useTheme()
