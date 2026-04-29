@@ -10,7 +10,6 @@ import { NewsLettersModule } from './newsletters/newsletters.module';
 import { TemplatesModule } from './templates/templates.module';
 import { AiModule } from './ai/ai.module';
 import { BrandKitModule } from './brand-kit/brand-kit.module';
-import { AuthorizationService } from './modules/auth/authorization.service';
 
 @Module({
   imports: [
@@ -22,7 +21,6 @@ import { AuthorizationService } from './modules/auth/authorization.service';
     TemplatesModule,
     AiModule,
     BrandKitModule,
-    AuthorizationService,
     ConfigModule.forRoot({
       isGlobal: true, // no tener que importarlo en cada módulo
     }),

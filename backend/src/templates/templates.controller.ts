@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { TemplatesService } from './templates.service';
 import {
@@ -33,8 +34,13 @@ import type {
   UpdateTemplateBody,
   UpdateTemplateStatusBody,
 } from './templates.schemas';
+import { RequirePermission } from '../modules/auth/decorators/permissions.decorator';
+import { MockAuthGuard } from '../modules/auth/guards/mockup.guard';
+import { PermissionsGuard } from '../modules/auth/guards/permissions.guard';
+import { Action } from '../modules/auth/enum/actions';
 
 @Controller('templates')
+@UseGuards(MockAuthGuard, PermissionsGuard)
 export class TemplatesController {
   constructor(private readonly templatesService: TemplatesService) {}
 
@@ -44,6 +50,7 @@ export class TemplatesController {
   }
 
   @Post()
+  @RequirePermission(Action.TEMPLATE_CREATE_RETIRE, 'templates')
   create(
     @Body(new ZodValidationPipe(createTemplateBodySchema))
     body: CreateTemplateBody,
@@ -57,6 +64,7 @@ export class TemplatesController {
     return this.templatesService.getById(params.id);
   }
 
+  @RequirePermission(Action.TEMPLATE_EDIT, 'templates')
   @Patch(':id')
   update(
     @Param(new ZodValidationPipe(idParamSchema)) params: IdParam,
