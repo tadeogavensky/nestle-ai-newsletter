@@ -7,8 +7,8 @@ import { AuthorizationService } from '../modules/auth/services/authorization.ser
 import { PermissionsGuard } from '../modules/auth/guards/permissions.guard';
 
 @Module({
-  imports: [ConfigModule],
-  controllers: [PrismaModule, AiController],
+  imports: [PrismaModule, ConfigModule],
+  controllers: [AiController],
   providers: [AiService, AuthorizationService, PermissionsGuard],
 })
 export class AiModule {}

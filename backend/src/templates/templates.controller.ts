@@ -38,8 +38,9 @@ import { RequirePermission } from '../modules/auth/decorators/permissions.decora
 import { MockAuthGuard } from '../modules/auth/guards/mockup.guard';
 import { PermissionsGuard } from '../modules/auth/guards/permissions.guard';
 import { Action } from '../modules/auth/enum/actions';
+import { Resource } from '../modules/auth/enum/resources';
 
-@Controller('templates')
+@Controller(Resource.TEMPLATES)
 @UseGuards(MockAuthGuard, PermissionsGuard)
 export class TemplatesController {
   constructor(private readonly templatesService: TemplatesService) {}
@@ -50,7 +51,7 @@ export class TemplatesController {
   }
 
   @Post()
-  @RequirePermission(Action.TEMPLATE_CREATE_RETIRE, 'templates')
+  @RequirePermission(Action.TEMPLATE_CREATE_RETIRE, Resource.TEMPLATES)
   create(
     @Body(new ZodValidationPipe(createTemplateBodySchema))
     body: CreateTemplateBody,
@@ -64,7 +65,7 @@ export class TemplatesController {
     return this.templatesService.getById(params.id);
   }
 
-  @RequirePermission(Action.TEMPLATE_EDIT, 'templates')
+  @RequirePermission(Action.TEMPLATE_EDIT, Resource.TEMPLATES)
   @Patch(':id')
   update(
     @Param(new ZodValidationPipe(idParamSchema)) params: IdParam,

@@ -43,8 +43,9 @@ import { MockAuthGuard } from '../modules/auth/guards/mockup.guard';
 import { PermissionsGuard } from '../modules/auth/guards/permissions.guard';
 import { RequirePermission } from '../modules/auth/decorators/permissions.decorator';
 import { Action } from '../modules/auth/enum/actions';
+import { Resource } from '../modules/auth/enum/resources';
 
-@Controller('newsletters')
+@Controller(Resource.NEWSLETTERS)
 @UseGuards(MockAuthGuard, PermissionsGuard)
 export class NewslettersController {
   constructor(private readonly newslettersService: NewsLettersService) { }
@@ -59,7 +60,7 @@ export class NewslettersController {
   }
 
   @Post()
-  @RequirePermission(Action.CONTENT_UPLOAD, 'newsletters')
+  @RequirePermission(Action.CONTENT_UPLOAD, Resource.NEWSLETTERS)
   create(
     @Body(new ZodValidationPipe(createNewsletterBodySchema))
     body: CreateNewsletterBody,

@@ -15,6 +15,7 @@ import { RequirePermission } from '../modules/auth/decorators/permissions.decora
 import { Action } from '../modules/auth/enum/actions';
 import { MockAuthGuard } from '../modules/auth/guards/mockup.guard';
 import { PermissionsGuard } from '../modules/auth/guards/permissions.guard';
+import { Resource } from '../modules/auth/enum/resources';
 
 @Controller('brand-kit')
 @UseGuards(MockAuthGuard, PermissionsGuard)
@@ -27,7 +28,7 @@ export class BrandKitController {
   }
 
   @Post()
-  @RequirePermission(Action.BRAND_MANAGE, 'brand-kit')
+  @RequirePermission(Action.BRAND_MANAGE, Resource.BRAND_KIT)
   create(
     @Body(new ZodValidationPipe(createBrandKitBodySchema))
     body: CreateBrandKitBody,
@@ -36,6 +37,7 @@ export class BrandKitController {
     return this.brandKitService.create();
   }
 
+  @RequirePermission(Action.BRAND_MANAGE, Resource.BRAND_KIT)
   @Patch(':id')
   update(
     @Param(new ZodValidationPipe(idParamSchema)) params: IdParam,
