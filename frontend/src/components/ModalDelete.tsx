@@ -5,41 +5,33 @@ import {
 
 interface ModalDeleteProps {
   open: boolean;
-  title: string;
-  description: string;
+  title?: string;
+  description?: string;
   onClose: () => void;
   onConfirm: () => void;
   loading?: boolean;
 }
 
-export function ModalDelete({ 
-  open, 
-  title, 
-  description, 
-  onClose, 
+export function ModalDelete({
+  open,
+  title = "¿Confirmar eliminación?",
+  description = "Esta acción lo eliminará de forma permanente.",
+  onClose,
   onConfirm,
-  loading = false 
+  loading = false,
 }: ModalDeleteProps) {
   return (
-    <Dialog open={open} onClose={onClose} aria-labelledby="confirm-dialog-title">
-      <DialogTitle id="confirm-dialog-title">{title}</DialogTitle>
+    <Dialog open={open} onClose={onClose}>
+      <DialogTitle>{title}</DialogTitle>
       <DialogContent>
         <DialogContentText>{description}</DialogContentText>
       </DialogContent>
-      <DialogActions sx={{ p: 2.5 }}>
-        <Button onClick={onClose} color="inherit" disabled={loading}>
-          Cancelar
-        </Button>
-        <Button 
-          onClick={onConfirm} 
-          color="error" 
-          variant="contained" 
-          autoFocus 
-          disabled={loading}
-        >
-          {loading ? 'Eliminando...' : 'Confirmar'}
+      <DialogActions>
+        <Button onClick={onClose} disabled={loading}>Cancelar</Button>
+        <Button onClick={onConfirm} color="error" variant="contained" disabled={loading}>
+          {loading ? "Eliminando..." : "Confirmar"}
         </Button>
       </DialogActions>
     </Dialog>
-  );
+  )
 }
