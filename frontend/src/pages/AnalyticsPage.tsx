@@ -2,10 +2,9 @@ import { useMemo, useState, type JSX, type MouseEvent } from 'react'
 import {
   Box, Button, Card, Chip, Container, Stack, Typography,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  Paper, TableSortLabel, TextField, InputAdornment, IconButton,
-  Dialog, DialogTitle, DialogContent, DialogActions,
+  Paper, TableSortLabel, Dialog, DialogTitle, DialogContent, DialogActions,
 } from '@mui/material'
-import CloseIcon from '@mui/icons-material/Close'
+import SearchBar from '../components/SearchBar'
 import { useAuth } from '../contexts/AuthContext'
 
 type NewsletterState = 'DRAFT' | 'IN_REVIEW' | 'CHANGES_REQUESTED' | 'RESUBMITTED' | 'APPROVED' | 'DISCARDED'
@@ -247,24 +246,11 @@ export function AnalyticsPage(): JSX.Element {
           </Card>
 
           <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
-            <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
-              <TextField
-                size="small"
-                placeholder="Filtrar por newsletter o estado..."
+            <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider', width: { xs: '100%', md: 300 } }}>
+              <SearchBar
                 value={filterText}
-                onChange={(event) => setFilterText(event.target.value)}
-                sx={{ width: { xs: '100%', md: '300px' } }}
-                slotProps={{
-                  input: {
-                    endAdornment: filterText ? (
-                      <InputAdornment position="end">
-                        <IconButton size="small" onClick={() => setFilterText('')} edge="end">
-                          <CloseIcon fontSize="small" />
-                        </IconButton>
-                      </InputAdornment>
-                    ) : null,
-                  },
-                }}
+                onChange={setFilterText}
+                placeholder="Filtrar ..."
               />
             </Box>
             <TableContainer component={Paper} elevation={0}>
