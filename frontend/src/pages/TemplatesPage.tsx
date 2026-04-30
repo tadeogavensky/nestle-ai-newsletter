@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import {
   Box, Button, Card, Container, Stack, Typography, useTheme,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
@@ -75,7 +75,6 @@ export function TemplatesPage() {
     }}>
       <Container maxWidth="lg" disableGutters>
         <Stack spacing={4}>
-          {/* Header Actualizado */}
           <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "flex-end" }}>
             <Stack spacing={1}>
               <Typography variant="h2">Templates</Typography>
@@ -176,7 +175,7 @@ export function TemplatesPage() {
                           </IconButton>
                         </Tooltip>
 
-                        {(role === 'ADMIN' || role === 'USER') && (
+                        {(role === 'ADMIN') && (
                           <Tooltip title="Editar">
                             <IconButton size="small" onClick={() => navigate(`/editar/${template.id}`)}>
                               <EditIcon fontSize="small" />
