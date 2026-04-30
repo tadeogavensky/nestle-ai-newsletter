@@ -101,7 +101,7 @@ export function UsersPage() {
             <Stack spacing={1}>
               <Typography variant="h2">Usuarios</Typography>
               <Typography variant="body1" color="text.secondary">
-                Gestiona de accesos y roles.
+                Gestion de accesos y roles.
               </Typography>
             </Stack>
             <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
