@@ -15,6 +15,8 @@ on:
 jobs:
   frontend:
     runs-on: ubuntu-latest
+    env:
+      DOCKERHUB_USERNAME: lumennestle
 
     steps:
       - uses: actions/checkout@v4
@@ -29,6 +31,28 @@ jobs:
           cache: pnpm
           cache-dependency-path: frontend/pnpm-lock.yaml
 
-      - run: pnpm --dir frontend install --frozen-lockfile
-      - run: pnpm --dir frontend run build
-      - run: docker build -t nestle-frontend ./frontend
+      - name: Install dependencies
+        run: pnpm --dir frontend install --frozen-lockfile
+
+      - name: Build frontend
+        run: pnpm --dir frontend run build
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t $DOCKERHUB_USERNAME/nestle-newsletter-frontend:latest \
+            -t $DOCKERHUB_USERNAME/nestle-newsletter-frontend:${GITHUB_SHA} \
+            ./frontend
+
+      - name: Login to Docker Hub
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push Docker image
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          docker push $DOCKERHUB_USERNAME/nestle-newsletter-frontend:latest
+          docker push $DOCKERHUB_USERNAME/nestle-newsletter-frontend:${GITHUB_SHA}

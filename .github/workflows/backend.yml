@@ -15,6 +15,8 @@ on:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    env:
+      DOCKERHUB_USERNAME: lumennestle
 
     steps:
       - uses: actions/checkout@v4
@@ -29,7 +31,28 @@ jobs:
           cache: pnpm
           cache-dependency-path: backend/pnpm-lock.yaml
 
-      - run: pnpm --dir backend install --frozen-lockfile
-      - run: pnpm --dir backend exec prisma generate
-      - run: pnpm --dir backend run build
-      - run: docker build -t nestle-backend ./backend
+      - name: Install dependencies
+        run: pnpm --dir backend install --frozen-lockfile
+
+      - name: Build backend
+        run: pnpm --dir backend run build
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -t $DOCKERHUB_USERNAME/nestle-newsletter-backend:latest \
+            -t $DOCKERHUB_USERNAME/nestle-newsletter-backend:${GITHUB_SHA} \
+            ./backend
+
+      - name: Login to Docker Hub
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Push Docker image
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          docker push $DOCKERHUB_USERNAME/nestle-newsletter-backend:latest
+          docker push $DOCKERHUB_USERNAME/nestle-newsletter-backend:${GITHUB_SHA}

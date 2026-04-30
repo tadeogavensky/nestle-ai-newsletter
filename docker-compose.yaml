@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: nestle
       POSTGRES_DB: nestle_newsletter
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -20,11 +20,14 @@ services:
       - postgres
     environment:
       DATABASE_URL: postgresql://nestle:nestle@postgres:5432/nestle_newsletter
+      DIRECT_URL: postgresql://nestle:nestle@postgres:5432/nestle_newsletter
 
   frontend:
     build: ./frontend
     ports:
       - "5173:80"
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:
