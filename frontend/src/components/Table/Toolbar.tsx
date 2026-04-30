@@ -10,6 +10,8 @@ import {
   Typography,
 } from '@mui/material'
 import { useNavigate } from 'react-router'
+import SearchIcon from '@mui/icons-material/Search';
+import theme from '../../styles/nestleMuiTheme';
 
 interface ToolbarProps {
   canCreateNewsletter?: boolean
@@ -62,9 +64,7 @@ export function Toolbar({
               input: {
                 startAdornment: (
                   <InputAdornment position="start">
-                    <Typography variant="caption" aria-hidden="true">
-                      ?
-                    </Typography>
+                   <SearchIcon sx={{ fontSize: 20, color: theme.palette.error.main }} />
                   </InputAdornment>
                 ),
               },

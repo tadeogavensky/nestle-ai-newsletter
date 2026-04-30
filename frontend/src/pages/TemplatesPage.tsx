@@ -2,13 +2,13 @@ import { Box, Button, Card, Chip, Container, Stack, Typography, useTheme } from 
 import { useNavigate } from 'react-router'
 import { useAuth } from '../contexts/AuthContext'
 
-export function CampaignsPage() {
+export function TemplatesPage() {
   const { user } = useAuth()
   const theme = useTheme()
   const navigate = useNavigate()
   const role = user?.role ?? 'USER'
 
-  const campaigns = [
+  const templates = [
     { id: 1, name: 'Verano 2024', status: 'Publicado', subscribers: 3200 },
     { id: 2, name: 'Promocion Primavera', status: 'En borrador', subscribers: 0 },
     { id: 3, name: 'Newsletter Mensual', status: 'Programado', subscribers: 5000 },
@@ -25,9 +25,9 @@ export function CampaignsPage() {
       <Container maxWidth="lg" disableGutters>
         <Stack spacing={3}>
           <Stack spacing={1}>
-            <Typography variant="h2">Campanias</Typography>
+            <Typography variant="h2">Templates</Typography>
             <Typography variant="body1" color="text.secondary">
-              Gestiona todas tus campanias de newsletters
+              Gestiona todos tus templates de newsletters
             </Typography>
             <Chip
               label={
@@ -42,9 +42,9 @@ export function CampaignsPage() {
           </Stack>
 
           <Stack spacing={2}>
-            {campaigns.map((campaign) => (
+            {templates.map((template) => (
               <Card
-                key={campaign.id}
+                key={template.id}
                 elevation={0}
                 sx={{
                   border: '1px solid',
@@ -61,9 +61,9 @@ export function CampaignsPage() {
                   }}
                 >
                   <Stack spacing={0.5}>
-                    <Typography variant="h6">{campaign.name}</Typography>
+                    <Typography variant="h6">{template.name}</Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {campaign.subscribers} suscriptores
+                      {template.subscribers} suscriptores
                     </Typography>
                   </Stack>
 
@@ -73,22 +73,22 @@ export function CampaignsPage() {
                       px: 1.5,
                       py: 0.75,
                       bgcolor:
-                        campaign.status === 'Publicado'
+                        template.status === 'Publicado'
                           ? 'success.light'
-                          : campaign.status === 'En borrador'
+                          : template.status === 'En borrador'
                             ? 'warning.light'
                             : 'info.light',
                       color:
-                        campaign.status === 'Publicado'
+                        template.status === 'Publicado'
                           ? 'success.main'
-                          : campaign.status === 'En borrador'
+                          : template.status === 'En borrador'
                             ? 'warning.main'
                             : 'info.main',
                       borderRadius: 1,
                       fontWeight: 600,
                     }}
                   >
-                    {campaign.status}
+                    {template.status}
                   </Typography>
 
                   <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
@@ -97,7 +97,7 @@ export function CampaignsPage() {
                     </Button>
                     {role === 'ADMIN' && (
                       <>
-                        <Button size="small" variant="outlined" onClick={() => navigate(`/editar/${campaign.id}`)}>
+                        <Button size="small" variant="outlined" onClick={() => navigate(`/editar/${template.id}`)}>
                           Editar
                         </Button>
                         <Button size="small" variant="contained">
@@ -105,13 +105,13 @@ export function CampaignsPage() {
                         </Button>
                       </>
                     )}
-                    {role === 'FUNCTIONAL' && campaign.status !== 'En borrador' && (
+                    {role === 'FUNCTIONAL' && template.status !== 'En borrador' && (
                       <Button size="small" variant="outlined">
                         Revisar
                       </Button>
                     )}
                     {role === 'USER' && (
-                      <Button size="small" variant="outlined" onClick={() => navigate(`/editar/${campaign.id}`)}>
+                      <Button size="small" variant="outlined" onClick={() => navigate(`/editar/${template.id}`)}>
                         Editar
                       </Button>
                     )}
@@ -125,3 +125,5 @@ export function CampaignsPage() {
     </Box>
   )
 }
+
+export default TemplatesPage

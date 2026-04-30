@@ -10,7 +10,7 @@ import { LoginPage } from './pages/LoginPage'
 import { DashboardPage } from './pages/DashboardPage'
 import CreatePage from './pages/CreatePage'
 import { EditPage } from './pages/EditPage'
-import { CampaignsPage } from './pages/CampaignsPage'
+import TemplatesPage from './pages/TemplatesPage'
 import { AnalyticsPage } from './pages/AnalyticsPage'
 import { ReviewsPage } from './pages/ReviewsPage'
 import { UsersPage } from './pages/UsersPage'
@@ -741,11 +741,11 @@ function AppRouter() {
             }
           />
           <Route
-            path="/campaigns"
+            path="/templates"
             element={
               <ProtectedRoute>
                 <ProtectedLayout>
-                  <CampaignsPage />
+                  <TemplatesPage />
                 </ProtectedLayout>
               </ProtectedRoute>
             }

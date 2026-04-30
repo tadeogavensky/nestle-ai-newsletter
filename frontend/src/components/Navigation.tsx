@@ -26,11 +26,11 @@ interface NavLink {
 
 const navLinks: NavLink[] = [
   { label: 'Inicio', path: '/dashboard', roles: ['ADMIN', 'FUNCTIONAL', 'USER'] },
-  { label: 'Campanias', path: '/campaigns', roles: ['ADMIN', 'FUNCTIONAL', 'USER'] },
+  { label: 'Templates', path: '/templates', roles: ['ADMIN', 'FUNCTIONAL', 'USER'] },
   { label: 'Analitica', path: '/analytics', roles: ['ADMIN', 'FUNCTIONAL'] },
   { label: 'Revisiones', path: '/reviews', roles: ['ADMIN', 'FUNCTIONAL'] },
   { label: 'Usuarios', path: '/users', roles: ['ADMIN'] },
-  { label: 'Configuracion', path: '/settings', roles: ['ADMIN', 'FUNCTIONAL', 'USER'] },
+  //{ label: 'Configuracion', path: '/settings', roles: ['ADMIN', 'FUNCTIONAL'] },
 ]
 
 export function Navigation() {
@@ -203,9 +203,9 @@ export function Navigation() {
                 </Stack>
               </MenuItem>
               <Divider />
-              <MenuItem onClick={() => { handleMenuClose(); navigate('/settings') }}>
+             {/*<MenuItem onClick={() => { handleMenuClose(); navigate('/settings') }}>
                 Configuracion
-              </MenuItem>
+              </MenuItem>*/}
               <Divider />
               <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
                 Cerrar sesión
