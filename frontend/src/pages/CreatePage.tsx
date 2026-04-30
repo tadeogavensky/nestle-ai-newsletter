@@ -33,6 +33,8 @@ import templateEditorialImage from '../assets/we_make_nestle/wmn-lockup-two-line
 import templateBriefImage from '../assets/we_make_nestle/wmn-lockup-three-lines-dark-oak-on-white.jpg'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
+import axios from 'axios'
+import { improveText } from '../services/ai'
 
 type NewsletterState =
   | 'DRAFT'
@@ -101,10 +103,12 @@ type CreatePageContext = {
   onSelectBlock: (blockId: string) => void
   onUpdateBlockText: (blockId: string, value: string) => void
   onUpdateBlockBackground: (blockId: string, value: string) => void
-  onRegenerateBlockText: (blockId: string) => void
+  onRegenerateBlockText: (blockId: string) => Promise<void>
   onSaveNewsletterComment: (value: string) => void
   onSaveBlockComment: (blockId: string, value: string) => void
   onExportToPng: () => Promise<void>
+  improvingBlockId: string | null
+  aiError: string | null
 }
 
 type PaneProps = {
@@ -570,6 +574,7 @@ function EditForm({
   return (
     <Stack spacing={2}>
       <Typography variant="subtitle1">{selectedBlock.name}</Typography>
+      {context.aiError && <Alert severity="error">{context.aiError}</Alert>}
       <TextField
         label="Texto"
         value={selectedBlock.text}
@@ -589,8 +594,13 @@ function EditForm({
         }
         fullWidth
       />
-      <Button variant="outlined" color="secondary" onClick={() => context.onRegenerateBlockText(selectedBlock.id)}>
-        Regenerar texto
+      <Button
+        variant="outlined"
+        color="secondary"
+        disabled={context.improvingBlockId === selectedBlock.id}
+        onClick={() => void context.onRegenerateBlockText(selectedBlock.id)}
+      >
+        {context.improvingBlockId === selectedBlock.id ? 'Mejorando...' : 'Mejorar con IA'}
       </Button>
 
       {!emptyComment(context.newsletterComment) && (
@@ -835,6 +845,8 @@ function CreatePage() {
   const [exportOptions, setExportOptions] = useState<ExportOption[]>([])
   const [isRenderingHtml, setIsRenderingHtml] = useState(false)
   const [isExportingPng, setIsExportingPng] = useState(false)
+  const [improvingBlockId, setImprovingBlockId] = useState<string | null>(null)
+  const [aiError, setAiError] = useState<string | null>(null)
 
   const allCommentaries = useMemo(
     () =>
@@ -910,6 +922,44 @@ function CreatePage() {
     }
   }, [])
 
+  const handleImproveBlockText = useCallback(async (blockId: string) => {
+    const targetBlock = blocks.find((block) => block.id === blockId)
+
+    if (!targetBlock) {
+      return
+    }
+
+    setImprovingBlockId(blockId)
+    setAiError(null)
+
+    try {
+      const response = await improveText({ text: targetBlock.text })
+
+      setBlocks((currentBlocks) =>
+        currentBlocks.map((block) =>
+          block.id === blockId
+            ? { ...block, text: response.improvedText }
+            : block,
+        ),
+      )
+    } catch (error) {
+      const fallbackMessage = 'No se pudo mejorar el texto en este momento.'
+
+      if (axios.isAxiosError(error)) {
+        const responseMessage =
+          typeof error.response?.data?.message === 'string'
+            ? error.response.data.message
+            : null
+
+        setAiError(responseMessage ?? fallbackMessage)
+      } else {
+        setAiError(fallbackMessage)
+      }
+    } finally {
+      setImprovingBlockId(null)
+    }
+  }, [blocks])
+
   useEffect(() => {
     if (newsletterState !== 'APPROVED') {
       return undefined
@@ -942,6 +992,8 @@ function CreatePage() {
       exportOptions,
       isRenderingHtml,
       isExportingPng,
+      improvingBlockId,
+      aiError,
       onGenerate: handleGenerate,
       onCancel: handleCancel,
       onSendForReview: handleSendForReview,
@@ -961,14 +1013,7 @@ function CreatePage() {
             block.id === blockId ? { ...block, backgroundColor: value } : block,
           ),
         ),
-      onRegenerateBlockText: (blockId) =>
-        setBlocks((currentBlocks) =>
-          currentBlocks.map((block) =>
-            block.id === blockId
-              ? { ...block, text: `${block.text} Nueva variante sugerida.` }
-              : block,
-          ),
-        ),
+      onRegenerateBlockText: handleImproveBlockText,
       onSaveNewsletterComment: (value) => setNewsletterComment(value.trim() || null),
       onSaveBlockComment: (blockId, value) =>
         setBlocks((currentBlocks) =>
@@ -987,11 +1032,14 @@ function CreatePage() {
       handleCancel,
       handleExportToPng,
       handleGenerate,
+      handleImproveBlockText,
       handleSendForReview,
       handleSendFeedback,
+      improvingBlockId,
       isExportingPng,
       isGenerated,
       isRenderingHtml,
+      aiError,
       newsletterComment,
       newsletterId,
       newsletterState,

@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useParams, useNavigate } from 'react-router'
 import {
+  Alert,
   Box,
   Button,
   Chip,
@@ -10,10 +11,12 @@ import {
   Stack,
   Tab,
   Tabs,
+  TextField,
   ToggleButton,
   ToggleButtonGroup,
   Typography,
 } from '@mui/material'
+import axios from 'axios'
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew'
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos'
 import CloudUploadOutlinedIcon from '@mui/icons-material/CloudUploadOutlined'
@@ -25,6 +28,7 @@ import ViewQuiltOutlinedIcon from '@mui/icons-material/ViewQuiltOutlined'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ViewModuleOutlinedIcon from '@mui/icons-material/ViewModuleOutlined'
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined'
+import { improveText } from '../services/ai'
 
 interface Block {
   id: string
@@ -209,13 +213,69 @@ export function EditPage() {
   const navigate = useNavigate()
 
   const initialIndex = MOCK_TEMPLATES.findIndex(n => n.id === id)
+  const [templatesData, setTemplatesData] = useState<MockTemplate[]>(MOCK_TEMPLATES)
   const [templateIndex, setTemplateIndex] = useState(initialIndex >= 0 ? initialIndex : 0)
   const [activeTab, setActiveTab] = useState(1)
   const [selectedBlockId, setSelectedBlockId] = useState<string | null>(null)
   const [leftView, setLeftView] = useState<'blocks' | 'preview'>('blocks')
+  const [isImproving, setIsImproving] = useState(false)
+  const [aiError, setAiError] = useState<string | null>(null)
 
-  const template = MOCK_TEMPLATES[templateIndex]
-  const selectedBlock = template.blocks.find(b => b.id === selectedBlockId) ?? null
+  const template = templatesData[templateIndex]
+  const selectedBlock = useMemo(
+    () => template.blocks.find(b => b.id === selectedBlockId) ?? null,
+    [selectedBlockId, template.blocks],
+  )
+
+  const updateSelectedBlockContent = (value: string) => {
+    if (!selectedBlockId) {
+      return
+    }
+
+    setTemplatesData((currentTemplates) =>
+      currentTemplates.map((currentTemplate, currentTemplateIndex) => {
+        if (currentTemplateIndex !== templateIndex) {
+          return currentTemplate
+        }
+
+        return {
+          ...currentTemplate,
+          blocks: currentTemplate.blocks.map((block) =>
+            block.id === selectedBlockId ? { ...block, content: value } : block,
+          ),
+        }
+      }),
+    )
+  }
+
+  const handleImproveSelectedBlock = async () => {
+    if (!selectedBlock) {
+      return
+    }
+
+    setIsImproving(true)
+    setAiError(null)
+
+    try {
+      const response = await improveText({ text: selectedBlock.content })
+      updateSelectedBlockContent(response.improvedText)
+    } catch (error) {
+      const fallbackMessage = 'No se pudo mejorar el texto en este momento.'
+
+      if (axios.isAxiosError(error)) {
+        const responseMessage =
+          typeof error.response?.data?.message === 'string'
+            ? error.response.data.message
+            : null
+
+        setAiError(responseMessage ?? fallbackMessage)
+      } else {
+        setAiError(fallbackMessage)
+      }
+    } finally {
+      setIsImproving(false)
+    }
+  }
 
   const handleBlockClick = (blockId: string) => {
     setSelectedBlockId(blockId === selectedBlockId ? null : blockId)
@@ -252,15 +312,15 @@ export function EditPage() {
         </IconButton>
 
         <Box sx={{ flex: 1 }}>
-          <Typography variant="caption" color="text.secondary" display="block">
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
             {template.category}
           </Typography>
-          <Typography variant="subtitle1" fontWeight={700} lineHeight={1.2}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
             {template.title}
           </Typography>
         </Box>
 
-        <Stack direction="row" alignItems="center" spacing={0.5}>
+        <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
           <IconButton
             size="small"
             onClick={handlePrev}
@@ -325,7 +385,11 @@ export function EditPage() {
               justifyContent: 'space-between',
             }}
           >
-            <Typography variant="caption" color="text.secondary" fontWeight={600} textTransform="uppercase" letterSpacing={0.5}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}
+            >
               {leftView === 'blocks' ? 'Por bloques' : 'Vista previa'}
             </Typography>
 
@@ -351,11 +415,11 @@ export function EditPage() {
             >
               <ToggleButton value="blocks" aria-label="vista por bloques">
                 <ViewModuleOutlinedIcon sx={{ fontSize: 16, mr: 0.5 }} />
-                <Typography variant="caption" fontWeight={600}>Bloques</Typography>
+                <Typography variant="caption" sx={{ fontWeight: 600 }}>Bloques</Typography>
               </ToggleButton>
               <ToggleButton value="preview" aria-label="vista previa">
                 <VisibilityOutlinedIcon sx={{ fontSize: 16, mr: 0.5 }} />
-                <Typography variant="caption" fontWeight={600}>Previa</Typography>
+                <Typography variant="caption" sx={{ fontWeight: 600 }}>Previa</Typography>
               </ToggleButton>
             </ToggleButtonGroup>
           </Box>
@@ -390,11 +454,15 @@ export function EditPage() {
                     >
                       <Box sx={{ height: 4, bgcolor: isSelected ? 'brand.red' : config.borderColor }} />
                       <Box sx={{ p: 1.5, bgcolor: isSelected ? 'rgba(255,89,90,0.04)' : config.color }}>
-                        <Stack direction="row" alignItems="center" spacing={1} mb={0.5}>
+                        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 0.5 }}>
                           <Box sx={{ color: isSelected ? 'brand.red' : 'text.secondary', display: 'flex' }}>
                             {config.icon}
                           </Box>
-                          <Typography variant="caption" fontWeight={700} color={isSelected ? 'brand.red' : 'text.primary'}>
+                          <Typography
+                            variant="caption"
+                            color={isSelected ? 'brand.red' : 'text.primary'}
+                            sx={{ fontWeight: 700 }}
+                          >
                             {block.label}
                           </Typography>
                           <Chip label={config.label} size="small" sx={{ height: 16, fontSize: 10, ml: 'auto' }} />
@@ -463,10 +531,10 @@ export function EditPage() {
 
                 {/* Footer del email */}
                 <Box sx={{ bgcolor: '#F5F5F5', px: 3, py: 2, borderTop: '1px solid #E0E0E0' }}>
-                  <Typography variant="caption" color="text.disabled" display="block" textAlign="center">
+                  <Typography variant="caption" color="text.disabled" sx={{ display: 'block', textAlign: 'center' }}>
                     Nestlé Argentina · Template interno
                   </Typography>
-                  <Typography variant="caption" color="text.disabled" display="block" textAlign="center">
+                  <Typography variant="caption" color="text.disabled" sx={{ display: 'block', textAlign: 'center' }}>
                     Para cancelar suscripción, hacé clic aquí
                   </Typography>
                 </Box>
@@ -499,7 +567,7 @@ export function EditPage() {
               {template.blocks.length} bloques
             </Typography>
             {selectedBlockId && (
-              <Typography variant="caption" sx={{ color: 'brand.red' }} fontWeight={600}>
+              <Typography variant="caption" sx={{ color: 'brand.red', fontWeight: 600 }}>
                 {template.blocks.find(b => b.id === selectedBlockId)?.label} seleccionado
               </Typography>
             )}
@@ -540,7 +608,7 @@ export function EditPage() {
             {activeTab === 1 && (
               selectedBlock ? (
                 <Stack spacing={2.5}>
-                  <Stack direction="row" alignItems="center" spacing={1.5}>
+                  <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
                     <Box
                       sx={{
                         width: 36,
@@ -558,7 +626,7 @@ export function EditPage() {
                       {BLOCK_TYPE_CONFIG[selectedBlock.type].icon}
                     </Box>
                     <Box>
-                      <Typography variant="subtitle2" fontWeight={700}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
                         {selectedBlock.label}
                       </Typography>
                       <Typography variant="caption" color="text.secondary">
@@ -568,6 +636,8 @@ export function EditPage() {
                   </Stack>
 
                   <Divider />
+
+                  {aiError && <Alert severity="error">{aiError}</Alert>}
 
                   <Box
                     sx={{
@@ -579,16 +649,25 @@ export function EditPage() {
                       minHeight: 120,
                     }}
                   >
-                    <Typography variant="body2" color="text.secondary">
-                      {selectedBlock.content}
-                    </Typography>
+                    <TextField
+                      label="Texto del bloque"
+                      value={selectedBlock.content}
+                      onChange={(event) => updateSelectedBlockContent(event.target.value)}
+                      multiline
+                      minRows={5}
+                      fullWidth
+                    />
                   </Box>
 
                   <Stack spacing={1}>
-                    <Typography variant="caption" color="text.secondary" fontWeight={600} textTransform="uppercase" letterSpacing={0.5}>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ fontWeight: 600, textTransform: 'uppercase', letterSpacing: 0.5 }}
+                    >
                       Acciones
                     </Typography>
-                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                    <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: 'wrap' }}>
                       {selectedBlock.type === 'MULTIMEDIA' && (
                         <Button
                           variant="outlined"
@@ -603,6 +682,8 @@ export function EditPage() {
                         variant="outlined"
                         size="small"
                         startIcon={<AutoAwesomeIcon />}
+                        disabled={isImproving}
+                        onClick={() => void handleImproveSelectedBlock()}
                         sx={{
                           borderRadius: 1.5,
                           borderColor: 'brand.red',
@@ -610,7 +691,7 @@ export function EditPage() {
                           '&:hover': { bgcolor: 'rgba(255,89,90,0.04)', borderColor: 'brand.red' },
                         }}
                       >
-                        Regenerar con IA
+                        {isImproving ? 'Mejorando...' : 'Mejorar con IA'}
                       </Button>
                     </Stack>
                   </Stack>
@@ -631,10 +712,10 @@ export function EditPage() {
                   >
                     <ArticleOutlinedIcon />
                   </Box>
-                  <Typography variant="body2" color="text.disabled" textAlign="center">
+                  <Typography variant="body2" color="text.disabled" sx={{ textAlign: 'center' }}>
                     Seleccioná un bloque para editar sus atributos
                   </Typography>
-                  <Typography variant="caption" color="text.disabled" textAlign="center">
+                  <Typography variant="caption" color="text.disabled" sx={{ textAlign: 'center' }}>
                     Usá la vista "Bloques" o "Previa" del panel izquierdo
                   </Typography>
                 </Box>
