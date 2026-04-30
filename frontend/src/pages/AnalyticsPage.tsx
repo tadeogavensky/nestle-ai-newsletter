@@ -35,7 +35,7 @@ const stateLabels: Record<NewsletterState, string> = {
 }
 
 const tableColumns: Array<{ key: keyof ReviewLog, label: string }> = [
-  { key: 'newsletter_name', label: 'Newsletter' },
+  { key: 'newsletter_name', label: 'Título' },
   { key: 'previous_state', label: 'Estado anterior' },
   { key: 'new_state', label: 'Nuevo estado' },
   { key: 'created_at', label: 'Fecha' },
@@ -250,7 +250,6 @@ export function AnalyticsPage(): JSX.Element {
               <SearchBar
                 value={filterText}
                 onChange={setFilterText}
-                placeholder="Filtrar ..."
               />
             </Box>
             <TableContainer component={Paper} elevation={0}>
@@ -280,7 +279,10 @@ export function AnalyticsPage(): JSX.Element {
                       selected={selectedNewsletter?.id === log.newsletter_id}
                       sx={{ cursor: 'pointer' }}
                     >
-                      <TableCell>{log.newsletter_name}</TableCell>
+                      <TableCell>
+                        <Typography sx={{ fontWeight: "bold"}}>
+                          {log.newsletter_name}
+                        </Typography></TableCell>
                       <TableCell>{stateLabels[log.previous_state]}</TableCell>
                       <TableCell>
                         <Chip

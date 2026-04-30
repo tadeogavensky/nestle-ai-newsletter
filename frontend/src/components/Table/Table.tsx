@@ -215,7 +215,7 @@ export function NewslettersTable({ search, filter }: Props) {
                   direction={orderBy === 'title' ? order : 'asc'}
                   onClick={() => handleSort('title')}
                 >
-                  Newsletter
+                  Título
                 </TableSortLabel>
               </TableCell>
 

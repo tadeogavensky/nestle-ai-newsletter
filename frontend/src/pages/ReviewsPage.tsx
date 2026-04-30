@@ -1,126 +1,128 @@
+import { useState, useMemo } from 'react'
 import {
   Box,
   Button,
   Card,
   Chip,
   Container,
+  IconButton,
   Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TableSortLabel,
+  Tooltip,
   Typography,
   useTheme,
 } from '@mui/material'
 import type { ChipProps } from '@mui/material'
+import { RateReviewOutlined as ReviewIcon } from '@mui/icons-material'
+import { useNavigate } from 'react-router'
 import { useAuth } from '../contexts/AuthContext'
-import { useAppNotifications } from '../contexts/NotificationContext'
-import { useNotification } from '../hooks/useNotification'
+import SearchBar from '../components/SearchBar'
 
 interface NewsletterReview {
   id: string
   title: string
   author: string
+  area: string
   status: 'pending' | 'reviewed' | 'approved'
   submittedDate: string
   content: string
 }
 
+const reviews: NewsletterReview[] = [
+  {
+    id: '1',
+    title: 'Newsletter - Marzo 2024',
+    author: 'Juan Perez',
+    area: 'Marketing',
+    status: 'pending',
+    submittedDate: '2024-03-15',
+    content: 'Contenido de newsletter para marzo...',
+  },
+  {
+    id: '2',
+    title: 'Promocion de Primavera',
+    author: 'Maria Garcia',
+    area: 'Ventas',
+    status: 'pending',
+    submittedDate: '2024-03-16',
+    content: 'Contenido de promocion...',
+  },
+  {
+    id: '3',
+    title: 'Newsletter - Febrero 2024',
+    author: 'Pedro Lopez',
+    area: 'Marketing',
+    status: 'approved',
+    submittedDate: '2024-02-28',
+    content: 'Contenido aprobado...',
+  },
+]
+
+const getStatusColor = (status: NewsletterReview['status']): ChipProps['color'] => {
+  switch (status) {
+    case 'pending':  return 'warning'
+    case 'reviewed': return 'info'
+    case 'approved': return 'success'
+  }
+}
+
+const getStatusLabel = (status: NewsletterReview['status']) => {
+  switch (status) {
+    case 'pending':  return 'Pendiente'
+    case 'reviewed': return 'Revisado'
+    case 'approved': return 'Aprobado'
+  }
+}
+
+type SortableKey = 'title' | 'author' | 'area' | 'status' | 'submittedDate'
+
 export function ReviewsPage() {
   const { user } = useAuth()
-  const { addNotification, addNotificationForUser } = useAppNotifications()
-  const { success } = useNotification()
   const theme = useTheme()
+  const navigate = useNavigate()
 
-  const reviews: NewsletterReview[] = [
-    {
-      id: '1',
-      title: 'Newsletter - Marzo 2024',
-      author: 'Juan Perez',
-      status: 'pending',
-      submittedDate: '2024-03-15',
-      content: 'Contenido de newsletter para marzo...',
-    },
-    {
-      id: '2',
-      title: 'Promocion de Primavera',
-      author: 'Maria Garcia',
-      status: 'pending',
-      submittedDate: '2024-03-16',
-      content: 'Contenido de promocion...',
-    },
-    {
-      id: '3',
-      title: 'Newsletter - Febrero 2024',
-      author: 'Pedro Lopez',
-      status: 'approved',
-      submittedDate: '2024-02-28',
-      content: 'Contenido aprobado...',
-    },
-  ]
+  const [search, setSearch]   = useState('')
+  const [orderBy, setOrderBy] = useState<SortableKey>('submittedDate')
+  const [order, setOrder]     = useState<'asc' | 'desc'>('desc')
+  const [limit, setLimit]     = useState(5)
 
-  const pendingReviews = reviews.filter((review) => review.status === 'pending')
-  const canAssignReview = user?.role === 'ADMIN'
+  const isAdmin = user?.role === 'ADMIN'
 
-  const handleApprove = (id: string) => {
-    success(`Newsletter #${id} aprobado correctamente`)
-    addNotification({
-      type: 'approved',
-      title: 'Newsletter aprobado',
-      message: `Aprobaste el newsletter #${id}`,
-      actionPath: '/reviews',
-    })
-    addNotificationForUser('3', {
-      type: 'approved',
-      title: 'Newsletter aprobado',
-      message: `Tu newsletter #${id} fue aprobado`,
-      actionPath: '/campaigns',
-    })
+  const filteredReviews = useMemo(() => {
+    return reviews
+      .filter((r) => isAdmin || r.area === user?.area)
+      .filter((r) =>
+        Object.values(r).some((v) =>
+          v?.toString().toLowerCase().includes(search.toLowerCase())
+        )
+      )
+      .sort((a, b) => {
+        const isAsc = order === 'asc'
+        return (a[orderBy] < b[orderBy] ? -1 : 1) * (isAsc ? 1 : -1)
+      })
+  }, [search, order, orderBy, isAdmin, user?.area])
+
+  const handleRequestSort = (property: SortableKey) => {
+    const isAsc = orderBy === property && order === 'asc'
+    setOrder(isAsc ? 'desc' : 'asc')
+    setOrderBy(property)
   }
 
-  const handleReject = (id: string) => {
-    success(`Newsletter #${id} rechazado`)
-    addNotification({
-      type: 'rejected',
-      title: 'Newsletter rechazado',
-      message: `Rechazaste el newsletter #${id}`,
-      actionPath: '/reviews',
-    })
-    addNotificationForUser('3', {
-      type: 'rejected',
-      title: 'Newsletter rechazado',
-      message: `Tu newsletter #${id} necesita cambios`,
-      actionPath: '/campaigns',
-    })
-  }
-
-  const handleAssign = (id: string) => {
-    success(`Newsletter #${id} asignado a revision`)
-    addNotificationForUser('2', {
-      type: 'pending-review',
-      title: 'Nueva revision asignada',
-      message: `Tenes asignado el newsletter #${id}`,
-      actionPath: '/reviews',
-    })
-  }
-
-  const getStatusColor = (status: NewsletterReview['status']): ChipProps['color'] => {
-    switch (status) {
-      case 'pending':
-        return 'warning'
-      case 'reviewed':
-        return 'info'
-      case 'approved':
-        return 'success'
-    }
-  }
-
-  const getStatusLabel = (status: NewsletterReview['status']) => {
-    switch (status) {
-      case 'pending':
-        return 'Pendiente'
-      case 'reviewed':
-        return 'Revisado'
-      case 'approved':
-        return 'Aprobado'
-    }
-  }
+  const sortLabel = (label: string, key: SortableKey) => (
+    <TableSortLabel
+      active={orderBy === key}
+      direction={orderBy === key ? order : 'asc'}
+      onClick={() => handleRequestSort(key)}
+    >
+      {label}
+    </TableSortLabel>
+  )
 
   return (
     <Box
@@ -128,142 +130,112 @@ export function ReviewsPage() {
         py: theme.nestle.page.sectionPaddingY,
         px: theme.nestle.page.sectionPaddingX,
         bgcolor: 'background.default',
+        minHeight: '100vh',
       }}
     >
       <Container maxWidth="lg" disableGutters>
         <Stack spacing={4}>
-          <Stack spacing={1}>
-            <Typography variant="h2">Revision de Newsletters</Typography>
-            <Typography variant="body1" color="text.secondary">
-              Revisa y aprueba los newsletters pendientes
-            </Typography>
-            <Chip
-              label={
-                canAssignReview
-                  ? 'Permisos: asignar, aprobar y rechazar'
-                  : 'Permisos: aprobar y rechazar asignados'
-              }
-              sx={{ alignSelf: 'flex-start' }}
-            />
+
+          {/* Header */}
+          <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-end' }}>
+            <Stack spacing={1}>
+              <Typography variant="h2">Revisión de Newsletters</Typography>
+              <Typography variant="body1" color="text.secondary">
+                {isAdmin
+                  ? 'Revisá todos los newsletters pendientes.'
+                  : `Mostrando newsletters de tu área: ${user?.area}.`}
+              </Typography>
+            </Stack>
+
+            <SearchBar value={search} onChange={setSearch} />
           </Stack>
 
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 1fr' },
-              gap: 2,
-            }}
-          >
-            <Card
-              elevation={0}
-              sx={{
-                border: '1px solid',
-                borderColor: 'divider',
-                p: 2.5,
-                textAlign: 'center',
-              }}
-            >
-              <Typography variant="h4" sx={{ color: 'warning.main' }}>
-                {pendingReviews.length}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Pendientes de revisar
-              </Typography>
-            </Card>
+          {/* Tabla */}
+          <TableContainer component={Card} variant="outlined" sx={{ borderRadius: 2 }}>
+            <Table>
+              <TableHead sx={{ bgcolor: 'action.hover' }}>
+                <TableRow>
+                  <TableCell>{sortLabel('Título', 'title')}</TableCell>
+                  <TableCell>{sortLabel('Autor', 'author')}</TableCell>
+                  <TableCell>{sortLabel('Área', 'area')}</TableCell>
+                  <TableCell>{sortLabel('Estado', 'status')}</TableCell>
+                  <TableCell>{sortLabel('Fecha', 'submittedDate')}</TableCell>
+                  <TableCell align="right">Acciones</TableCell>
+                </TableRow>
+              </TableHead>
 
-            <Card
-              elevation={0}
-              sx={{
-                border: '1px solid',
-                borderColor: 'divider',
-                p: 2.5,
-                textAlign: 'center',
-              }}
-            >
-              <Typography variant="h4" sx={{ color: 'success.main' }}>
-                {reviews.filter((review) => review.status === 'approved').length}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Aprobados
-              </Typography>
-            </Card>
-
-            <Card
-              elevation={0}
-              sx={{
-                border: '1px solid',
-                borderColor: 'divider',
-                p: 2.5,
-                textAlign: 'center',
-              }}
-            >
-              <Typography variant="h4" sx={{ color: 'info.main' }}>
-                {reviews.length}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Total de newsletters
-              </Typography>
-            </Card>
-          </Box>
-
-          <Stack spacing={2}>
-            {reviews.map((review) => (
-              <Card
-                key={review.id}
-                elevation={0}
-                sx={{ border: '1px solid', borderColor: 'divider', p: 3 }}
-              >
-                <Stack spacing={2}>
-                  <Stack
-                    direction={{ xs: 'column', md: 'row' }}
-                    spacing={1.5}
-                    sx={{ justifyContent: 'space-between', alignItems: { xs: 'flex-start', md: 'center' } }}
-                  >
-                    <Stack spacing={1}>
-                      <Typography variant="h6">{review.title}</Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Por: {review.author} | {review.submittedDate}
-                      </Typography>
-                    </Stack>
-                    <Chip label={getStatusLabel(review.status)} color={getStatusColor(review.status)} />
-                  </Stack>
-
-                  <Typography variant="body2">{review.content}</Typography>
-
-                  {review.status === 'pending' && (
-                    <Stack direction="row" spacing={1.5} useFlexGap sx={{ flexWrap: 'wrap' }}>
-                      {canAssignReview && (
-                        <Button
-                          variant="outlined"
-                          color="info"
-                          size="small"
-                          onClick={() => handleAssign(review.id)}
+              <TableBody>
+                {filteredReviews.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} align="center" sx={{ py: 6 }}>
+                      <Stack spacing={1} sx={{ alignItems: 'center' }}>
+                        <Typography variant="h6">¡Todo al día! 🎉</Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          No hay newsletters pendientes de revisión por ahora.
+                        </Typography>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredReviews.slice(0, limit).map((review) => (
+                    <TableRow key={review.id} hover>
+                      <TableCell>
+                        <Typography variant="subtitle2">{review.title}</Typography>
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          noWrap
+                          sx={{ maxWidth: 220, display: 'block' }}
                         >
-                          Asignar
-                        </Button>
-                      )}
-                      <Button
-                        variant="contained"
-                        color="success"
-                        size="small"
-                        onClick={() => handleApprove(review.id)}
-                      >
-                        Aprobar
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        color="error"
-                        size="small"
-                        onClick={() => handleReject(review.id)}
-                      >
-                        Rechazar
-                      </Button>
-                    </Stack>
-                  )}
-                </Stack>
-              </Card>
-            ))}
-          </Stack>
+                          {review.content}
+                        </Typography>
+                      </TableCell>
+
+                      <TableCell>{review.author}</TableCell>
+                      <TableCell>{review.area}</TableCell>
+
+                      <TableCell>
+                        <Chip
+                          label={getStatusLabel(review.status)}
+                          color={getStatusColor(review.status)}
+                          size="small"
+                        />
+                      </TableCell>
+
+                      <TableCell>
+                        {new Date(review.submittedDate).toLocaleDateString()}
+                      </TableCell>
+
+                      <TableCell align="right">
+                        <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'flex-end' }}>
+                          {review.status === 'pending' && (
+                            <Tooltip title="Revisar">
+                              <IconButton
+                                size="small"
+                                color="primary"
+                                onClick={() => navigate(`/reviews/${review.id}`)}
+                              >
+                                <ReviewIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+
+            {limit < filteredReviews.length && (
+              <Box sx={{ p: 2, textAlign: 'center', borderTop: '1px solid', borderColor: 'divider' }}>
+                <Button onClick={() => setLimit((l) => l + 5)}>
+                  Cargar más resultados
+                </Button>
+              </Box>
+            )}
+          </TableContainer>
+
         </Stack>
       </Container>
     </Box>

@@ -112,7 +112,7 @@ export function TemplatesPage() {
                       direction={orderBy === 'name' ? order : 'asc'}
                       onClick={() => handleRequestSort('name')}
                     >
-                      Nombre
+                      Título
                     </TableSortLabel>
                   </TableCell>
                   <TableCell>Área</TableCell>
