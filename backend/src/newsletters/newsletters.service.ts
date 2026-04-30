@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service'; // Asegúrate de que la ruta sea correcta
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class NewsLettersService {

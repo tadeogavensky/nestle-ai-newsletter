@@ -10,8 +10,9 @@ import type {
   ImproveTextRequestDto,
   ImproveTextResponseDto,
 } from './dto/improve-text.dto';
+import { Resource } from '../modules/auth/enum/resources';
 
-@Controller('ai')
+@Controller(Resource.AI)
 export class AiController {
   constructor(private readonly aiService: AiService) {}
 
