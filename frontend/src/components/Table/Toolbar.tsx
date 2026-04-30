@@ -10,16 +10,24 @@ import {
   Typography,
 } from '@mui/material'
 import { useNavigate } from 'react-router'
-import SearchIcon from '@mui/icons-material/Search';
-import theme from '../../styles/nestleMuiTheme';
+import SearchIcon from '@mui/icons-material/Search'
+import theme from '../../styles/nestleMuiTheme'
 
 interface ToolbarProps {
   canCreateNewsletter?: boolean
-  modeLabel?: string
+  search: string
+  onSearchChange: (value: string) => void
+
+  filter: 'ALL' | 'PENDING'
+  onFilterChange: (value: 'ALL' | 'PENDING') => void
 }
 
 export function Toolbar({
   canCreateNewsletter = false,
+  search,
+  onSearchChange,
+  filter,
+  onFilterChange,
 }: ToolbarProps) {
   const navigate = useNavigate()
 
@@ -53,14 +61,22 @@ export function Toolbar({
           spacing={1.5}
           sx={{ alignItems: { xs: 'stretch', sm: 'center' } }}
         >
+          {/*BUSCADOR */}
           <TextField
             size="small"
             placeholder="Buscar"
+            value={search}
+            onChange={(e) => onSearchChange(e.target.value)}
             slotProps={{
               input: {
                 startAdornment: (
                   <InputAdornment position="start">
-                   <SearchIcon sx={{ fontSize: 20, color: theme.palette.error.main }} />
+                    <SearchIcon
+                      sx={{
+                        fontSize: 20,
+                        color: theme.palette.error.main,
+                      }}
+                    />
                   </InputAdornment>
                 ),
               },
@@ -68,9 +84,19 @@ export function Toolbar({
             sx={{ minWidth: { xs: '100%', sm: 220 } }}
           />
 
-          <ToggleButtonGroup exclusive size="small" value="todos">
-            <ToggleButton value="todos">Todos</ToggleButton>
-            <ToggleButton value="pendientes">Pendientes</ToggleButton>
+          {/*TOGGLE */}
+          <ToggleButtonGroup
+            exclusive
+            size="small"
+            value={filter}
+            onChange={(_, value) => {
+              if (value !== null) {
+                onFilterChange(value)
+              }
+            }}
+          >
+            <ToggleButton value="ALL">Todos</ToggleButton>
+            <ToggleButton value="PENDING">Pendientes</ToggleButton>
           </ToggleButtonGroup>
 
           <Button variant="outlined">

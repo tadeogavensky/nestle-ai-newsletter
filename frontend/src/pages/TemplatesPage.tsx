@@ -2,21 +2,21 @@ import React, { useState, useMemo } from 'react'
 import {
   Box, Button, Card, Container, Stack, Typography, useTheme,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  TextField, InputAdornment, IconButton, Tooltip,
+  IconButton, Tooltip,
   TableSortLabel
 } from '@mui/material'
 import {
-  Search as SearchIcon,
   DeleteOutlined as DeleteIcon,
   EditOutlined as EditIcon,
   VisibilityOutlined as ViewIcon,
   FileDownloadOutlined as ExportIcon,
   CheckCircleOutlined as ReviewIcon,
-  Add as AddIcon // Importamos el icono para el botón nuevo
+  Add as AddIcon
 } from '@mui/icons-material'
 import { useNavigate } from 'react-router'
 import { useAuth } from '../contexts/AuthContext'
 import { ModalDelete } from '../components/ModalDelete'
+import SearchBar from '../components/SearchBar'
 
 const STATE_MAP: Record<string, { label: string; color: string }> = {
   'state_1': { label: 'Publicado', color: 'success.main' },
@@ -75,7 +75,7 @@ export function TemplatesPage() {
     }}>
       <Container maxWidth="lg" disableGutters>
         <Stack spacing={4}>
-          {/* Header Actualizado */}
+          {/* Header */}
           <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "flex-end" }}>
             <Stack spacing={1}>
               <Typography variant="h2">Templates</Typography>
@@ -85,21 +85,9 @@ export function TemplatesPage() {
             </Stack>
 
             <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
-              <TextField
-                placeholder="Buscar ..."
-                size="small"
+              <SearchBar
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                sx={{ width: 250 }}
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon fontSize="small" />
-                      </InputAdornment>
-                    ),
-                  }
-                }}
+                onChange={setSearch}
               />
 
               <Button 

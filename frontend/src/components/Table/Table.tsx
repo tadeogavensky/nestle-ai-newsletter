@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { useMemo, useState } from 'react';
 import {
   Avatar,
   Box,
@@ -14,21 +13,31 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TablePagination,
   Typography,
 } from '@mui/material';
-import { useNavigate } from 'react-router'; // <--- De 'Incoming'
-import type { UserRole } from '../../contexts/AuthContext';
+
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import { ModalDelete } from '../ModalDelete';
+import { TableSortLabel } from '@mui/material';
 
 type NewsletterStatus = 'Pendiente' | 'Aprobado' | 'Programado' | 'Borrador';
 
 interface NewsletterRow {
   id: string;
   title: string;
-  owner: string;
-  status: NewsletterStatus;
-  audience: string;
-  updatedAt: string;
+  autor: string;
+  state: NewsletterStatus;
+  language: string;
+  reviewer: string;
+  publish_date: string | null;
+  updated_at: string;
+}
+
+interface Props {
+  search: string;
+  filter: 'ALL' | 'PENDING';
 }
 
 const getStatusColor = (status: NewsletterStatus) => {
@@ -41,129 +50,312 @@ const getStatusColor = (status: NewsletterStatus) => {
   }
 };
 
-interface NewslettersTableProps {
-  role?: UserRole;
-}
 
-export function NewslettersTable({ role = 'USER' }: NewslettersTableProps) {
-  const navigate = useNavigate(); // <--- De 'Incoming'
-  
-  // --- Lógica de Paginado (De 'Current') ---
-  const [data, setData] = useState<NewsletterRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [totalRecords, setTotalRecords] = useState(0);
+const mockNewsletters: NewsletterRow[] = [
+  {
+    id: '1',
+    title: 'Newsletter 1',
+    autor: 'autor 1',
+    state: 'Pendiente',
+    language: 'English',
+    reviewer: 'revisor 1',
+    publish_date: '01-10-2023',
+    updated_at: '30-09-2023',
+  },
+  {
+    id: '2',
+    title: 'Newsletter 2',
+    autor: 'autor 2',
+    state: 'Aprobado',
+    language: 'Spanish',
+    reviewer: 'admin',
+    publish_date: '02-10-2023',
+    updated_at: '30-09-2023',
+  },
+  {
+    id: '3',
+    title: 'Newsletter 3',
+    autor: 'autor 3',
+    state: 'Programado',
+    language: 'French',
+    reviewer: 'revisor 2',
+    publish_date: '03-10-2023',
+    updated_at: '28-09-2023',
+  },
+  {
+    id: '4',
+    title: 'Newsletter 4',
+    autor: 'autor 4',
+    state: 'Borrador',
+    language: 'English',
+    reviewer: 'admin',
+    publish_date: null,
+    updated_at: '27-09-2023',
+  },
+  {
+    id: '5',
+    title: 'Newsletter 5',
+    autor: 'autor 2',
+    state: 'Pendiente',
+    language: 'Spanish',
+    reviewer: 'revisor 3',
+    publish_date: '04-10-2023',
+    updated_at: '26-09-2023',
+  },
+  {
+    id: '6',
+    title: 'Newsletter 6',
+    autor: 'autor 1',
+    state: 'Aprobado',
+    language: 'French',
+    reviewer: 'admin',
+    publish_date: '05-10-2023',
+    updated_at: '25-09-2023',
+  },
+  {
+    id: '7',
+    title: 'Newsletter 7',
+    autor: 'autor 2',
+    state: 'Programado',
+    language: 'English',
+    reviewer: 'revisor 4',
+    publish_date: '06-10-2023',
+    updated_at: '24-09-2023',
+  },
+  {
+    id: '8',
+    title: 'Newsletter 8',
+    autor: 'autor 5',
+    state: 'Borrador',
+    language: 'Spanish',
+    reviewer: 'admin',
+    publish_date: null,
+    updated_at: '23-09-2023',
+  },
+  {
+    id: '9',
+    title: 'Newsletter 9',
+    autor: 'autor 3',
+    state: 'Pendiente',
+    language: 'French',
+    reviewer: 'revisor 4',
+    publish_date: '07-10-2023',
+    updated_at: '22-09-2023',
+  },
+  {
+    id: '10',
+    title: 'Newsletter 10',
+    autor: 'autor 1',
+    state: 'Aprobado',
+    language: 'English',
+    reviewer: 'revisor 1',
+    publish_date: '08-10-2023',
+    updated_at: '21-09-2023',
+  },
+];
 
-  const fetchNewsletters = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get(`http://localhost:3000/newsletters`, {
-        params: {
-          page: page + 1,
-          limit: rowsPerPage
-        }
+export function NewslettersTable({ search, filter }: Props) {
+  const [data, setData] = useState<NewsletterRow[]>(mockNewsletters);
+  const [visibleCount, setVisibleCount] = useState(5);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const [orderBy, setOrderBy] = useState<keyof NewsletterRow>('updated_at');
+  const [order, setOrder] = useState<'asc' | 'desc'>('desc');
+
+  const handleSort = (property: keyof NewsletterRow) => {
+    const isAsc = orderBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(property);
+  };
+  const getComparableValue = (value: unknown): string | number => {
+    if (value === null || value === undefined) return '';
+
+    // fecha
+    const date = new Date(value as string);
+    if (!isNaN(date.getTime())) return date.getTime();
+
+    if (typeof value === 'number') return value;
+
+    return value.toString().toLowerCase();
+  };
+
+  // FILTRO CENTRALIZADO
+  const filteredData = useMemo(() => {
+    return data
+      .filter(item =>
+        Object.values(item).some(value =>
+          value?.toString().toLowerCase().includes(search.toLowerCase())
+        )
+      )
+      .filter(item =>
+        filter === 'ALL' ? true : item.state === 'Pendiente'
+      )
+      .sort((a, b) => {
+        const aValue = getComparableValue(a[orderBy]);
+        const bValue = getComparableValue(b[orderBy]);
+
+        if (aValue === bValue) return 0;
+
+        return (aValue < bValue ? -1 : 1) * (order === 'asc' ? 1 : -1);
       });
-      setData(response.data.data);
-      setTotalRecords(response.data.meta.total);
-    } catch (error) {
-      console.error("Error cargando newsletters", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [data, search, filter, order, orderBy]);
 
-  useEffect(() => {
-    fetchNewsletters();
-  }, [page, rowsPerPage]);
-
-  const handleChangePage = (_: unknown, newPage: number) => {
-    setPage(newPage);
-  };
-
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
+  const visibleData = filteredData.slice(0, visibleCount);
 
   return (
-    <Paper elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
+    <Paper sx={{ p: 2 }}>
       <TableContainer>
-        <MuiTable sx={{ opacity: loading ? 0.5 : 1, transition: 'opacity 0.2s' }}>
+        <MuiTable>
           <TableHead>
             <TableRow>
-              <TableCell>Newsletter</TableCell>
-              <TableCell>Responsable</TableCell>
-              <TableCell>Audiencia</TableCell>
-              <TableCell>Estado</TableCell>
-              <TableCell>Actualizacion</TableCell>
+
+              <TableCell sortDirection={orderBy === 'title' ? order : false}>
+                <TableSortLabel
+                  active={orderBy === 'title'}
+                  direction={orderBy === 'title' ? order : 'asc'}
+                  onClick={() => handleSort('title')}
+                >
+                  Newsletter
+                </TableSortLabel>
+              </TableCell>
+
+              <TableCell sortDirection={orderBy === 'autor' ? order : false}>
+                <TableSortLabel
+                  active={orderBy === 'autor'}
+                  direction={orderBy === 'autor' ? order : 'asc'}
+                  onClick={() => handleSort('autor')}
+                >
+                  Autor
+                </TableSortLabel>
+              </TableCell>
+
+              <TableCell sortDirection={orderBy === 'language' ? order : false}>
+                <TableSortLabel
+                  active={orderBy === 'language'}
+                  direction={orderBy === 'language' ? order : 'asc'}
+                  onClick={() => handleSort('language')}
+                >
+                  Idioma
+                </TableSortLabel>
+              </TableCell>
+
+              <TableCell sortDirection={orderBy === 'reviewer' ? order : false}>
+                <TableSortLabel
+                  active={orderBy === 'reviewer'}
+                  direction={orderBy === 'reviewer' ? order : 'asc'}
+                  onClick={() => handleSort('reviewer')}
+                >
+                  Revisado por
+                </TableSortLabel>
+              </TableCell>
+
+              <TableCell sortDirection={orderBy === 'publish_date' ? order : false}>
+                <TableSortLabel
+                  active={orderBy === 'publish_date'}
+                  direction={orderBy === 'publish_date' ? order : 'asc'}
+                  onClick={() => handleSort('publish_date')}
+                >
+                  Publicación
+                </TableSortLabel>
+              </TableCell>
+
+              <TableCell sortDirection={orderBy === 'state' ? order : false}>
+                <TableSortLabel
+                  active={orderBy === 'state'}
+                  direction={orderBy === 'state' ? order : 'asc'}
+                  onClick={() => handleSort('state')}
+                >
+                  Estado
+                </TableSortLabel>
+              </TableCell>
+
+              <TableCell sortDirection={orderBy === 'updated_at' ? order : false}>
+                <TableSortLabel
+                  active={orderBy === 'updated_at'}
+                  direction={orderBy === 'updated_at' ? order : 'asc'}
+                  onClick={() => handleSort('updated_at')}
+                >
+                  Actualización
+                </TableSortLabel>
+              </TableCell>
+
               <TableCell align="right">Acciones</TableCell>
+
             </TableRow>
           </TableHead>
+
           <TableBody>
-            {data.map((newsletter) => (
-              <TableRow key={newsletter.id} hover>
+            {visibleData.map((n) => (
+              <TableRow key={n.id} hover>
+
                 <TableCell>
-                  <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-                    <Avatar variant="rounded" sx={{ width: 40, height: 40, bgcolor: 'brand.red', color: 'brand.white', fontSize: 14, fontWeight: 700 }}>
-                      {newsletter.id.slice(-2)}
-                    </Avatar>
+                  <Stack direction="row" spacing={1.5}>
+                    <Avatar>{n.title[0]}</Avatar>
                     <Box>
-                      <Typography variant="body2" sx={{ fontWeight: 700 }}>{newsletter.title}</Typography>
-                      <Typography variant="caption" color="text.secondary">{newsletter.id}</Typography>
+                      <Typography sx={{ fontWeight: 600 }}>{n.title}</Typography>
+                      <Typography variant="caption">{n.id}</Typography>
                     </Box>
                   </Stack>
                 </TableCell>
-                <TableCell>{newsletter.owner}</TableCell>
-                <TableCell>{newsletter.audience}</TableCell>
+
+                <TableCell>{n.autor}</TableCell>
+                <TableCell>{n.language}</TableCell>
+                <TableCell>{n.reviewer}</TableCell>
+
                 <TableCell>
-                  <Chip 
-                    size="small" 
-                    label={newsletter.status} 
-                    color={getStatusColor(newsletter.status)} 
-                    variant={newsletter.status === 'Borrador' ? 'outlined' : 'filled'} 
+                  {n.publish_date ?? '—'}
+                </TableCell>
+
+                <TableCell>
+                  <Chip
+                    size="small"
+                    label={n.state}
+                    color={getStatusColor(n.state)}
                   />
                 </TableCell>
-                <TableCell>{newsletter.updatedAt}</TableCell>
+
+                <TableCell>{n.updated_at}</TableCell>
+
                 <TableCell align="right">
-                  <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'flex-end' }}>
-                    {role === 'FUNCTIONAL' && newsletter.status === 'Pendiente' ? (
-                      <Button size="small" variant="text">Revisar</Button>
-                    ) : (
-                      <Button size="small" variant="text" onClick={() => navigate(`/ver/${newsletter.id}`)}>Ver</Button>
-                    )}
-                    
-                    {(role === 'ADMIN' || role === 'USER') && (
-                      <Button 
-                        size="small" 
-                        variant="text" 
-                        onClick={() => navigate(`/editar/${newsletter.id}`)} // <--- Navegación de 'Incoming'
-                      >
-                        Editar
-                      </Button>
-                    )}
-                    <IconButton size="small">...</IconButton>
+                  <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
+                    <IconButton>
+                      <VisibilityIcon />
+                    </IconButton>
+
+                    <IconButton>
+                      <EditIcon />
+                    </IconButton>
+
+                    <IconButton onClick={() => setDeleteId(n.id)}>
+                      <DeleteIcon />
+                    </IconButton>
                   </Stack>
                 </TableCell>
+
               </TableRow>
             ))}
           </TableBody>
         </MuiTable>
       </TableContainer>
 
-      <TablePagination
-        rowsPerPageOptions={[5, 10, 25]}
-        component="div"
-        count={totalRecords}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-        labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
-        labelRowsPerPage="Filas por página:"
+      {/* Cargar más */}
+      {visibleCount < filteredData.length && (
+        <Box sx={{ mt: 2, textAlign: 'center' }}>
+          <Button onClick={() => setVisibleCount(v => v + 5)}>
+            Cargar más
+          </Button>
+        </Box>
+      )}
+
+      {/* Modal delete */}
+      <ModalDelete
+        open={!!deleteId}
+        onClose={() => setDeleteId(null)}
+        onConfirm={() => {
+          setData(prev => prev.filter(n => n.id !== deleteId));
+          setDeleteId(null);
+        }}
       />
     </Paper>
   );
 }
-
-export default NewslettersTable;
