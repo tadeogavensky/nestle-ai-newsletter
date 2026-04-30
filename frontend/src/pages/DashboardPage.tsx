@@ -8,12 +8,6 @@ export function DashboardPage() {
   const { user } = useAuth()
   const userRole = user?.role ?? 'USER'
   const canCreateNewsletter = userRole === 'ADMIN' || userRole === 'USER'
-  const modeLabel =
-    userRole === 'ADMIN'
-      ? 'Vista de administracion completa'
-      : userRole === 'FUNCTIONAL'
-        ? 'Vista de revision y aprobacion'
-        : 'Vista de usuario creador'
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'grey.100' }}>
@@ -22,7 +16,6 @@ export function DashboardPage() {
           <NotificationsBanner />
           <NewslettersToolbar
             canCreateNewsletter={canCreateNewsletter}
-            modeLabel={modeLabel}
           />
           <NewslettersTable role={userRole} />
         </Box>

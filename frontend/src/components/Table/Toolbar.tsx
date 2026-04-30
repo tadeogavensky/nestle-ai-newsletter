@@ -20,7 +20,6 @@ interface ToolbarProps {
 
 export function Toolbar({
   canCreateNewsletter = false,
-  modeLabel = 'Vista general',
 }: ToolbarProps) {
   const navigate = useNavigate()
 
@@ -47,9 +46,6 @@ export function Toolbar({
       >
         <Box>
           <Typography variant="h4">Newsletters</Typography>
-          <Typography variant="caption" color="text.secondary">
-            {modeLabel}
-          </Typography>
         </Box>
 
         <Stack
