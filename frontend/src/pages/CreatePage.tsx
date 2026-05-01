@@ -593,6 +593,33 @@ const generationFieldLabels: Record<TemplateGenerationField, string> = {
 const splitLines = (value: string): string[] =>
   value.split('\n').map((line) => line.trim()).filter((line) => line.length > 0)
 
+
+const isValidUrl = (link: string): boolean => {
+  try {
+    const url = new URL(link)
+    return url.protocol === 'http:' || url.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
+const validateLinks = (value: string): string | null => {
+  const links = value
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0)
+
+  if (links.length === 0) return null
+
+  const invalid = links.some((link) => !isValidUrl(link))
+  return invalid ? 'Todos los links deben ser válidos (http/https).' : null
+}
+
+const validateDate = (value: string): string | null => {
+  if (!value.trim()) return null
+  return isNaN(Date.parse(value)) ? 'Debe ser una fecha válida.' : null
+}
+
 function GenerationForm({
   context,
   selectedTemplate,
@@ -630,40 +657,25 @@ function GenerationForm({
 
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {}
+
     if (!form.topic.trim()) errors.topic = 'El tema es obligatorio.'
     if (!form.objective.trim()) errors.objective = 'El objetivo es obligatorio.'
     if (!form.audience.trim()) errors.audience = 'La audiencia es obligatoria.'
     if (splitLines(form.keyMessages).length < 1) errors.keyMessages = 'Ingresa al menos un mensaje clave.'
     if (!form.tone.trim()) errors.tone = 'El tono deseado es obligatorio.'
 
-    selectedTemplate.requiredGenerationFields.forEach((field) => {
-      if (field === 'linksOrSources') {
-        const links = splitLines(form.linksOrSources)
-        if (links.length < 1) {
-          errors.linksOrSources = 'Ingresa al menos un link.'
-        } else {
-          const invalid = links.some((link) => {
-            try {
-              new URL(link)
-              return false
-            } catch {
-              return true
-            }
-          })
-          if (invalid) errors.linksOrSources = 'Todos los links deben ser válidos.'
-        }
-        return
-      }
+    // Validaciones reutilizables
+    const linkError = validateLinks(form.linksOrSources)
+    if (linkError) errors.linksOrSources = linkError
 
-      if (field === 'relevantDates') {
-        if (!form.relevantDates.trim()) {
-          errors.relevantDates = 'La fecha es obligatoria.'
-        } else if (isNaN(Date.parse(form.relevantDates))) {
-          errors.relevantDates = 'Debe ser una fecha válida.'
-        }
-        return
+    const dateError = validateDate(form.relevantDates)
+    if (dateError) errors.relevantDates = dateError
+
+    // Required dinámicos
+    selectedTemplate.requiredGenerationFields.forEach((field) => {
+      if (!form[field]?.toString().trim()) {
+        errors[field] = `${generationFieldLabels[field]} es obligatorio para esta plantilla.`
       }
-      if (!form[field].trim()) errors[field] = `${generationFieldLabels[field]} es obligatorio para esta plantilla.`
     })
 
     setFormErrors(errors)
@@ -799,30 +811,13 @@ function GenerationForm({
               const value = e.target.value
               updateFormField('linksOrSources', value)
 
-              const links = value
-                .split('\n')
-                .map((l) => l.trim())
-                .filter((l) => l.length > 0)
-
-              const isValidUrl = (link: string) => {
-                try {
-                  const url = new URL(link)
-                  return url.protocol === 'http:' || url.protocol === 'https:'
-                } catch {
-                  return false
-                }
-              }
-
-              const invalid = links.some((link) => !isValidUrl(link))
+              const error = validateLinks(value)
 
               setFormErrors((prev) => {
                 const next = { ...prev }
 
-                if (invalid) {
-                  next.linksOrSources = 'Todos los links deben ser válidos.'
-                } else {
-                  delete next.linksOrSources
-                }
+                if (error) next.linksOrSources = error
+                else delete next.linksOrSources
 
                 return next
               })
@@ -861,12 +856,7 @@ function GenerationForm({
         variant="contained"
         disabled={
           context.isGenerating ||
-          !!formErrors.linksOrSources ||
-          !!formErrors.topic ||
-          !!formErrors.objective ||
-          !!formErrors.audience ||
-          !!formErrors.keyMessages ||
-          !!formErrors.tone
+          Object.keys(formErrors).length > 0
         }
         onClick={() => void submitGenerationForm()}
       >
