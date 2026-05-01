@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react'
+﻿import { useState, useMemo } from 'react'
 import {
-  Box, Button, Card, Container, Stack, Typography, useTheme,
+  Box, Button, Card, Chip, Container, Stack, Typography, useTheme,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   IconButton, Tooltip,
   TableSortLabel
@@ -18,10 +18,12 @@ import { useAuth } from '../contexts/AuthContext'
 import { ModalDelete } from '../components/ModalDelete'
 import SearchBar from '../components/SearchBar'
 
-const STATE_MAP: Record<string, { label: string; color: string }> = {
-  'state_1': { label: 'Publicado', color: 'success.main' },
-  'state_2': { label: 'En borrador', color: 'warning.main' },
-  'state_3': { label: 'Publicado', color: 'success.main' },
+type StatusChipColor = 'default' | 'success' | 'warning'
+
+const STATE_MAP: Record<string, { label: string; color: StatusChipColor }> = {
+  'state_1': { label: 'Publicado', color: 'success' },
+  'state_2': { label: 'En borrador', color: 'warning' },
+  'state_3': { label: 'Publicado', color: 'success' },
 }
 
 export function TemplatesPage() {
@@ -140,14 +142,11 @@ export function TemplatesPage() {
                     </TableCell>
                     <TableCell>{template.area_id}</TableCell>
                     <TableCell>
-                      <Box sx={{
-                        color: STATE_MAP[template.state_id]?.color,
-                        fontWeight: 600,
-                        fontSize: '0.75rem',
-                        textTransform: 'uppercase'
-                      }}>
-                        • {STATE_MAP[template.state_id]?.label}
-                      </Box>
+                      <Chip
+                        size="small"
+                        label={STATE_MAP[template.state_id]?.label}
+                        color={STATE_MAP[template.state_id]?.color ?? 'default'}
+                      />
                     </TableCell>
                     <TableCell>
                       {new Date(template.created_at).toLocaleDateString()}
