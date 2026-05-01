@@ -583,10 +583,10 @@ type NewsletterGenerationForm = {
 }
 
 const generationFieldLabels: Record<TemplateGenerationField, string> = {
-  relevantDates: 'Fechas relevantes',
-  cta: 'CTA',
+  relevantDates: 'Fecha CTA',
+  cta: 'Texto CTA ',
   contact: 'Contacto',
-  linksOrSources: 'Links o fuentes',
+  linksOrSources: 'Link CTA ',
   additionalContext: 'Contexto adicional',
 }
 
@@ -638,7 +638,29 @@ function GenerationForm({
 
     selectedTemplate.requiredGenerationFields.forEach((field) => {
       if (field === 'linksOrSources') {
-        if (splitLines(form.linksOrSources).length < 1) errors.linksOrSources = 'Ingresa al menos un link o fuente.'
+        const links = splitLines(form.linksOrSources)
+        if (links.length < 1) {
+          errors.linksOrSources = 'Ingresa al menos un link.'
+        } else {
+          const invalid = links.some((link) => {
+            try {
+              new URL(link)
+              return false
+            } catch {
+              return true
+            }
+          })
+          if (invalid) errors.linksOrSources = 'Todos los links deben ser válidos.'
+        }
+        return
+      }
+
+      if (field === 'relevantDates') {
+        if (!form.relevantDates.trim()) {
+          errors.relevantDates = 'La fecha es obligatoria.'
+        } else if (isNaN(Date.parse(form.relevantDates))) {
+          errors.relevantDates = 'Debe ser una fecha válida.'
+        }
         return
       }
       if (!form[field].trim()) errors[field] = `${generationFieldLabels[field]} es obligatorio para esta plantilla.`
@@ -683,10 +705,9 @@ function GenerationForm({
       <Alert severity="info">Plantilla seleccionada: {selectedTemplate.name}</Alert>
 
       <Stack spacing={2}>
-        <Typography variant="h6">Campos obligatorios</Typography>
         <TextField label="Departamento o area" value={areaLabels[selectedTemplate.area]} fullWidth disabled />
         <TextField
-          label="Tema del newsletter"
+          label="Tema del newsletter *"
           value={form.topic}
           onChange={(e: ChangeEvent<HTMLInputElement>) => updateFormField('topic', e.target.value)}
           error={!!formErrors.topic}
@@ -694,7 +715,7 @@ function GenerationForm({
           fullWidth
         />
         <TextField
-          label="Objetivo"
+          label="Objetivo *"
           value={form.objective}
           onChange={(e: ChangeEvent<HTMLInputElement>) => updateFormField('objective', e.target.value)}
           error={!!formErrors.objective}
@@ -704,7 +725,7 @@ function GenerationForm({
           fullWidth
         />
         <TextField
-          label="Audiencia"
+          label="Audiencia *"
           value={form.audience}
           onChange={(e: ChangeEvent<HTMLInputElement>) => updateFormField('audience', e.target.value)}
           error={!!formErrors.audience}
@@ -712,7 +733,7 @@ function GenerationForm({
           fullWidth
         />
         <TextField
-          label="Mensajes clave"
+          label="Mensajes clave *"
           value={form.keyMessages}
           onChange={(e: ChangeEvent<HTMLInputElement>) => updateFormField('keyMessages', e.target.value)}
           error={!!formErrors.keyMessages}
@@ -722,7 +743,7 @@ function GenerationForm({
           fullWidth
         />
         <TextField
-          label="Tono deseado"
+          label="Tono deseado *"
           value={form.tone}
           onChange={(e: ChangeEvent<HTMLInputElement>) => updateFormField('tone', e.target.value)}
           error={!!formErrors.tone}
@@ -730,11 +751,7 @@ function GenerationForm({
           fullWidth
         />
       </Stack>
-
-      <Divider />
-
       <Stack spacing={2}>
-        <Typography variant="h6">Campos opcionales</Typography>
         {selectedTemplate.requiredGenerationFields.length > 0 && (
           <Alert severity="warning">
             Esta plantilla requiere:{' '}
@@ -743,7 +760,9 @@ function GenerationForm({
         )}
         {visibleGenerationFields.has('relevantDates') && (
           <TextField
-            label="Fechas relevantes"
+            label="Fecha CTA"
+            type="date"
+            slotProps={{ inputLabel: { shrink: true } }}
             value={form.relevantDates}
             onChange={(e: ChangeEvent<HTMLInputElement>) => updateFormField('relevantDates', e.target.value)}
             error={!!formErrors.relevantDates}
@@ -753,7 +772,7 @@ function GenerationForm({
         )}
         {visibleGenerationFields.has('cta') && (
           <TextField
-            label="CTA"
+            label="Texto CTA"
             value={form.cta}
             onChange={(e: ChangeEvent<HTMLInputElement>) => updateFormField('cta', e.target.value)}
             error={!!formErrors.cta}
@@ -773,9 +792,41 @@ function GenerationForm({
         )}
         {visibleGenerationFields.has('linksOrSources') && (
           <TextField
-            label="Links o fuentes"
+            label="Link CTA "
+            type="url"
             value={form.linksOrSources}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => updateFormField('linksOrSources', e.target.value)}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => {
+              const value = e.target.value
+              updateFormField('linksOrSources', value)
+
+              const links = value
+                .split('\n')
+                .map((l) => l.trim())
+                .filter((l) => l.length > 0)
+
+              const isValidUrl = (link: string) => {
+                try {
+                  const url = new URL(link)
+                  return url.protocol === 'http:' || url.protocol === 'https:'
+                } catch {
+                  return false
+                }
+              }
+
+              const invalid = links.some((link) => !isValidUrl(link))
+
+              setFormErrors((prev) => {
+                const next = { ...prev }
+
+                if (invalid) {
+                  next.linksOrSources = 'Todos los links deben ser válidos.'
+                } else {
+                  delete next.linksOrSources
+                }
+
+                return next
+              })
+            }}
             error={!!formErrors.linksOrSources}
             helperText={formErrors.linksOrSources || 'Escribi un link o fuente por linea.'}
             multiline
@@ -808,7 +859,15 @@ function GenerationForm({
 
       <Button
         variant="contained"
-        disabled={context.isGenerating}
+        disabled={
+          context.isGenerating ||
+          !!formErrors.linksOrSources ||
+          !!formErrors.topic ||
+          !!formErrors.objective ||
+          !!formErrors.audience ||
+          !!formErrors.keyMessages ||
+          !!formErrors.tone
+        }
         onClick={() => void submitGenerationForm()}
       >
         {context.isGenerating ? 'Generando...' : 'Generar'}
