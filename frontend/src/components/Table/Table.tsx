@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import {
-  Avatar,
   Box,
   Button,
   Chip,
@@ -19,11 +18,13 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import {
+  NewsletterStatus,
+  NewsletterStatusLabel,
+} from '../../../../packages/shared/src/enums/newsletter-status.enum';
 import { ModalDelete } from '../ModalDelete';
 import { TableSortLabel } from '@mui/material';
 import Tooltip from "@mui/material/Tooltip";
-
-type NewsletterStatus = 'Pendiente' | 'Aprobado' | 'Programado' | 'Borrador';
 
 interface NewsletterRow {
   id: string;
@@ -41,12 +42,24 @@ interface Props {
   filter: 'ALL' | 'PENDING';
 }
 
+const pendingStatuses = new Set<NewsletterStatus>([
+  NewsletterStatus.IN_REVIEW,
+  NewsletterStatus.CHANGES_REQUESTED,
+  NewsletterStatus.RESUBMITTED,
+]);
+
 const getStatusColor = (status: NewsletterStatus) => {
   switch (status) {
-    case 'Pendiente': return 'warning';
-    case 'Aprobado': return 'success';
-    case 'Programado': return 'info';
-    case 'Borrador': return 'default';
+    case NewsletterStatus.IN_REVIEW:
+    case NewsletterStatus.CHANGES_REQUESTED:
+    case NewsletterStatus.RESUBMITTED:
+      return 'warning';
+    case NewsletterStatus.APPROVED:
+      return 'success';
+    case NewsletterStatus.DISCARDED:
+      return 'error';
+    case NewsletterStatus.DRAFT:
+      return 'default';
     default: return 'default';
   }
 };
@@ -57,7 +70,7 @@ const mockNewsletters: NewsletterRow[] = [
     id: '1',
     title: 'Newsletter 1',
     autor: 'autor 1',
-    state: 'Pendiente',
+    state: NewsletterStatus.IN_REVIEW,
     language: 'English',
     reviewer: 'revisor 1',
     publish_date: '01-10-2023',
@@ -67,7 +80,7 @@ const mockNewsletters: NewsletterRow[] = [
     id: '2',
     title: 'Newsletter 2',
     autor: 'autor 2',
-    state: 'Aprobado',
+    state: NewsletterStatus.APPROVED,
     language: 'Spanish',
     reviewer: 'admin',
     publish_date: '02-10-2023',
@@ -77,7 +90,7 @@ const mockNewsletters: NewsletterRow[] = [
     id: '3',
     title: 'Newsletter 3',
     autor: 'autor 3',
-    state: 'Programado',
+    state: NewsletterStatus.CHANGES_REQUESTED,
     language: 'French',
     reviewer: 'revisor 2',
     publish_date: '03-10-2023',
@@ -87,7 +100,7 @@ const mockNewsletters: NewsletterRow[] = [
     id: '4',
     title: 'Newsletter 4',
     autor: 'autor 4',
-    state: 'Borrador',
+    state: NewsletterStatus.DRAFT,
     language: 'English',
     reviewer: 'admin',
     publish_date: null,
@@ -97,7 +110,7 @@ const mockNewsletters: NewsletterRow[] = [
     id: '5',
     title: 'Newsletter 5',
     autor: 'autor 2',
-    state: 'Pendiente',
+    state: NewsletterStatus.RESUBMITTED,
     language: 'Spanish',
     reviewer: 'revisor 3',
     publish_date: '04-10-2023',
@@ -107,7 +120,7 @@ const mockNewsletters: NewsletterRow[] = [
     id: '6',
     title: 'Newsletter 6',
     autor: 'autor 1',
-    state: 'Aprobado',
+    state: NewsletterStatus.APPROVED,
     language: 'French',
     reviewer: 'admin',
     publish_date: '05-10-2023',
@@ -117,7 +130,7 @@ const mockNewsletters: NewsletterRow[] = [
     id: '7',
     title: 'Newsletter 7',
     autor: 'autor 2',
-    state: 'Programado',
+    state: NewsletterStatus.DISCARDED,
     language: 'English',
     reviewer: 'revisor 4',
     publish_date: '06-10-2023',
@@ -127,7 +140,7 @@ const mockNewsletters: NewsletterRow[] = [
     id: '8',
     title: 'Newsletter 8',
     autor: 'autor 5',
-    state: 'Borrador',
+    state: NewsletterStatus.DRAFT,
     language: 'Spanish',
     reviewer: 'admin',
     publish_date: null,
@@ -137,7 +150,7 @@ const mockNewsletters: NewsletterRow[] = [
     id: '9',
     title: 'Newsletter 9',
     autor: 'autor 3',
-    state: 'Pendiente',
+    state: NewsletterStatus.IN_REVIEW,
     language: 'French',
     reviewer: 'revisor 4',
     publish_date: '07-10-2023',
@@ -147,7 +160,7 @@ const mockNewsletters: NewsletterRow[] = [
     id: '10',
     title: 'Newsletter 10',
     autor: 'autor 1',
-    state: 'Aprobado',
+    state: NewsletterStatus.APPROVED,
     language: 'English',
     reviewer: 'revisor 1',
     publish_date: '08-10-2023',
@@ -184,12 +197,17 @@ export function NewslettersTable({ search, filter }: Props) {
   const filteredData = useMemo(() => {
     return data
       .filter(item =>
-        Object.values(item).some(value =>
-          value?.toString().toLowerCase().includes(search.toLowerCase())
-        )
+        Object.entries(item).some(([key, value]) => {
+          const searchableValue =
+            key === 'state' && value
+              ? NewsletterStatusLabel[value as NewsletterStatus]
+              : value;
+
+          return searchableValue?.toString().toLowerCase().includes(search.toLowerCase());
+        })
       )
       .filter(item =>
-        filter === 'ALL' ? true : item.state === 'Pendiente'
+        filter === 'ALL' ? true : pendingStatuses.has(item.state)
       )
       .sort((a, b) => {
         const aValue = getComparableValue(a[orderBy]);
@@ -309,7 +327,7 @@ export function NewslettersTable({ search, filter }: Props) {
                 <TableCell>
                   <Chip
                     size="small"
-                    label={n.state}
+                    label={NewsletterStatusLabel[n.state]}
                     color={getStatusColor(n.state)}
                   />
                 </TableCell>

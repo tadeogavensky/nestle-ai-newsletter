@@ -39,17 +39,17 @@ export function Toolbar({
     <Paper
       elevation={0}
       sx={{
-        border: '1px solid',
-        borderColor: 'divider',
+        border: "1px solid",
+        borderColor: "divider",
         p: 2,
       }}
     >
       <Stack
-        direction={{ xs: 'column', md: 'row' }}
+        direction={{ xs: "column", md: "row" }}
         spacing={2}
         sx={{
-          alignItems: { xs: 'stretch', md: 'center' },
-          justifyContent: 'space-between',
+          alignItems: { xs: "stretch", md: "center" },
+          justifyContent: "space-between",
         }}
       >
         <Box>
@@ -57,10 +57,24 @@ export function Toolbar({
         </Box>
 
         <Stack
-          direction={{ xs: 'column', sm: 'row' }}
+          direction={{ xs: "column", sm: "row" }}
           spacing={1.5}
-          sx={{ alignItems: { xs: 'stretch', sm: 'center' } }}
+          sx={{ alignItems: { xs: "stretch", sm: "center" } }}
         >
+          {/*TOGGLE */}
+          <ToggleButtonGroup
+            exclusive
+            size="small"
+            value={filter}
+            onChange={(_, value) => {
+              if (value !== null) {
+                onFilterChange(value);
+              }
+            }}
+          >
+            <ToggleButton value="ALL">Todos</ToggleButton>
+            <ToggleButton value="PENDING">Pendientes</ToggleButton>
+          </ToggleButtonGroup>
           {/*BUSCADOR */}
           <TextField
             size="small"
@@ -81,37 +95,18 @@ export function Toolbar({
                 ),
               },
             }}
-            sx={{ minWidth: { xs: '100%', sm: 220 } }}
+            sx={{ minWidth: { xs: "100%", sm: 220 } }}
           />
-
-          {/*TOGGLE */}
-          <ToggleButtonGroup
-            exclusive
-            size="small"
-            value={filter}
-            onChange={(_, value) => {
-              if (value !== null) {
-                onFilterChange(value)
-              }
-            }}
-          >
-            <ToggleButton value="ALL">Todos</ToggleButton>
-            <ToggleButton value="PENDING">Pendientes</ToggleButton>
-          </ToggleButtonGroup>
-
-          <Button variant="outlined">
-            Filtros
-          </Button>
 
           {canCreateNewsletter && (
             <Button variant="contained" onClick={route}>
-              Nuevo
+              Crear Newsletter
             </Button>
           )}
         </Stack>
       </Stack>
     </Paper>
-  )
+  );
 }
 
 export default Toolbar
