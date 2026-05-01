@@ -35,6 +35,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import axios from 'axios'
 import { improveText } from '../services/ai'
+import { updateNewsletterStatus } from '../services/newsletters'
 
 type NewsletterState =
   | 'DRAFT'
@@ -109,6 +110,7 @@ type CreatePageContext = {
   onExportToPng: () => Promise<void>
   improvingBlockId: string | null
   isGenerating: boolean
+  isSendingForReview: boolean
   aiError: string | null
 }
 
@@ -614,10 +616,14 @@ function EditForm({
 
       <Divider />
 
-      <Button variant="contained" onClick={onSubmit}>
-        {submitLabel}
+      <Button
+        variant="contained"
+        onClick={onSubmit}
+        disabled={context.isSendingForReview}
+      >
+        {context.isSendingForReview ? 'Enviando...' : submitLabel}
       </Button>
-      <Button variant="outlined" color="error" onClick={context.onCancel}>
+      <Button variant="outlined" color="error" onClick={context.onCancel} disabled={context.isSendingForReview}>
         Cancelar
       </Button>
     </Stack>
@@ -852,6 +858,7 @@ function CreatePage() {
   const [isExportingPng, setIsExportingPng] = useState(false)
   const [improvingBlockId, setImprovingBlockId] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isSendingForReview, setIsSendingForReview] = useState(false)
   const [aiError, setAiError] = useState<string | null>(null)
 
   const allCommentaries = useMemo(
@@ -906,9 +913,17 @@ function CreatePage() {
   }, [blocks])
 
   const handleSendForReview = useCallback(async () => {
-    await handleRenderHtml()
-    transitionNewsletterState('IN_REVIEW')
-  }, [handleRenderHtml, transitionNewsletterState])
+    setIsSendingForReview(true)
+    try {
+      await updateNewsletterStatus(newsletterId, 'IN_REVIEW')
+      await handleRenderHtml()
+      transitionNewsletterState('IN_REVIEW')
+    } catch {
+      setAiError('No se pudo enviar a revisión en este momento. Intenta de nuevo.')
+    } finally {
+      setIsSendingForReview(false)
+    }
+  }, [handleRenderHtml, newsletterId, transitionNewsletterState])
 
   const handleCancel = useCallback(() => {
     transitionNewsletterState('DISCARDED')
@@ -1005,6 +1020,7 @@ function CreatePage() {
       isExportingPng,
       improvingBlockId,
       isGenerating,
+      isSendingForReview,
       aiError,
       onGenerate: handleGenerate,
       onCancel: handleCancel,
@@ -1049,6 +1065,7 @@ function CreatePage() {
       handleSendFeedback,
       improvingBlockId,
       isGenerating,
+      isSendingForReview,
       isExportingPng,
       isGenerated,
       isRenderingHtml,
