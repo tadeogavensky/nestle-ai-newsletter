@@ -76,7 +76,7 @@ DATABASE_URL="postgresql://..."
 DIRECT_URL="postgresql://..."
 SUPABASE_URL="https://..."
 SUPABASE_SERVICE_ROLE_KEY="..."
-SUPABASE_STORAGE_BUCKET="assets"
+SUPABASE_ASSETS_BUCKET="assets"
 PORT=3000
 AI_PROVIDER="gemini"
 GEMINI_API_KEY="AIza..."
@@ -90,10 +90,11 @@ Notes:
 - `DATABASE_URL` is used by Prisma at runtime.
 - `DIRECT_URL` is used for direct Prisma tasks, introspection, or migrations.
 - `SUPABASE_SERVICE_ROLE_KEY` is sensitive. Never push it to GitHub.
-- `AI_PROVIDER` selects the active provider for `POST /ai/improve-text`. Use `gemini` by default or `nestle` to route through Nestle GenIA.
+- `SUPABASE_ASSETS_BUCKET` stores uploaded newsletter images/assets for AI-assisted creation.
+- `AI_PROVIDER` selects the active provider for `POST /ai/improve-text` and `POST /ai/generate-newsletter`. Use `gemini` by default or `nestle` to route through Nestle GenIA.
 - `GEMINI_API_KEY` is required when `AI_PROVIDER="gemini"`.
 - `CLIENT_ID` and `CLIENT_SECRET` are required when `AI_PROVIDER="nestle"`.
-- `GEMINI_MODEL`, `NESTLE_GENIA_URL`, and `NESTLE_GENIA_MODEL` are optional overrides for the text-improvement endpoint.
+- `GEMINI_MODEL`, `NESTLE_GENIA_URL`, and `NESTLE_GENIA_MODEL` are optional overrides for the AI endpoints.
 
 ### Installation
 
@@ -366,7 +367,7 @@ DATABASE_URL="postgresql://..."
 DIRECT_URL="postgresql://..."
 SUPABASE_URL="https://..."
 SUPABASE_SERVICE_ROLE_KEY="..."
-SUPABASE_STORAGE_BUCKET="assets"
+SUPABASE_ASSETS_BUCKET="assets"
 PORT=3000
 AI_PROVIDER="gemini"
 GEMINI_API_KEY="AIza..."
@@ -380,10 +381,11 @@ Notas:
 - `DATABASE_URL` se usa en runtime por Prisma.
 - `DIRECT_URL` se usa para tareas directas de Prisma, introspeccion o migraciones.
 - `SUPABASE_SERVICE_ROLE_KEY` es sensible. No subirla nunca a GitHub.
-- `AI_PROVIDER` selecciona el proveedor activo para `POST /ai/improve-text`. Usar `gemini` por defecto o `nestle` para enrutar por Nestle GenIA.
+- `SUPABASE_ASSETS_BUCKET` guarda imagenes/assets subidos para la creacion asistida por IA.
+- `AI_PROVIDER` selecciona el proveedor activo para `POST /ai/improve-text` y `POST /ai/generate-newsletter`. Usar `gemini` por defecto o `nestle` para enrutar por Nestle GenIA.
 - `GEMINI_API_KEY` es obligatoria cuando `AI_PROVIDER="gemini"`.
 - `CLIENT_ID` y `CLIENT_SECRET` son obligatorias cuando `AI_PROVIDER="nestle"`.
-- `GEMINI_MODEL`, `NESTLE_GENIA_URL` y `NESTLE_GENIA_MODEL` son overrides opcionales para el endpoint de mejora de texto.
+- `GEMINI_MODEL`, `NESTLE_GENIA_URL` y `NESTLE_GENIA_MODEL` son overrides opcionales para los endpoints de IA.
 
 ## Instalacion
 
