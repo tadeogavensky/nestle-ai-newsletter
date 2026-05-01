@@ -10,11 +10,12 @@ import { LoginPage } from './pages/LoginPage'
 import { DashboardPage } from './pages/DashboardPage'
 import CreatePage from './pages/CreatePage'
 import { EditPage } from './pages/EditPage'
-import { CampaignsPage } from './pages/CampaignsPage'
+import TemplatesPage from './pages/TemplatesPage'
 import { AnalyticsPage } from './pages/AnalyticsPage'
 import { ReviewsPage } from './pages/ReviewsPage'
 import { UsersPage } from './pages/UsersPage'
 import { SettingsPage } from './pages/SettingsPage'
+import './App.css'
 
 // Legacy demo pages
 import axios from 'axios'
@@ -741,11 +742,11 @@ function AppRouter() {
             }
           />
           <Route
-            path="/campaigns"
+            path="/templates"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute allowedRoles={['ADMIN', 'FUNCTIONAL']}>
                 <ProtectedLayout>
-                  <CampaignsPage />
+                  <TemplatesPage />
                 </ProtectedLayout>
               </ProtectedRoute>
             }
@@ -763,7 +764,7 @@ function AppRouter() {
           <Route
             path="/reviews"
             element={
-              <ProtectedRoute allowedRoles={['ADMIN', 'FUNCTIONAL']}>
+              <ProtectedRoute >
                 <ProtectedLayout>
                   <ReviewsPage />
                 </ProtectedLayout>
@@ -793,7 +794,7 @@ function AppRouter() {
           <Route
             path="/templates"
             element={
-              <h1 style={{ padding: 40, textAlign: 'center' }}>
+              <h1 className="titulo-templates">
                 Página de templates en construcción
               </h1>
             }
@@ -801,7 +802,7 @@ function AppRouter() {
           <Route
             path="/newsletters"
             element={
-              <h1 style={{ padding: 40, textAlign: 'center' }}>
+              <h1 className="titulo-templates">
                 Página de newsletters en construcción
               </h1>
             }
@@ -809,7 +810,7 @@ function AppRouter() {
           <Route
             path="/newsletters/edit/:id"
             element={
-              <h1 style={{ padding: 40, textAlign: 'center' }}>
+              <h1 className="titulo-templates">
                 Página de newsletters por ID en construcción
               </h1>
             }
@@ -817,7 +818,7 @@ function AppRouter() {
           <Route
             path="/reviews/:id"
             element={
-              <h1 style={{ padding: 40, textAlign: 'center' }}>
+              <h1 className="titulo-templates">
                 Página de reviews por newsletter id en construcción
               </h1>
             }
@@ -825,7 +826,7 @@ function AppRouter() {
           <Route
             path="/admin/templates"
             element={
-              <h1 style={{ padding: 40, textAlign: 'center' }}>
+              <h1 className="titulo-templates">
                 Página de templates SUPER ADMIN en construcción
               </h1>
             }
@@ -833,7 +834,7 @@ function AppRouter() {
           <Route
             path="/admin/templates/create"
             element={
-              <h1 style={{ padding: 40, textAlign: 'center' }}>
+              <h1 className="titulo-templates">
                 Página de templates creación SUPER ADMIN en construcción
               </h1>
             }
@@ -841,7 +842,7 @@ function AppRouter() {
           <Route
             path="/admin/templates/edit/:id"
             element={
-              <h1 style={{ padding: 40, textAlign: 'center' }}>
+              <h1 className="titulo-templates">
                 Página de templates edición SUPER ADMIN en construcción
               </h1>
             }
@@ -849,7 +850,7 @@ function AppRouter() {
           <Route
             path="/newsletters/preview/:id"
             element={
-              <h1 style={{ padding: 40, textAlign: 'center' }}>
+              <h1 className="titulo-templates">
                 Página de newsletters preview en construcción
               </h1>
             }
@@ -857,7 +858,7 @@ function AppRouter() {
           <Route
             path="/logs"
             element={
-              <h1 style={{ padding: 40, textAlign: 'center' }}>
+              <h1 className="titulo-templates">
                 Página de logs en construcción
               </h1>
             }
@@ -865,7 +866,7 @@ function AppRouter() {
           <Route
             path="/backoffice"
             element={
-              <h1 style={{ padding: 40, textAlign: 'center' }}>
+              <h1 className="titulo-templates">
                 Página de backoffice en construcción
               </h1>
             }
@@ -873,7 +874,7 @@ function AppRouter() {
           <Route
             path="/branding"
             element={
-              <h1 style={{ padding: 40, textAlign: 'center' }}>
+              <h1 className="titulo-templates">
                 Página de branding en construcción
               </h1>
             }

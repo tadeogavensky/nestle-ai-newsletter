@@ -7,8 +7,9 @@ import {
   Container,
   Stack,
   TextField,
-  ToggleButton,
-  ToggleButtonGroup,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
   Typography,
   useTheme,
 } from '@mui/material'
@@ -136,9 +137,6 @@ export function LoginPage() {
             <Stack spacing={3}>
               <Stack spacing={1}>
                 <Typography variant="h3">Iniciar sesion</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Acceso hardcoded con Microsoft SSO para demo.
-                </Typography>
               </Stack>
 
               {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
@@ -166,7 +164,7 @@ export function LoginPage() {
 
                   <TextField
                     fullWidth
-                    label="Clave demo"
+                    label="Contraseña"
                     type="password"
                     value={password}
                     onChange={(event) => {
@@ -179,51 +177,33 @@ export function LoginPage() {
                     required
                   />
 
-                  <ToggleButtonGroup
-                    exclusive
-                    fullWidth
+                  <RadioGroup
                     value={email}
-                    onChange={(_, value: string | null) => {
-                      if (value) {
-                        setEmail(value)
-                        setPassword('password123')
-                        setFormErrors({})
-                      }
-                    }}
-                    sx={{
-                      display: 'grid',
-                      gridTemplateColumns: '1fr',
-                      gap: 1,
-                      '& .MuiToggleButtonGroup-grouped': {
-                        borderRadius: 1,
-                        border: '1px solid',
-                        borderColor: 'divider',
-                      },
+                    onChange={(event) => {
+                      setEmail(event.target.value)
+                      setPassword('password123')
+                      setFormErrors({})
                     }}
                   >
                     {MICROSOFT_SSO_USERS.map((microsoftUser) => (
-                      <ToggleButton
+                      <FormControlLabel
                         key={microsoftUser.id}
                         value={microsoftUser.email}
-                        disabled={loading}
-                        sx={{
-                          justifyContent: 'flex-start',
-                          textAlign: 'left',
-                          px: 2,
-                          py: 1.5,
-                        }}
-                      >
-                        <Stack spacing={0.25}>
-                          <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                            {microsoftUser.name}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {microsoftUser.email} | {getRoleLabel(microsoftUser.role)}
-                          </Typography>
-                        </Stack>
-                      </ToggleButton>
+                        control={<Radio disabled={loading} />}
+                        label={
+                          <Stack spacing={0.25}>
+                            <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                              {microsoftUser.name}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              {microsoftUser.email} | {getRoleLabel(microsoftUser.role)}
+                            </Typography>
+                          </Stack>
+                        }
+                        sx={{ alignItems: 'flex-start', m: 0, py: 0.5 }}
+                      />
                     ))}
-                  </ToggleButtonGroup>
+                  </RadioGroup>
 
                   <Button
                     fullWidth
@@ -233,7 +213,7 @@ export function LoginPage() {
                     type="submit"
                     disabled={loading}
                   >
-                    {loading ? <CircularProgress size={24} color="inherit" /> : 'Continuar con Microsoft'}
+                    {loading ? <CircularProgress size={24} color="inherit" /> : 'Login'}
                   </Button>
                 </Stack>
               </Box>

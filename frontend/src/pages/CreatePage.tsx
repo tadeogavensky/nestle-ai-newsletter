@@ -38,9 +38,17 @@ import templateEditorialImage from '../assets/we_make_nestle/wmn-lockup-two-line
 import templateBriefImage from '../assets/we_make_nestle/wmn-lockup-three-lines-dark-oak-on-white.jpg'
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
-import axios from 'axios'
-import { improveText } from '../services/ai'
+import {
+  type GenerateNewsletterRequest,
+} from '../services/ai'
 import { updateNewsletterStatus } from '../services/newsletters'
+
+// ⚠️ ARREGLAR ⚠️ — la generacion con IA está mockeada, descomentar cuando el servicio ande
+// import {
+//   generateNewsletter as generateNewsletterWithAi,
+//   improveText,
+//   uploadAiAssets,
+// } from '../services/ai'
 
 type NewsletterState =
   | 'DRAFT'
@@ -53,6 +61,13 @@ type NewsletterState =
 type AreaName = 'COMUNICACION_INTERNA' | 'COMUNICACION_CORPORATIVA'
 
 type BrandKitId = 'nestle-corporate' | 'nescafe' | 'kit-kat'
+
+type TemplateGenerationField =
+  | 'relevantDates'
+  | 'cta'
+  | 'contact'
+  | 'linksOrSources'
+  | 'additionalContext'
 
 type NewsletterBlock = {
   id: string
@@ -68,6 +83,8 @@ type NewsletterTemplate = {
   imageUrl: string
   area: AreaName
   brandKitId: BrandKitId
+  requiredGenerationFields: TemplateGenerationField[]
+  optionalGenerationFields: TemplateGenerationField[]
 }
 
 type ExportOption = {
@@ -93,6 +110,7 @@ type CreatePageContext = {
   newsletterState: NewsletterState
   isGenerated: boolean
   templates: NewsletterTemplate[]
+  selectedTemplateId: string
   blocks: NewsletterBlock[]
   selectedBlockId: string
   newsletterComment: string | null
@@ -100,8 +118,8 @@ type CreatePageContext = {
   exportOptions: ExportOption[]
   isRenderingHtml: boolean
   isExportingPng: boolean
-  onGenerate: () => Promise<void>
-  onResetGeneration: () => void
+  onGenerate: (request: GenerateNewsletterRequest) => Promise<void>
+  onSelectTemplate: (templateId: string) => void
   onCancel: () => void
   onSendForReview: () => Promise<void>
   onSendFeedback: () => void
@@ -142,6 +160,13 @@ const brandKitLabels: Record<BrandKitId, string> = {
   'kit-kat': 'KitKat',
 }
 
+const SHARED_OPTIONAL_FIELDS: TemplateGenerationField[] = [
+  'relevantDates',
+  'cta',
+  'linksOrSources',
+  'additionalContext',
+]
+
 const templates: NewsletterTemplate[] = [
   {
     id: 'corporate-update',
@@ -149,6 +174,8 @@ const templates: NewsletterTemplate[] = [
     imageUrl: templateClassicImage,
     area: 'COMUNICACION_INTERNA',
     brandKitId: 'nestle-corporate',
+    requiredGenerationFields: [],
+    optionalGenerationFields: SHARED_OPTIONAL_FIELDS,
   },
   {
     id: 'people-story',
@@ -156,6 +183,8 @@ const templates: NewsletterTemplate[] = [
     imageUrl: templateEditorialImage,
     area: 'COMUNICACION_INTERNA',
     brandKitId: 'nescafe',
+    requiredGenerationFields: ['contact'],
+    optionalGenerationFields: SHARED_OPTIONAL_FIELDS,
   },
   {
     id: 'weekly-brief',
@@ -163,6 +192,8 @@ const templates: NewsletterTemplate[] = [
     imageUrl: templateBriefImage,
     area: 'COMUNICACION_CORPORATIVA',
     brandKitId: 'nestle-corporate',
+    requiredGenerationFields: [],
+    optionalGenerationFields: SHARED_OPTIONAL_FIELDS,
   },
   {
     id: 'leadership-note',
@@ -170,6 +201,8 @@ const templates: NewsletterTemplate[] = [
     imageUrl: templateClassicImage,
     area: 'COMUNICACION_CORPORATIVA',
     brandKitId: 'nescafe',
+    requiredGenerationFields: ['contact'],
+    optionalGenerationFields: SHARED_OPTIONAL_FIELDS,
   },
   {
     id: 'culture-highlight',
@@ -177,8 +210,44 @@ const templates: NewsletterTemplate[] = [
     imageUrl: templateEditorialImage,
     area: 'COMUNICACION_CORPORATIVA',
     brandKitId: 'kit-kat',
+    requiredGenerationFields: [],
+    optionalGenerationFields: SHARED_OPTIONAL_FIELDS,
   },
 ]
+
+// ⚠️ ARREGLAR ⚠️ — estos bloques deberían venir de la IA
+function buildMockBlocks(request: GenerateNewsletterRequest): NewsletterBlock[] {
+  return [
+    {
+      id: 'header',
+      name: 'Encabezado',
+      text: request.topic,
+      backgroundColor: '#FFFFFF',
+      comment: null,
+    },
+    {
+      id: 'headline',
+      name: 'Titulo principal',
+      text: request.objective,
+      backgroundColor: '#97CAEB',
+      comment: null,
+    },
+    {
+      id: 'body',
+      name: 'Cuerpo',
+      text: request.keyMessages.join(' · '),
+      backgroundColor: '#FFFFFF',
+      comment: null,
+    },
+    {
+      id: 'cta',
+      name: 'Llamado a la accion',
+      text: request.cta ?? 'Conoce mas en el portal interno.',
+      backgroundColor: '#FFC600',
+      comment: null,
+    },
+  ]
+}
 
 const initialBlocks: NewsletterBlock[] = [
   {
@@ -233,12 +302,6 @@ function logStateChange(payload: StateChangeLogPayload): void {
   console.info('Newsletter state changed', payload)
 }
 
-async function generateNewsletter(): Promise<void> {
-  await new Promise<void>((resolve) => {
-    window.setTimeout(resolve, 350)
-  })
-}
-
 async function renderNewsletterHtml(blocks: NewsletterBlock[]): Promise<string> {
   await new Promise<void>((resolve) => {
     window.setTimeout(resolve, 250)
@@ -288,7 +351,13 @@ function selectedBlockFrom(context: CreatePageContext): NewsletterBlock {
   )
 }
 
-function TemplateCarousel({ templates: carouselTemplates }: { templates: NewsletterTemplate[] }) {
+function TemplateCarousel({
+  templates: carouselTemplates,
+  onSelectTemplate,
+}: {
+  templates: NewsletterTemplate[]
+  onSelectTemplate: (templateId: string) => void
+}) {
   const [selectedArea, setSelectedArea] = useState<AreaName>('COMUNICACION_INTERNA')
   const [selectedBrandKitId, setSelectedBrandKitId] = useState<BrandKitId>('nestle-corporate')
   const [selectedTemplateIndex, setSelectedTemplateIndex] = useState(0)
@@ -297,24 +366,20 @@ function TemplateCarousel({ templates: carouselTemplates }: { templates: Newslet
   )
   const selectedTemplate = filteredTemplates[selectedTemplateIndex] ?? filteredTemplates[0]
 
-  const goToPreviousTemplate = () => {
-    if (filteredTemplates.length < 1) {
-      return
+  useEffect(() => {
+    if (selectedTemplate) {
+      onSelectTemplate(selectedTemplate.id)
     }
+  }, [onSelectTemplate, selectedTemplate])
 
-    setSelectedTemplateIndex((currentIndex) =>
-      currentIndex === 0 ? filteredTemplates.length - 1 : currentIndex - 1,
-    )
+  const goToPreviousTemplate = () => {
+    if (filteredTemplates.length < 1) return
+    setSelectedTemplateIndex((i) => (i === 0 ? filteredTemplates.length - 1 : i - 1))
   }
 
   const goToNextTemplate = () => {
-    if (filteredTemplates.length < 1) {
-      return
-    }
-
-    setSelectedTemplateIndex((currentIndex) =>
-      currentIndex === filteredTemplates.length - 1 ? 0 : currentIndex + 1,
-    )
+    if (filteredTemplates.length < 1) return
+    setSelectedTemplateIndex((i) => (i === filteredTemplates.length - 1 ? 0 : i + 1))
   }
 
   const selectArea = (event: SelectChangeEvent<AreaName>) => {
@@ -334,31 +399,17 @@ function TemplateCarousel({ templates: carouselTemplates }: { templates: Newslet
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
           <FormControl fullWidth size="small">
             <InputLabel id="template-area-label">Area</InputLabel>
-            <Select
-              labelId="template-area-label"
-              label="Area"
-              value={selectedArea}
-              onChange={selectArea}
-            >
+            <Select labelId="template-area-label" label="Area" value={selectedArea} onChange={selectArea}>
               {Object.entries(areaLabels).map(([area, label]) => (
-                <MenuItem key={area} value={area}>
-                  {label}
-                </MenuItem>
+                <MenuItem key={area} value={area}>{label}</MenuItem>
               ))}
             </Select>
           </FormControl>
           <FormControl fullWidth size="small">
             <InputLabel id="template-brand-kit-label">BrandKit</InputLabel>
-            <Select
-              labelId="template-brand-kit-label"
-              label="BrandKit"
-              value={selectedBrandKitId}
-              onChange={selectBrandKit}
-            >
+            <Select labelId="template-brand-kit-label" label="BrandKit" value={selectedBrandKitId} onChange={selectBrandKit}>
               {Object.entries(brandKitLabels).map(([brandKitId, label]) => (
-                <MenuItem key={brandKitId} value={brandKitId}>
-                  {label}
-                </MenuItem>
+                <MenuItem key={brandKitId} value={brandKitId}>{label}</MenuItem>
               ))}
             </Select>
           </FormControl>
@@ -383,36 +434,16 @@ function TemplateCarousel({ templates: carouselTemplates }: { templates: Newslet
           aria-label="Plantilla anterior"
           onClick={goToPreviousTemplate}
           disabled={filteredTemplates.length < 2}
-          sx={{
-            justifySelf: 'center',
-            border: '1px solid',
-            borderColor: 'divider',
-          }}
+          sx={{ justifySelf: 'center', border: '1px solid', borderColor: 'divider' }}
         >
           <ChevronLeftIcon />
         </IconButton>
 
         {selectedTemplate ? (
-          <Stack
-            spacing={2}
-            sx={{
-              minWidth: 0,
-              maxHeight: '100%',
-              overflow: 'hidden',
-              p: { xs: 1, md: 3 },
-            }}
-          >
+          <Stack spacing={2} sx={{ minWidth: 0, maxHeight: '100%', overflow: 'hidden', p: { xs: 1, md: 3 } }}>
             <Paper
               elevation={0}
-              sx={{
-                border: '1px solid',
-                borderColor: 'divider',
-                overflow: 'hidden',
-                maxWidth: 620,
-                mx: 'auto',
-                width: '100%',
-                maxHeight: '100%',
-              }}
+              sx={{ border: '1px solid', borderColor: 'divider', overflow: 'hidden', maxWidth: 620, mx: 'auto', width: '100%', maxHeight: '100%' }}
             >
               <Box
                 component="img"
@@ -430,12 +461,8 @@ function TemplateCarousel({ templates: carouselTemplates }: { templates: Newslet
               />
               <Box sx={{ p: 2 }}>
                 <Typography variant="subtitle1">{selectedTemplate.name}</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {areaLabels[selectedTemplate.area]}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {brandKitLabels[selectedTemplate.brandKitId]}
-                </Typography>
+                <Typography variant="body2" color="text.secondary">{areaLabels[selectedTemplate.area]}</Typography>
+                <Typography variant="body2" color="text.secondary">{brandKitLabels[selectedTemplate.brandKitId]}</Typography>
               </Box>
             </Paper>
             <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
@@ -450,11 +477,7 @@ function TemplateCarousel({ templates: carouselTemplates }: { templates: Newslet
           aria-label="Plantilla siguiente"
           onClick={goToNextTemplate}
           disabled={filteredTemplates.length < 2}
-          sx={{
-            justifySelf: 'center',
-            border: '1px solid',
-            borderColor: 'divider',
-          }}
+          sx={{ justifySelf: 'center', border: '1px solid', borderColor: 'divider' }}
         >
           <ChevronRightIcon />
         </IconButton>
@@ -474,7 +497,6 @@ function BlockList({ context, readOnly = false }: PaneProps & { readOnly?: boole
       <Stack spacing={1.5}>
         {context.blocks.map((block) => {
           const isSelected = block.id === context.selectedBlockId
-
           return (
             <Paper
               key={block.id}
@@ -496,9 +518,7 @@ function BlockList({ context, readOnly = false }: PaneProps & { readOnly?: boole
               <Typography variant="subtitle1">{block.name}</Typography>
               <Typography variant="body2">{block.text}</Typography>
               {!emptyComment(block.comment) && (
-                <Alert severity="info" sx={{ mt: 1.5 }}>
-                  {block.comment}
-                </Alert>
+                <Alert severity="info" sx={{ mt: 1.5 }}>{block.comment}</Alert>
               )}
             </Paper>
           )
@@ -518,16 +538,21 @@ function PermissionDeniedPane() {
 
 function DraftPreviewPane({ context }: PaneProps) {
   if (!context.isGenerated) {
-    return <TemplateCarousel templates={context.templates} />
+    return (
+      <TemplateCarousel
+        templates={context.templates}
+        onSelectTemplate={context.onSelectTemplate}
+      />
+    )
   }
-
   return <BlockList context={context} />
 }
 
 function DraftActionPane({ context }: PaneProps) {
-  const [generatePrompt, setGeneratePrompt] = useState('')
-  const [audience, setAudience] = useState('')
   const selectedBlock = selectedBlockFrom(context)
+  const selectedTemplate =
+    context.templates.find((template) => template.id === context.selectedTemplateId) ??
+    context.templates[0]
 
   const activeTab = context.isGenerated ? 1 : 0
 
@@ -545,30 +570,7 @@ function DraftActionPane({ context }: PaneProps) {
       </Tabs>
 
       {!context.isGenerated ? (
-        <Stack spacing={2}>
-          <TextField
-            label="Tema del newsletter"
-            value={generatePrompt}
-            onChange={(event: ChangeEvent<HTMLInputElement>) => setGeneratePrompt(event.target.value)}
-            fullWidth
-          />
-          <TextField
-            label="Audiencia"
-            value={audience}
-            onChange={(event: ChangeEvent<HTMLInputElement>) => setAudience(event.target.value)}
-            fullWidth
-          />
-          <Button
-            variant="contained"
-            onClick={() => void context.onGenerate()}
-            disabled={context.isGenerating}
-          >
-            {context.isGenerating ? 'Generando...' : 'Generar'}
-          </Button>
-          <Button variant="outlined" color="error" onClick={context.onCancel}>
-            Cancelar
-          </Button>
-        </Stack>
+        <GenerationForm context={context} selectedTemplate={selectedTemplate} />
       ) : (
         <EditForm
           context={context}
@@ -579,6 +581,345 @@ function DraftActionPane({ context }: PaneProps) {
       )}
     </Stack>
   )
+}
+
+type NewsletterGenerationForm = {
+  topic: string
+  objective: string
+  audience: string
+  keyMessages: string
+  tone: string
+  relevantDates: string
+  cta: string
+  contact: string
+  linksOrSources: string
+  additionalContext: string
+  files: File[]
+}
+
+const generationFieldLabels: Record<TemplateGenerationField, string> = {
+  relevantDates: 'Fecha CTA',
+  cta: 'Texto CTA ',
+  contact: 'Contacto',
+  linksOrSources: 'Link CTA ',
+  additionalContext: 'Contexto adicional',
+}
+
+const splitLines = (value: string): string[] =>
+  value.split('\n').map((line) => line.trim()).filter((line) => line.length > 0)
+
+
+const isValidUrl = (link: string): boolean => {
+  try {
+    const url = new URL(link)
+    return url.protocol === 'http:' || url.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
+const validateLinks = (value: string): string | null => {
+  const links = value
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0)
+
+  if (links.length === 0) return null
+
+  const invalid = links.some((link) => !isValidUrl(link))
+  return invalid ? 'Todos los links deben ser válidos (http/https).' : null
+}
+
+const validateDate = (value: string): string | null => {
+  if (!value.trim()) return null
+  return isNaN(Date.parse(value)) ? 'Debe ser una fecha válida.' : null
+}
+
+function GenerationForm({
+  context,
+  selectedTemplate,
+}: {
+  context: CreatePageContext
+  selectedTemplate: NewsletterTemplate
+}) {
+  const [form, setForm] = useState<NewsletterGenerationForm>({
+    topic: '',
+    objective: '',
+    audience: '',
+    keyMessages: '',
+    tone: '',
+    relevantDates: '',
+    cta: '',
+    contact: '',
+    linksOrSources: '',
+    additionalContext: '',
+    files: [],
+  })
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({})
+  const visibleGenerationFields = new Set<TemplateGenerationField>([
+    ...selectedTemplate.requiredGenerationFields,
+    ...selectedTemplate.optionalGenerationFields,
+  ])
+
+  const updateFormField = (field: keyof NewsletterGenerationForm, value: string | File[]) => {
+    setForm((currentForm) => ({ ...currentForm, [field]: value }))
+    setFormErrors((currentErrors) => {
+      const nextErrors = { ...currentErrors }
+      delete nextErrors[field]
+      return nextErrors
+    })
+  }
+
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {}
+
+    if (!form.topic.trim()) errors.topic = 'El tema es obligatorio.'
+    if (!form.objective.trim()) errors.objective = 'El objetivo es obligatorio.'
+    if (!form.audience.trim()) errors.audience = 'La audiencia es obligatoria.'
+    if (splitLines(form.keyMessages).length < 1) errors.keyMessages = 'Ingresa al menos un mensaje clave.'
+    if (!form.tone.trim()) errors.tone = 'El tono deseado es obligatorio.'
+
+    // Validaciones reutilizables
+    const linkError = validateLinks(form.linksOrSources)
+    if (linkError) errors.linksOrSources = linkError
+
+    const dateError = validateDate(form.relevantDates)
+    if (dateError) errors.relevantDates = dateError
+
+    // Required dinámicos
+    selectedTemplate.requiredGenerationFields.forEach((field) => {
+      if (!form[field]?.toString().trim()) {
+        errors[field] = `${generationFieldLabels[field]} es obligatorio para esta plantilla.`
+      }
+    })
+
+    setFormErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
+  const submitGenerationForm = async () => {
+    if (!validateForm()) return
+
+    // ⚠️ ARREGLAR ⚠️ — upload de assets desactivado, descomentar cuando el servicio ande
+    // let assetIds: string[] = []
+    // if (form.files.length > 0) {
+    //   const uploadResponse = await uploadAiAssets(form.files)
+    //   assetIds = uploadResponse.assets.map((asset) => asset.id)
+    // }
+
+    const request: GenerateNewsletterRequest = {
+      area: selectedTemplate.area,
+      templateId: selectedTemplate.id,
+      topic: form.topic.trim(),
+      objective: form.objective.trim(),
+      audience: form.audience.trim(),
+      keyMessages: splitLines(form.keyMessages),
+      tone: form.tone.trim(),
+      relevantDates: form.relevantDates.trim() || undefined,
+      cta: form.cta.trim() || undefined,
+      contact: form.contact.trim() || undefined,
+      linksOrSources: splitLines(form.linksOrSources),
+      additionalContext: form.additionalContext.trim() || undefined,
+      assetIds: [],
+    }
+
+    await context.onGenerate(request)
+  }
+
+  return (
+    <Stack spacing={2}>
+      {context.aiError && <Alert severity="error">{context.aiError}</Alert>}
+      <Alert severity="info">
+        Plantilla seleccionada: {selectedTemplate.name}
+      </Alert>
+
+      <Stack spacing={2}>
+        <TextField
+          label="Departamento o area"
+          required
+          slotProps={{ inputLabel: { required: false } }}
+          value={areaLabels[selectedTemplate.area]}
+          fullWidth
+          disabled
+        />
+        <TextField
+          label="Tema del newsletter"
+          required
+          slotProps={{ inputLabel: { required: false } }}
+          value={form.topic}
+          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+            updateFormField("topic", e.target.value)
+          }
+          error={!!formErrors.topic}
+          helperText={formErrors.topic}
+          fullWidth
+        />
+        <TextField
+          label="Objetivo"
+          required
+          slotProps={{ inputLabel: { required: false } }}
+          value={form.objective}
+          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+            updateFormField("objective", e.target.value)
+          }
+          error={!!formErrors.objective}
+          helperText={formErrors.objective}
+          multiline
+          minRows={2}
+          fullWidth
+        />
+        <TextField
+          label="Audiencia"
+          required
+          slotProps={{ inputLabel: { required: false } }}
+          value={form.audience}
+          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+            updateFormField("audience", e.target.value)
+          }
+          error={!!formErrors.audience}
+          helperText={formErrors.audience}
+          fullWidth
+        />
+        <TextField
+          label="Mensajes clave"
+          required
+          slotProps={{ inputLabel: { required: false } }}
+          value={form.keyMessages}
+          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+            updateFormField("keyMessages", e.target.value)
+          }
+          error={!!formErrors.keyMessages}
+          helperText={formErrors.keyMessages || "Escribi un mensaje por linea."}
+          multiline
+          minRows={3}
+          fullWidth
+        />
+        <TextField
+          label="Tono deseado"
+          required
+          slotProps={{ inputLabel: { required: false } }}
+          value={form.tone}
+          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+            updateFormField("tone", e.target.value)
+          }
+          error={!!formErrors.tone}
+          helperText={formErrors.tone}
+          fullWidth
+        />
+      </Stack>
+      <Stack spacing={2}>
+        {selectedTemplate.requiredGenerationFields.length > 0 && (
+          <Alert severity="warning">
+            Esta plantilla requiere:{" "}
+            {selectedTemplate.requiredGenerationFields
+              .map((f) => generationFieldLabels[f])
+              .join(", ")}
+          </Alert>
+        )}
+        {visibleGenerationFields.has("relevantDates") && (
+          <TextField
+            label="Fecha CTA"
+            type="date"
+            slotProps={{ inputLabel: { shrink: true } }}
+            value={form.relevantDates}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              updateFormField("relevantDates", e.target.value)
+            }
+            error={!!formErrors.relevantDates}
+            helperText={formErrors.relevantDates}
+            fullWidth
+          />
+        )}
+        {visibleGenerationFields.has("cta") && (
+          <TextField
+            label="Texto CTA"
+            value={form.cta}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              updateFormField("cta", e.target.value)
+            }
+            error={!!formErrors.cta}
+            helperText={formErrors.cta}
+            fullWidth
+          />
+        )}
+        {visibleGenerationFields.has("contact") && (
+          <TextField
+            label="Contacto"
+            value={form.contact}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              updateFormField("contact", e.target.value)
+            }
+            error={!!formErrors.contact}
+            helperText={formErrors.contact}
+            fullWidth
+          />
+        )}
+        {visibleGenerationFields.has("linksOrSources") && (
+          <TextField
+            label="Link CTA "
+            type="url"
+            value={form.linksOrSources}
+            onChange={(e: ChangeEvent<HTMLInputElement>) => {
+              const value = e.target.value;
+              updateFormField("linksOrSources", value);
+
+              const error = validateLinks(value);
+
+              setFormErrors((prev) => {
+                const next = { ...prev };
+
+                if (error) next.linksOrSources = error;
+                else delete next.linksOrSources;
+
+                return next;
+              });
+            }}
+            error={!!formErrors.linksOrSources}
+            helperText={
+              formErrors.linksOrSources || "Escribi un link o fuente por linea."
+            }
+            multiline
+            minRows={2}
+            fullWidth
+          />
+        )}
+
+        {/* ⚠️ ARREGLAR ⚠️ — upload desactivado */}
+        <Button variant="outlined" disabled>
+          Cargar imagenes o assets (desactivado)
+        </Button>
+      </Stack>
+
+      <Divider />
+
+      <Stack spacing={2}>
+        <Typography variant="h6">Contexto adicional</Typography>
+        {visibleGenerationFields.has("additionalContext") && (
+          <TextField
+            label="Notas adicionales"
+            value={form.additionalContext}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              updateFormField("additionalContext", e.target.value)
+            }
+            multiline
+            minRows={3}
+            fullWidth
+          />
+        )}
+      </Stack>
+
+      <Button
+        variant="contained"
+        disabled={context.isGenerating || Object.keys(formErrors).length > 0}
+        onClick={() => void submitGenerationForm()}
+      >
+        {context.isGenerating ? "Generando..." : "Generar"}
+      </Button>
+      <Button variant="outlined" color="error" onClick={context.onCancel}>
+        Cancelar
+      </Button>
+    </Stack>
+  );
 }
 
 function EditForm({
@@ -599,8 +940,8 @@ function EditForm({
       <TextField
         label="Texto"
         value={selectedBlock.text}
-        onChange={(event: ChangeEvent<HTMLInputElement>) =>
-          context.onUpdateBlockText(selectedBlock.id, event.target.value)
+        onChange={(e: ChangeEvent<HTMLInputElement>) =>
+          context.onUpdateBlockText(selectedBlock.id, e.target.value)
         }
         multiline
         minRows={3}
@@ -610,18 +951,15 @@ function EditForm({
         label="Fondo"
         type="color"
         value={selectedBlock.backgroundColor}
-        onChange={(event: ChangeEvent<HTMLInputElement>) =>
-          context.onUpdateBlockBackground(selectedBlock.id, event.target.value)
+        onChange={(e: ChangeEvent<HTMLInputElement>) =>
+          context.onUpdateBlockBackground(selectedBlock.id, e.target.value)
         }
         fullWidth
       />
-      <Button
-        variant="outlined"
-        color="secondary"
-        disabled={context.improvingBlockId === selectedBlock.id}
-        onClick={() => void context.onRegenerateBlockText(selectedBlock.id)}
-      >
-        {context.improvingBlockId === selectedBlock.id ? 'Mejorando...' : 'Mejorar con IA'}
+
+      {/* ⚠️ ARREGLAR ⚠️ — mejorar con IA desactivado */}
+      <Button variant="outlined" color="secondary" disabled>
+        Mejorar con IA (desactivado)
       </Button>
 
       {!emptyComment(context.newsletterComment) && (
@@ -648,24 +986,15 @@ function ReviewPreviewPane({ context }: PaneProps) {
   if (!['ADMIN', 'FUNCTIONAL'].includes(context.currentUserRole)) {
     return <PermissionDeniedPane />
   }
-
   return <BlockList context={context} />
 }
 
 function ReviewActionPane({ context }: PaneProps) {
   const selectedBlock = selectedBlockFrom(context)
-
   if (!['ADMIN', 'FUNCTIONAL'].includes(context.currentUserRole)) {
     return <PermissionDeniedPane />
   }
-
-  return (
-    <ReviewCommentControls
-      key={selectedBlock.id}
-      context={context}
-      selectedBlock={selectedBlock}
-    />
-  )
+  return <ReviewCommentControls key={selectedBlock.id} context={context} selectedBlock={selectedBlock} />
 }
 
 function ReviewCommentControls({
@@ -683,11 +1012,10 @@ function ReviewCommentControls({
       <Tabs value={0}>
         <Tab label="Revision" />
       </Tabs>
-
       <TextField
         label="Comentario del newsletter"
         value={newsletterComment}
-        onChange={(event: ChangeEvent<HTMLInputElement>) => setNewsletterComment(event.target.value)}
+        onChange={(e: ChangeEvent<HTMLInputElement>) => setNewsletterComment(e.target.value)}
         multiline
         minRows={3}
         fullWidth
@@ -695,14 +1023,12 @@ function ReviewCommentControls({
       <Button variant="outlined" onClick={() => context.onSaveNewsletterComment(newsletterComment)}>
         Guardar comentario general
       </Button>
-
       <Divider />
-
       <Typography variant="subtitle1">Comentario para {selectedBlock.name}</Typography>
       <TextField
         label="Comentario del bloque"
         value={blockComment}
-        onChange={(event: ChangeEvent<HTMLInputElement>) => setBlockComment(event.target.value)}
+        onChange={(e: ChangeEvent<HTMLInputElement>) => setBlockComment(e.target.value)}
         multiline
         minRows={3}
         fullWidth
@@ -710,39 +1036,24 @@ function ReviewCommentControls({
       <Button variant="outlined" onClick={() => context.onSaveBlockComment(selectedBlock.id, blockComment)}>
         Guardar comentario del bloque
       </Button>
-
       <Divider />
-
-      <Button variant="outlined" color="warning" onClick={context.onSendFeedback}>
-        Enviar feedback
-      </Button>
-      <Button variant="contained" color="success" onClick={context.onApprove}>
-        Aprobar
-      </Button>
+      <Button variant="outlined" color="warning" onClick={context.onSendFeedback}>Enviar feedback</Button>
+      <Button variant="contained" color="success" onClick={context.onApprove}>Aprobar</Button>
     </Stack>
   )
 }
 
 function ChangesPreviewPane({ context }: PaneProps) {
-  if (context.currentUserId !== context.creatorUserId) {
-    return <PermissionDeniedPane />
-  }
-
+  if (context.currentUserId !== context.creatorUserId) return <PermissionDeniedPane />
   return <BlockList context={context} />
 }
 
 function ChangesActionPane({ context }: PaneProps) {
   const selectedBlock = selectedBlockFrom(context)
-
-  if (context.currentUserId !== context.creatorUserId) {
-    return <PermissionDeniedPane />
-  }
-
+  if (context.currentUserId !== context.creatorUserId) return <PermissionDeniedPane />
   return (
     <Stack spacing={2}>
-      <Tabs value={0}>
-        <Tab label="Editar" />
-      </Tabs>
+      <Tabs value={0}><Tab label="Editar" /></Tabs>
       <EditForm
         context={context}
         selectedBlock={selectedBlock}
@@ -779,9 +1090,7 @@ function ApprovedPreviewPane({ context }: PaneProps) {
 function ApprovedActionPane({ context }: PaneProps) {
   return (
     <Stack spacing={2}>
-      <Tabs value={0}>
-        <Tab label="Exportar" />
-      </Tabs>
+      <Tabs value={0}><Tab label="Exportar" /></Tabs>
       <Typography variant="h5">Listo para publicacion</Typography>
       <Typography variant="body2" color="text.secondary">
         El newsletter aprobado ya esta renderizado y disponible para exportar.
@@ -791,11 +1100,7 @@ function ApprovedActionPane({ context }: PaneProps) {
           key={option.id}
           variant="contained"
           disabled={context.isExportingPng}
-          onClick={() => {
-            if (option.format === 'PNG') {
-              void context.onExportToPng()
-            }
-          }}
+          onClick={() => { if (option.format === 'PNG') void context.onExportToPng() }}
         >
           {context.isExportingPng ? 'Exportando...' : option.label}
         </Button>
@@ -827,30 +1132,12 @@ function DiscardedActionPane() {
 }
 
 const newsletterStateMap: Record<NewsletterState, StatePaneConfig> = {
-  DRAFT: {
-    PreviewPane: DraftPreviewPane,
-    ActionPane: DraftActionPane,
-  },
-  IN_REVIEW: {
-    PreviewPane: ReviewPreviewPane,
-    ActionPane: ReviewActionPane,
-  },
-  CHANGES_REQUESTED: {
-    PreviewPane: ChangesPreviewPane,
-    ActionPane: ChangesActionPane,
-  },
-  RESUBMITTED: {
-    PreviewPane: ReviewPreviewPane,
-    ActionPane: ReviewActionPane,
-  },
-  APPROVED: {
-    PreviewPane: ApprovedPreviewPane,
-    ActionPane: ApprovedActionPane,
-  },
-  DISCARDED: {
-    PreviewPane: DiscardedPreviewPane,
-    ActionPane: DiscardedActionPane,
-  },
+  DRAFT: { PreviewPane: DraftPreviewPane, ActionPane: DraftActionPane },
+  IN_REVIEW: { PreviewPane: ReviewPreviewPane, ActionPane: ReviewActionPane },
+  CHANGES_REQUESTED: { PreviewPane: ChangesPreviewPane, ActionPane: ChangesActionPane },
+  RESUBMITTED: { PreviewPane: ReviewPreviewPane, ActionPane: ReviewActionPane },
+  APPROVED: { PreviewPane: ApprovedPreviewPane, ActionPane: ApprovedActionPane },
+  DISCARDED: { PreviewPane: DiscardedPreviewPane, ActionPane: DiscardedActionPane },
 }
 
 function CreatePage() {
@@ -863,6 +1150,7 @@ function CreatePage() {
 
   const [newsletterState, setNewsletterState] = useState<NewsletterState>('DRAFT')
   const [isGenerated, setIsGenerated] = useState(false)
+  const [selectedTemplateId, setSelectedTemplateId] = useState(templates[0].id)
   const [blocks, setBlocks] = useState<NewsletterBlock[]>(initialBlocks)
   const [selectedBlockId, setSelectedBlockId] = useState(initialBlocks[0].id)
   const [newsletterComment, setNewsletterComment] = useState<string | null>(null)
@@ -878,20 +1166,16 @@ function CreatePage() {
 
   const allCommentaries = useMemo(
     () =>
-      [
-        newsletterComment,
-        ...blocks.map((block) => block.comment),
-      ].filter((commentary): commentary is string => !emptyComment(commentary)),
+      [newsletterComment, ...blocks.map((block) => block.comment)].filter(
+        (commentary): commentary is string => !emptyComment(commentary),
+      ),
     [blocks, newsletterComment],
   )
 
   const transitionNewsletterState = useCallback(
     (newState: NewsletterState): void => {
       setNewsletterState((previousState) => {
-        if (previousState === newState) {
-          return previousState
-        }
-
+        if (previousState === newState) return previousState
         logStateChange({
           newsletter_id: newsletterId,
           previous_state: previousState,
@@ -900,26 +1184,42 @@ function CreatePage() {
           all_commentaries: allCommentaries,
           created_at: new Date().toISOString(),
         })
-
         return newState
       })
     },
     [allCommentaries, currentUserId, newsletterId],
   )
 
-  const handleGenerate = useCallback(async () => {
+  // ⚠️ ARREGLAR ⚠️ — reemplazar este mock por la llamada real a la IA cuando el servicio ande:
+  //
+  // const handleGenerate = useCallback(async (request: GenerateNewsletterRequest) => {
+  //   setIsGenerating(true)
+  //   setAiError(null)
+  //   try {
+  //     const response = await generateNewsletterWithAi(request)
+  //     setBlocks(response.blocks.map((block) => ({ ...block, comment: null })))
+  //     setSelectedBlockId(response.blocks[0]?.id ?? initialBlocks[0].id)
+  //     setIsGenerated(true)
+  //   } catch (error) {
+  //     const fallbackMessage = 'No se pudo generar el newsletter en este momento.'
+  //     setAiError(axios.isAxiosError(error) ? error.response?.data?.message ?? fallbackMessage : fallbackMessage)
+  //   } finally {
+  //     setIsGenerating(false)
+  //   }
+  // }, [])
+  const handleGenerate = useCallback(async (request: GenerateNewsletterRequest) => {
     setIsGenerating(true)
-    try {
-      await generateNewsletter()
-      setIsGenerated(true)
-    } finally {
-      setIsGenerating(false)
-    }
+    setAiError(null)
+    await new Promise<void>((resolve) => window.setTimeout(resolve, 400)) // simula latencia
+    const mockBlocks = buildMockBlocks(request)
+    setBlocks(mockBlocks)
+    setSelectedBlockId(mockBlocks[0].id)
+    setIsGenerated(true)
+    setIsGenerating(false)
   }, [])
 
   const handleRenderHtml = useCallback(async () => {
     setIsRenderingHtml(true)
-
     try {
       setRenderedHtml(await renderNewsletterHtml(blocks))
     } finally {
@@ -948,15 +1248,11 @@ function CreatePage() {
 
   const handleSendFeedback = useCallback(() => {
     transitionNewsletterState('CHANGES_REQUESTED')
-
-    if (currentUserId !== creatorUserId) {
-      navigate('/dashboard')
-    }
+    if (currentUserId !== creatorUserId) navigate('/dashboard')
   }, [creatorUserId, currentUserId, navigate, transitionNewsletterState])
 
   const handleExportToPng = useCallback(async () => {
     setIsExportingPng(true)
-
     try {
       await exportHtmlToPng()
     } finally {
@@ -964,58 +1260,31 @@ function CreatePage() {
     }
   }, [])
 
-  const handleImproveBlockText = useCallback(async (blockId: string) => {
-    const targetBlock = blocks.find((block) => block.id === blockId)
-
-    if (!targetBlock) {
-      return
-    }
-
-    setImprovingBlockId(blockId)
-    setAiError(null)
-
-    try {
-      const response = await improveText({ text: targetBlock.text })
-
-      setBlocks((currentBlocks) =>
-        currentBlocks.map((block) =>
-          block.id === blockId
-            ? { ...block, text: response.improvedText }
-            : block,
-        ),
-      )
-    } catch (error) {
-      const fallbackMessage = 'No se pudo mejorar el texto en este momento.'
-
-      if (axios.isAxiosError(error)) {
-        const responseMessage =
-          typeof error.response?.data?.message === 'string'
-            ? error.response.data.message
-            : null
-
-        setAiError(responseMessage ?? fallbackMessage)
-      } else {
-        setAiError(fallbackMessage)
-      }
-    } finally {
-      setImprovingBlockId(null)
-    }
-  }, [blocks])
+  //  ARREGLAR  — mejorar con IA desactivado, reemplazar por la llamada real:
+  //
+  // const handleImproveBlockText = useCallback(async (blockId: string) => {
+  //   const targetBlock = blocks.find((block) => block.id === blockId)
+  //   if (!targetBlock) return
+  //   setImprovingBlockId(blockId)
+  //   setAiError(null)
+  //   try {
+  //     const response = await improveText({ text: targetBlock.text })
+  //     setBlocks((prev) => prev.map((b) => b.id === blockId ? { ...b, text: response.improvedText } : b))
+  //   } catch (error) {
+  //     setAiError('No se pudo mejorar el texto en este momento.')
+  //   } finally {
+  //     setImprovingBlockId(null)
+  //   }
+  // }, [blocks])
+  const handleImproveBlockText = useCallback(async () => {
+    // no-op mientras la IA no esté disponible / dentro de async: _blockId: string
+  }, [])
 
   useEffect(() => {
-    if (newsletterState !== 'APPROVED') {
-      return undefined
-    }
-
-    const renderTimeoutId = window.setTimeout(() => {
-      void handleRenderHtml()
-    }, 0)
-
+    if (newsletterState !== 'APPROVED') return undefined
+    const renderTimeoutId = window.setTimeout(() => { void handleRenderHtml() }, 0)
     void fetchExportOptions().then(setExportOptions)
-
-    return () => {
-      window.clearTimeout(renderTimeoutId)
-    }
+    return () => { window.clearTimeout(renderTimeoutId) }
   }, [handleRenderHtml, newsletterState])
 
   const context = useMemo<CreatePageContext>(
@@ -1027,6 +1296,7 @@ function CreatePage() {
       newsletterState,
       isGenerated,
       templates,
+      selectedTemplateId,
       blocks,
       selectedBlockId,
       newsletterComment,
@@ -1039,7 +1309,7 @@ function CreatePage() {
       isSendingForReview,
       aiError,
       onGenerate: handleGenerate,
-      onResetGeneration: () => setIsGenerated(false),
+      onSelectTemplate: setSelectedTemplateId,
       onCancel: handleCancel,
       onSendForReview: handleSendForReview,
       onSendFeedback: handleSendFeedback,
@@ -1047,30 +1317,18 @@ function CreatePage() {
       onResendForReview: () => transitionNewsletterState('RESUBMITTED'),
       onSelectBlock: setSelectedBlockId,
       onUpdateBlockText: (blockId, value) =>
-        setBlocks((currentBlocks) =>
-          currentBlocks.map((block) =>
-            block.id === blockId ? { ...block, text: value } : block,
-          ),
-        ),
+        setBlocks((prev) => prev.map((b) => b.id === blockId ? { ...b, text: value } : b)),
       onUpdateBlockBackground: (blockId, value) =>
-        setBlocks((currentBlocks) =>
-          currentBlocks.map((block) =>
-            block.id === blockId ? { ...block, backgroundColor: value } : block,
-          ),
-        ),
+        setBlocks((prev) => prev.map((b) => b.id === blockId ? { ...b, backgroundColor: value } : b)),
       onRegenerateBlockText: handleImproveBlockText,
       onSaveNewsletterComment: (value) => setNewsletterComment(value.trim() || null),
       onSaveBlockComment: (blockId, value) =>
-        setBlocks((currentBlocks) =>
-          currentBlocks.map((block) =>
-            block.id === blockId ? { ...block, comment: value.trim() || null } : block,
-          ),
-        ),
+        setBlocks((prev) => prev.map((b) => b.id === blockId ? { ...b, comment: value.trim() || null } : b)),
       onExportToPng: handleExportToPng,
     }),
     [
+      aiError,
       blocks,
-      creatorUserId,
       currentUserId,
       currentUserRole,
       exportOptions,
@@ -1085,13 +1343,13 @@ function CreatePage() {
       isSendingForReview,
       isExportingPng,
       isGenerated,
+      isGenerating,
       isRenderingHtml,
-      aiError,
       newsletterComment,
-      newsletterId,
       newsletterState,
       renderedHtml,
       selectedBlockId,
+      selectedTemplateId,
       transitionNewsletterState,
     ],
   )
