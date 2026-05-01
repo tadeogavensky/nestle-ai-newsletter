@@ -78,6 +78,11 @@ SUPABASE_URL="https://..."
 SUPABASE_SERVICE_ROLE_KEY="..."
 SUPABASE_STORAGE_BUCKET="assets"
 PORT=3000
+AI_PROVIDER="gemini"
+GEMINI_API_KEY="AIza..."
+GEMINI_MODEL="gemini-2.5-flash-lite"
+NESTLE_GENIA_URL="https://eur-sdr-int-pub.nestle.com/api/dv-exp-sandbox-openai-api/1/genai/GCP/gemini-2.5-pro/generateContent"
+NESTLE_GENIA_MODEL="gemini-2.5-pro"
 ```
 
 Notes:
@@ -85,6 +90,10 @@ Notes:
 - `DATABASE_URL` is used by Prisma at runtime.
 - `DIRECT_URL` is used for direct Prisma tasks, introspection, or migrations.
 - `SUPABASE_SERVICE_ROLE_KEY` is sensitive. Never push it to GitHub.
+- `AI_PROVIDER` selects the active provider for `POST /ai/improve-text`. Use `gemini` by default or `nestle` to route through Nestle GenIA.
+- `GEMINI_API_KEY` is required when `AI_PROVIDER="gemini"`.
+- `CLIENT_ID` and `CLIENT_SECRET` are required when `AI_PROVIDER="nestle"`.
+- `GEMINI_MODEL`, `NESTLE_GENIA_URL`, and `NESTLE_GENIA_MODEL` are optional overrides for the text-improvement endpoint.
 
 ### Installation
 
@@ -159,6 +168,7 @@ GET /              # Health/simple hello
 GET /prisma-test   # Temporary Prisma connection test
 GET /areas         # List areas
 GET /areas/:id     # Find area by id
+POST /ai/improve-text  # Improve newsletter text with Gemini or Nestle GenIA
 ```
 
 `/prisma-test` is only for connection validation. Final business routes should live in feature modules such as `areas/`, `users/`, `newsletters/`, etc.
@@ -358,6 +368,11 @@ SUPABASE_URL="https://..."
 SUPABASE_SERVICE_ROLE_KEY="..."
 SUPABASE_STORAGE_BUCKET="assets"
 PORT=3000
+AI_PROVIDER="gemini"
+GEMINI_API_KEY="AIza..."
+GEMINI_MODEL="gemini-2.5-flash-lite"
+NESTLE_GENIA_URL="https://eur-sdr-int-pub.nestle.com/api/dv-exp-sandbox-openai-api/1/genai/GCP/gemini-2.5-pro/generateContent"
+NESTLE_GENIA_MODEL="gemini-2.5-pro"
 ```
 
 Notas:
@@ -365,6 +380,10 @@ Notas:
 - `DATABASE_URL` se usa en runtime por Prisma.
 - `DIRECT_URL` se usa para tareas directas de Prisma, introspeccion o migraciones.
 - `SUPABASE_SERVICE_ROLE_KEY` es sensible. No subirla nunca a GitHub.
+- `AI_PROVIDER` selecciona el proveedor activo para `POST /ai/improve-text`. Usar `gemini` por defecto o `nestle` para enrutar por Nestle GenIA.
+- `GEMINI_API_KEY` es obligatoria cuando `AI_PROVIDER="gemini"`.
+- `CLIENT_ID` y `CLIENT_SECRET` son obligatorias cuando `AI_PROVIDER="nestle"`.
+- `GEMINI_MODEL`, `NESTLE_GENIA_URL` y `NESTLE_GENIA_MODEL` son overrides opcionales para el endpoint de mejora de texto.
 
 ## Instalacion
 
@@ -439,6 +458,7 @@ GET /              # Health/simple hello
 GET /prisma-test   # Prueba temporal de conexion Prisma
 GET /areas         # Lista areas
 GET /areas/:id     # Busca area por id
+POST /ai/improve-text  # Mejora texto del newsletter con Gemini o Nestle GenIA
 ```
 
 La ruta `/prisma-test` es solo para validar conexion. Las rutas definitivas deben vivir en modulos de feature como `areas/`, `users/`, `newsletters/`, etc.
