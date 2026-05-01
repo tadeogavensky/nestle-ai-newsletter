@@ -4,8 +4,9 @@ import {
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
   Paper, TableSortLabel, Dialog, DialogTitle, DialogContent, DialogActions,
 } from '@mui/material'
+import DownloadIcon from '@mui/icons-material/FileDownloadOutlined'
+import { useNavigate } from 'react-router'
 import SearchBar from '../components/SearchBar'
-import { useAuth } from '../contexts/AuthContext'
 
 type NewsletterState = 'DRAFT' | 'IN_REVIEW' | 'CHANGES_REQUESTED' | 'RESUBMITTED' | 'APPROVED' | 'DISCARDED'
 
@@ -59,8 +60,7 @@ const DUMMY_LOGS: ReviewLog[] = Array.from({ length: 25 }).map((_, i) => {
 })
 
 export function AnalyticsPage(): JSX.Element {
-  const { user } = useAuth()
-  const role = user?.role ?? 'USER'
+  const navigate = useNavigate()
 
   const [selectedNewsletter, setSelectedNewsletter] = useState<{ id: string, name: string } | null>(null)
   const [filterText, setFilterText] = useState('')
@@ -142,23 +142,8 @@ export function AnalyticsPage(): JSX.Element {
     }))
   }
 
-  const handleExportCSV = (): void => {
-    const headers = ['Newsletter', 'Estado anterior', 'Nuevo estado', 'Fecha', 'Comentarios']
-    const csvRows = filteredAndSortedLogs.map((log) => [
-      `"${log.newsletter_name}"`,
-      stateLabels[log.previous_state],
-      stateLabels[log.new_state],
-      new Date(log.created_at).toLocaleDateString(),
-      `"${log.all_commentaries || ''}"`,
-    ])
-
-    const csvContent = [headers.join(','), ...csvRows.map((row) => row.join(','))].join('\n')
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const link = document.createElement('a')
-
-    link.href = URL.createObjectURL(blob)
-    link.download = 'reporte_estados.csv'
-    link.click()
+  const route = (): void => {
+    navigate('#')
   }
 
   const handleOpenComments = (event: MouseEvent, comments: string | null): void => {
@@ -197,11 +182,6 @@ export function AnalyticsPage(): JSX.Element {
               )}
             </Stack>
 
-            {role === 'ADMIN' ? (
-              <Button variant="contained" onClick={handleExportCSV}>Exportar reporte</Button>
-            ) : (
-              <Button variant="outlined">Ver detalle</Button>
-            )}
           </Stack>
 
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(4, 1fr)' }, gap: 2 }}>
@@ -246,11 +226,30 @@ export function AnalyticsPage(): JSX.Element {
           </Card>
 
           <Card elevation={0} sx={{ border: '1px solid', borderColor: 'divider' }}>
-            <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider', width: { xs: '100%', md: 300 } }}>
+            <Box
+              sx={{
+                p: 2,
+                borderBottom: '1px solid',
+                borderColor: 'divider',
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                justifyContent: 'flex-end',
+                alignItems: { xs: 'stretch', sm: 'center' },
+                gap: 2,
+              }}
+            >
               <SearchBar
                 value={filterText}
                 onChange={setFilterText}
               />
+              <Button
+                variant="contained"
+                startIcon={<DownloadIcon />}
+                onClick={route}
+                sx={{ whiteSpace: 'nowrap' }}
+              >
+                Exportar Reporte
+              </Button>
             </Box>
             <TableContainer component={Paper} elevation={0}>
               <Table>
