@@ -12,6 +12,11 @@ import {
   Box,
   Button,
   Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Divider,
   FormControl,
   IconButton,
@@ -868,6 +873,7 @@ function CreatePage() {
   const [improvingBlockId, setImprovingBlockId] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
   const [isSendingForReview, setIsSendingForReview] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [aiError, setAiError] = useState<string | null>(null)
 
   const allCommentaries = useMemo(
@@ -927,6 +933,7 @@ function CreatePage() {
       await updateNewsletterStatus(newsletterId, 'IN_REVIEW')
       await handleRenderHtml()
       transitionNewsletterState('IN_REVIEW')
+      setShowSuccessModal(true)
     } catch {
       setAiError('No se pudo enviar a revisión en este momento. Intenta de nuevo.')
     } finally {
@@ -1089,6 +1096,17 @@ function CreatePage() {
     ],
   )
 
+  const handleCreateAnother = () => {
+    setShowSuccessModal(false)
+    setNewsletterState('DRAFT')
+    setIsGenerated(false)
+    setBlocks(initialBlocks)
+    setSelectedBlockId(initialBlocks[0].id)
+    setNewsletterComment(null)
+    setRenderedHtml('')
+    setAiError(null)
+  }
+
   const { PreviewPane, ActionPane } = newsletterStateMap[newsletterState]
 
   return (
@@ -1122,6 +1140,23 @@ function CreatePage() {
           <ActionPane context={context} />
         </Stack>
       </Box>
+
+      <Dialog open={showSuccessModal} onClose={() => setShowSuccessModal(false)}>
+        <DialogTitle>Newsletter enviado a revisión</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Tu newsletter fue enviado correctamente. ¿Qué querés hacer ahora?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => navigate('/campaigns')} color="inherit">
+            Ir a la home
+          </Button>
+          <Button onClick={handleCreateAnother} variant="contained">
+            Crear otro
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }
