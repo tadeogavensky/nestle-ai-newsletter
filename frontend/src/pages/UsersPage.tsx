@@ -17,10 +17,11 @@ import {
   TableSortLabel,
   InputAdornment,
   Button,
+  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material'
 import EditIcon from '@mui/icons-material/Edit';
-import { DeleteOutlined, Search as SearchIcon } from '@mui/icons-material';
-import { MICROSOFT_SSO_USERS, type User } from '../contexts/AuthContext'
+import { Add, DeleteOutlined, Search as SearchIcon } from '@mui/icons-material';
 import { ModalDelete } from '../components/ModalDelete';
 import { useState, useMemo } from 'react';
 import { ModalEdit } from '../components/ModalEdit'
@@ -28,6 +29,7 @@ import { AreaName, AreaNameLabel } from '../../../packages/shared/src/enums/area
 import { UserRole, UserRoleLabel } from '../../../packages/shared/src/enums/user-role.enum';
 import { UserStatus, UserStatusLabel } from '../../../packages/shared/src/enums/user-status.enum';
 import { enumToOptions } from '../../../packages/shared/src/utils/enum-to-options';
+import type { User } from '../contexts/AuthContext';
 
 const STATE_OPTIONS = enumToOptions(UserStatus, UserStatusLabel);
 const AREA_OPTIONS = enumToOptions(AreaName, AreaNameLabel);
@@ -37,7 +39,7 @@ export function UsersPage() {
   const [userToEdit, setUserToEdit] = useState<User | null>(null)
   const [deletedId, setDeletedId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
-  const [showRemoved, setShowRemoved] = useState(false)
+  const [showActive, setShowActive] = useState(true)
   const [showInactive, setShowInactive] = useState(false)
   const [orderBy, setOrderBy] = useState('name')
   const [order, setOrder] = useState<'asc' | 'desc'>('asc')
@@ -54,12 +56,91 @@ export function UsersPage() {
   }
 
   const filteredAndSortedUsers = useMemo(() => {
-    return MICROSOFT_SSO_USERS
+
+    const mockupUsers: User[] = [
+      {
+        id: '1',
+        email: 'superadmin@example.com',
+        name: 'Administrador',
+        role: 'ADMIN',
+        area: 'COMUNICACION_INTERNA',
+        state: 'ACTIVE'
+      },
+      {
+        id: '2',
+        email: 'funcional@example.com',
+        name: 'Funcional',
+        role: 'FUNCTIONAL',
+        state: 'ACTIVE',
+        area: 'COMUNICACION_CORPORATIVA'
+      },
+      {
+        id: '3',
+        email: 'user@example.com',
+        name: 'Usuario Normal',
+        role: 'USER',
+        state: 'INACTIVE',
+        area: 'COMUNICACION_INTERNA'
+      },
+      {
+        id: '4',
+        email: 'funcional@example.com',
+        name: 'Funcional',
+        role: 'FUNCTIONAL',
+        state: 'ACTIVE',
+        area: 'COMUNICACION_CORPORATIVA'
+      },
+      {
+        id: '5',
+        email: 'user@example.com',
+        name: 'Usuario Normal',
+        role: 'USER',
+        state: 'INACTIVE',
+        area: 'COMUNICACION_INTERNA'
+      },
+      {
+        id: '6',
+        email: 'funcional@example.com',
+        name: 'Funcional',
+        role: 'FUNCTIONAL',
+        state: 'ACTIVE',
+        area: 'COMUNICACION_CORPORATIVA'
+      },
+      {
+        id: '7',
+        email: 'user@example.com',
+        name: 'Usuario Normal',
+        role: 'USER',
+        state: 'ACTIVE',
+        area: 'COMUNICACION_INTERNA'
+      },
+      {
+        id: '8',
+        email: 'funcional@example.com',
+        name: 'Funcional',
+        role: 'FUNCTIONAL',
+        state: 'ACTIVE',
+        area: 'COMUNICACION_CORPORATIVA'
+      },
+      {
+        id: '9',
+        email: 'user@example.com',
+        name: 'Usuario Normal',
+        role: 'USER',
+        state: 'ACTIVE',
+        area: 'COMUNICACION_INTERNA'
+      },
+    ]
+
+    return mockupUsers
       .filter(user => {
-        if (!showRemoved && user.state === UserStatus.REMOVED) {
+        if (user.state === UserStatus.REMOVED) {
           return false
         }
-        if (!showInactive && user.state === UserStatus.INACTIVE) {
+        if (user.state === UserStatus.ACTIVE && !showActive) {
+          return false
+        }
+        if (user.state === UserStatus.INACTIVE && !showInactive) {
           return false
         }
         return Object.values(user).some(value =>
@@ -82,7 +163,7 @@ export function UsersPage() {
         }
         return 0
       })
-  }, [search, order, orderBy, showRemoved, showInactive])
+  }, [search, order, orderBy, showActive, showInactive])
 
   const theme = useTheme()
 
@@ -97,7 +178,7 @@ export function UsersPage() {
     >
       <Container maxWidth="lg" disableGutters>
         <Stack spacing={4}>
-          <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "flex-end" }}>
+          <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "center" }}>
             <Stack spacing={1}>
               <Typography variant="h2">Usuarios</Typography>
               <Typography variant="body1" color="text.secondary">
@@ -115,32 +196,40 @@ export function UsersPage() {
                   input: {
                     startAdornment: (
                       <InputAdornment position="start">
-                        <SearchIcon fontSize="small" />
+                        <SearchIcon fontSize="small" sx={{ color: theme.palette.error.main }} />
                       </InputAdornment>
                     ),
                   }
                 }}
               />
-              <Button
-                variant={showRemoved ? "contained" : "outlined"}
-                onClick={() => {
-                  setShowRemoved(!showRemoved)
+              <ToggleButtonGroup
+                size="small"
+                value={[
+                  ...(showActive ? ['active'] : []),
+                  ...(showInactive ? ['inactive'] : []),
+                ]}
+                onChange={(_, newValues) => {
+                  setShowActive(newValues.includes('active'))
+                  setShowInactive(newValues.includes('inactive'))
                   if (limit > 5) setLimit(5)
                 }}
-                size='small'
               >
-                Mostrar Borrados
-              </Button>
+                <ToggleButton value="active" sx={{ px: 2 }}>
+                  Activos
+                </ToggleButton>
+                <ToggleButton value="inactive" sx={{ px: 2 }}>
+                  Inactivos
+                </ToggleButton>
+              </ToggleButtonGroup>
               <Button
-                variant={showInactive ? "contained" : "outlined"}
-                onClick={() => {
-                  setShowInactive(!showInactive)
-                  if (limit > 5) setLimit(5)
-                }}
-                size='small'
-              >
-                Mostrar Inactivos
-              </Button>
+                variant="contained"
+                startIcon={<Add />}
+                sx={{ whiteSpace: 'nowrap' }}
+              >Nuevo</Button>
+              <Button
+                variant="contained"
+                sx={{ whiteSpace: 'nowrap' }}
+              >Exportar Reporte</Button>
             </Stack>
           </Stack>
           <TableContainer component={Card} variant="outlined" sx={{ borderRadius: 2 }}>
@@ -229,6 +318,7 @@ export function UsersPage() {
         onConfirm={handleConfirmDelete}
       />
       <ModalEdit
+        key={userToEdit?.id}
         open={Boolean(userToEdit)}
         description={`Esta acción modificará la información del usuario.`}
         onClose={() => setUserToEdit(null)}
