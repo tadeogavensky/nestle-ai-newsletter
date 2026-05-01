@@ -1,4 +1,4 @@
-import {
+import React, {
   useCallback,
   useEffect,
   useMemo,
@@ -96,6 +96,7 @@ type CreatePageContext = {
   isRenderingHtml: boolean
   isExportingPng: boolean
   onGenerate: () => Promise<void>
+  onResetGeneration: () => void
   onCancel: () => void
   onSendForReview: () => Promise<void>
   onSendFeedback: () => void
@@ -523,10 +524,18 @@ function DraftActionPane({ context }: PaneProps) {
   const [audience, setAudience] = useState('')
   const selectedBlock = selectedBlockFrom(context)
 
+  const activeTab = context.isGenerated ? 1 : 0
+
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
+    if (newValue === 0 && context.isGenerated) {
+      context.onResetGeneration()
+    }
+  }
+
   return (
     <Stack spacing={2}>
-      <Tabs value={context.isGenerated ? 1 : 0}>
-        <Tab label="Generar" disabled={context.isGenerated} />
+      <Tabs value={activeTab} onChange={handleTabChange}>
+        <Tab label="Generar" />
         <Tab label="Editar" disabled={!context.isGenerated} />
       </Tabs>
 
@@ -1023,6 +1032,7 @@ function CreatePage() {
       isSendingForReview,
       aiError,
       onGenerate: handleGenerate,
+      onResetGeneration: () => setIsGenerated(false),
       onCancel: handleCancel,
       onSendForReview: handleSendForReview,
       onSendFeedback: handleSendFeedback,
