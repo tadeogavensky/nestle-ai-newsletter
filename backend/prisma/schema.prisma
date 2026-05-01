@@ -55,8 +55,8 @@ model brand_kit {
   name               String
   active             Boolean           @default(true)
   created_at         DateTime          @default(now()) @db.Timestamptz(6)
-  users              users?            @relation(fields: [created_by_user_id], references: [id], onUpdate: NoAction)
-  fonts              fonts?            @relation(fields: [font_id], references: [id], onUpdate: NoAction)
+  users              users?            @relation(fields: [created_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  fonts              fonts?            @relation(fields: [font_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   brandkit_assets    brandkit_assets[]
   color_palette      color_palette[]
   newsletters        newsletters[]
@@ -98,8 +98,8 @@ model commentary {
   show                 Boolean        @default(true)
   content              String?
   created_at           DateTime       @default(now()) @db.Timestamptz(6)
-  block_content        block_content? @relation(fields: [block_content_id], references: [id], onUpdate: NoAction)
-  users                users?         @relation(fields: [commented_by_user_id], references: [id], onUpdate: NoAction)
+  block_content        block_content? @relation(fields: [block_content_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users                users?         @relation(fields: [commented_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([block_content_id])
   @@index([commented_by_user_id])
@@ -115,7 +115,7 @@ model export_types {
 model exports {
   id                 String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   export_type_id     String               @db.Uuid
-  export_types       export_types         @relation(fields: [export_type_id], references: [id], onUpdate: NoAction)
+  export_types       export_types         @relation(fields: [export_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   newsletter_exports newsletter_exports[]
 
   @@index([export_type_id])
@@ -134,7 +134,7 @@ model hyperlinks {
   block_content_id String?        @db.Uuid
   url              String
   label            String?
-  block_content    block_content? @relation(fields: [block_content_id], references: [id], onUpdate: NoAction)
+  block_content    block_content? @relation(fields: [block_content_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([block_content_id])
 }
@@ -175,7 +175,7 @@ model newsletter_state_log {
   all_commentaries    String?
   created_at          DateTime    @default(now()) @db.Timestamptz(6)
   newsletters         newsletters @relation(fields: [newsletter_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  users               users?      @relation(fields: [reviewed_by_user_id], references: [id], onUpdate: NoAction)
+  users               users?      @relation(fields: [reviewed_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([newsletter_id])
   @@index([reviewed_by_user_id])
@@ -199,11 +199,11 @@ model newsletters {
   newsletter_blocks                            newsletter_blocks[]
   newsletter_exports                           newsletter_exports[]
   newsletter_state_log                         newsletter_state_log[]
-  users_newsletters_approved_by_user_idTousers users?                 @relation("newsletters_approved_by_user_idTousers", fields: [approved_by_user_id], references: [id], onUpdate: NoAction)
-  areas                                        areas?                 @relation(fields: [area_id], references: [id], onUpdate: NoAction)
-  brand_kit                                    brand_kit?             @relation(fields: [brand_kit_id], references: [id], onUpdate: NoAction)
-  users_newsletters_created_by_user_idTousers  users?                 @relation("newsletters_created_by_user_idTousers", fields: [created_by_user_id], references: [id], onUpdate: NoAction)
-  templates                                    templates?             @relation(fields: [template_id], references: [id], onUpdate: NoAction)
+  users_newsletters_approved_by_user_idTousers users?                 @relation("newsletters_approved_by_user_idTousers", fields: [approved_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  areas                                        areas?                 @relation(fields: [area_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  brand_kit                                    brand_kit?             @relation(fields: [brand_kit_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users_newsletters_created_by_user_idTousers  users?                 @relation("newsletters_created_by_user_idTousers", fields: [created_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  templates                                    templates?             @relation(fields: [template_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([approved_by_user_id])
   @@index([area_id])
@@ -230,9 +230,9 @@ model templates {
   created_by_user_id String?         @db.Uuid
   created_at         DateTime        @default(now()) @db.Timestamptz(6)
   newsletters        newsletters[]
-  areas              areas?          @relation(fields: [area_id], references: [id], onUpdate: NoAction)
-  users              users?          @relation(fields: [created_by_user_id], references: [id], onUpdate: NoAction)
-  template_states    template_states @relation(fields: [state_id], references: [id], onUpdate: NoAction)
+  areas              areas?          @relation(fields: [area_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  users              users?          @relation(fields: [created_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  template_states    template_states @relation(fields: [state_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([area_id])
   @@index([created_by_user_id])
@@ -254,7 +254,7 @@ model users {
   newsletters_newsletters_approved_by_user_idTousers newsletters[]          @relation("newsletters_approved_by_user_idTousers")
   newsletters_newsletters_created_by_user_idTousers  newsletters[]          @relation("newsletters_created_by_user_idTousers")
   templates                                          templates[]
-  areas                                              areas?                 @relation(fields: [area_id], references: [id], onUpdate: NoAction)
+  areas                                              areas?                 @relation(fields: [area_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([area_id])
 }
@@ -277,7 +277,7 @@ model permissions {
   code                  String                @unique
   description           String
   created_at            DateTime              @default(now()) @db.Timestamptz(6)
-  permission_categories permission_categories @relation(fields: [category_id], references: [id], onUpdate: NoAction)
+  permission_categories permission_categories @relation(fields: [category_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   role_permissions      role_permissions[]
 
   @@index([category_id], map: "idx_permissions_category_id")
