@@ -308,7 +308,7 @@ export function AnalyticsPage(): JSX.Element {
             {visibleRows < filteredAndSortedLogs.length && (
               <Box sx={{ p: 2, display: 'flex', justifyContent: 'center', borderTop: '1px solid', borderColor: 'divider' }}>
                 <Button onClick={() => setVisibleRows((prev) => prev + 5)}>
-                  Cargar más registros
+                  Cargar más
                 </Button>
               </Box>
             )}
