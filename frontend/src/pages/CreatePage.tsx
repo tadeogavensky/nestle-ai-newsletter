@@ -119,6 +119,7 @@ type CreatePageContext = {
   isRenderingHtml: boolean
   isExportingPng: boolean
   onGenerate: (request: GenerateNewsletterRequest) => Promise<void>
+  onResetGeneration: () => void
   onSelectTemplate: (templateId: string) => void
   onCancel: () => void
   onSendForReview: () => Promise<void>
@@ -910,7 +911,7 @@ function GenerationForm({
 
       <Button
         variant="contained"
-        disabled={context.isGenerating || Object.keys(formErrors).length > 0}
+        disabled={context.isGenerating}
         onClick={() => void submitGenerationForm()}
       >
         {context.isGenerating ? "Generando..." : "Generar"}
@@ -1309,6 +1310,7 @@ function CreatePage() {
       isSendingForReview,
       aiError,
       onGenerate: handleGenerate,
+      onResetGeneration: () => setIsGenerated(false),
       onSelectTemplate: setSelectedTemplateId,
       onCancel: handleCancel,
       onSendForReview: handleSendForReview,
