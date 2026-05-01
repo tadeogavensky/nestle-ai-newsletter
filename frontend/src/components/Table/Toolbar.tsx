@@ -12,6 +12,7 @@ import {
 import { useNavigate } from 'react-router'
 import SearchIcon from '@mui/icons-material/Search'
 import theme from '../../styles/nestleMuiTheme'
+import AddIcon from "@mui/icons-material/Add";
 
 interface ToolbarProps {
   canCreateNewsletter?: boolean
@@ -99,8 +100,13 @@ export function Toolbar({
           />
 
           {canCreateNewsletter && (
-            <Button variant="contained" onClick={route}>
-              Crear Newsletter
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={route} // Uses your existing route function
+              sx={{ whiteSpace: "nowrap" }}
+            >
+              Nuevo Template
             </Button>
           )}
         </Stack>
