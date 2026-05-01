@@ -108,6 +108,7 @@ type CreatePageContext = {
   onSaveBlockComment: (blockId: string, value: string) => void
   onExportToPng: () => Promise<void>
   improvingBlockId: string | null
+  isGenerating: boolean
   aiError: string | null
 }
 
@@ -541,8 +542,12 @@ function DraftActionPane({ context }: PaneProps) {
             onChange={(event: ChangeEvent<HTMLInputElement>) => setAudience(event.target.value)}
             fullWidth
           />
-          <Button variant="contained" onClick={() => void context.onGenerate()}>
-            Generar
+          <Button
+            variant="contained"
+            onClick={() => void context.onGenerate()}
+            disabled={context.isGenerating}
+          >
+            {context.isGenerating ? 'Generando...' : 'Generar'}
           </Button>
           <Button variant="outlined" color="error" onClick={context.onCancel}>
             Cancelar
@@ -846,6 +851,7 @@ function CreatePage() {
   const [isRenderingHtml, setIsRenderingHtml] = useState(false)
   const [isExportingPng, setIsExportingPng] = useState(false)
   const [improvingBlockId, setImprovingBlockId] = useState<string | null>(null)
+  const [isGenerating, setIsGenerating] = useState(false)
   const [aiError, setAiError] = useState<string | null>(null)
 
   const allCommentaries = useMemo(
@@ -880,8 +886,13 @@ function CreatePage() {
   )
 
   const handleGenerate = useCallback(async () => {
-    await generateNewsletter()
-    setIsGenerated(true)
+    setIsGenerating(true)
+    try {
+      await generateNewsletter()
+      setIsGenerated(true)
+    } finally {
+      setIsGenerating(false)
+    }
   }, [])
 
   const handleRenderHtml = useCallback(async () => {
@@ -993,6 +1004,7 @@ function CreatePage() {
       isRenderingHtml,
       isExportingPng,
       improvingBlockId,
+      isGenerating,
       aiError,
       onGenerate: handleGenerate,
       onCancel: handleCancel,
@@ -1036,6 +1048,7 @@ function CreatePage() {
       handleSendForReview,
       handleSendFeedback,
       improvingBlockId,
+      isGenerating,
       isExportingPng,
       isGenerated,
       isRenderingHtml,
