@@ -281,6 +281,33 @@ If a secret is committed by accident:
 2. Rotate the secret in the provider.
 3. Verify `.gitignore` coverage.
 
+### Docker Image Publishing
+
+Docker Hub setup:
+
+- Create the repositories `nestle-newsletter-backend` and `nestle-newsletter-frontend`.
+- Create a Docker Hub Personal Access Token with `Read & Write` permissions.
+- Save these GitHub Actions secrets in the repository:
+- `DOCKERHUB_USERNAME`
+- `DOCKERHUB_TOKEN`
+
+Workflow behavior:
+
+- On `push` to `main`, `staging`, or `docker`, GitHub Actions builds and publishes backend and frontend images.
+- On `pull_request`, GitHub Actions validates install/build and Docker image build only. It does not push images.
+
+Published image tags:
+
+- `latest`
+- `${{ github.sha }}`
+
+Manual pull example:
+
+```bash
+docker pull <DOCKERHUB_USERNAME>/nestle-newsletter-backend:latest
+docker pull <DOCKERHUB_USERNAME>/nestle-newsletter-frontend:latest
+```
+
 ## Espanol
 
 Aplicacion para crear y gestionar newsletters internos con frontend React, backend NestJS, Prisma 7 y base PostgreSQL local para desarrollo.
@@ -557,3 +584,30 @@ Si una secret se sube por error:
 1. Quitarla de la rama antes de pushear.
 2. Rotarla en el proveedor correspondiente.
 3. Verificar que `.gitignore` la cubra.
+
+### Publicacion De Imagenes Docker
+
+Configuracion de Docker Hub:
+
+- Crear los repositorios `nestle-newsletter-backend` y `nestle-newsletter-frontend`.
+- Crear un Personal Access Token de Docker Hub con permisos `Read & Write`.
+- Guardar estos secrets en GitHub Actions:
+- `DOCKERHUB_USERNAME`
+- `DOCKERHUB_TOKEN`
+
+Comportamiento del workflow:
+
+- En `push` a `main`, `staging` o `docker`, GitHub Actions construye y publica las imagenes de backend y frontend.
+- En `pull_request`, GitHub Actions valida install/build y Docker build solamente. No publica imagenes.
+
+Tags publicados:
+
+- `latest`
+- `${{ github.sha }}`
+
+Prueba manual:
+
+```bash
+docker pull <DOCKERHUB_USERNAME>/nestle-newsletter-backend:latest
+docker pull <DOCKERHUB_USERNAME>/nestle-newsletter-frontend:latest
+```
