@@ -1,10 +1,24 @@
-import { useState, useMemo } from 'react'
+﻿import { useState, useMemo } from 'react'
 import {
-  Box, Button, Card, Container, Stack, Typography, useTheme,
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  IconButton, Tooltip,
-  TableSortLabel
-} from '@mui/material'
+  Box,
+  Button,
+  Card,
+  Container,
+  Stack,
+  Typography,
+  useTheme,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  IconButton,
+  Tooltip,
+  TableSortLabel,
+  ToggleButton,
+  ToggleButtonGroup,
+} from "@mui/material";
 import {
   DeleteOutlined as DeleteIcon,
   EditOutlined as EditIcon,
@@ -17,11 +31,72 @@ import { useNavigate } from 'react-router'
 import { useAuth } from '../contexts/AuthContext'
 import { ModalDelete } from '../components/ModalDelete'
 import SearchBar from '../components/SearchBar'
+import {
+  AreaName,
+  AreaNameLabel,
+} from '../../../packages/shared/src/enums/area-name.enum'
+import {
+  TemplateStatus,
+  TemplateStatusLabel,
+} from '../../../packages/shared/src/enums/template-status.enum copy'
 
-const STATE_MAP: Record<string, { label: string; color: string }> = {
-  'state_1': { label: 'Publicado', color: 'success.main' },
-  'state_2': { label: 'En borrador', color: 'warning.main' },
-  'state_3': { label: 'Publicado', color: 'success.main' },
+interface TemplateRow {
+  id: string
+  name: string
+  area_id: AreaName
+  state_id: TemplateStatus
+  created_at: string
+  description: string
+}
+
+interface ToolbarProps {
+  search: string;
+  onSearchChange: (value: string) => void;
+  filter: TemplateFilter;
+  onFilterChange: (value: TemplateFilter) => void;
+}
+
+type TemplateFilter = "ACTIVE" | "DISABLED";
+
+const TEMPLATE_STATUS_COLOR: Record<TemplateStatus, string> = {
+  [TemplateStatus.ACTIVE]: 'success.main',
+  [TemplateStatus.INACTIVE]: 'warning.main',
+  [TemplateStatus.REMOVED]: 'error.main',
+}
+
+const TEMPLATE_FILTER_STATUSES: Record<TemplateFilter, TemplateStatus[]> = {
+  ACTIVE: [TemplateStatus.ACTIVE],
+  DISABLED: [TemplateStatus.INACTIVE, TemplateStatus.REMOVED],
+}
+
+function TemplateToolbarControls({
+  search,
+  onSearchChange,
+  filter,
+  onFilterChange,
+}: ToolbarProps) {
+  return (
+    <>
+      <ToggleButtonGroup
+        exclusive
+        size="small"
+        value={filter}
+        onChange={(_, value: TemplateFilter | null) => {
+          if (value !== null) {
+            onFilterChange(value)
+          }
+        }}
+      >
+        <ToggleButton value="ACTIVE">Habilitados</ToggleButton>
+        <ToggleButton value="DISABLED">Deshabilitados</ToggleButton>
+      </ToggleButtonGroup>
+
+      <SearchBar
+        value={search}
+        onChange={onSearchChange}
+      />
+    </>
+  )
 }
 
 export function TemplatesPage() {
@@ -31,29 +106,108 @@ export function TemplatesPage() {
   const role = user?.role ?? 'USER'
 
   const [search, setSearch] = useState('')
+  const [filter, setFilter] = useState<TemplateFilter>('ACTIVE')
   const [orderBy, setOrderBy] = useState('name')
   const [order, setOrder] = useState<'asc' | 'desc'>('asc')
   const [limit, setLimit] = useState(5)
   const [deleteId, setDeleteId] = useState<string | null>(null)
 
-  const [templates] = useState([
-    { id: 'uuid-1', name: 'Verano 2024', area_id: 'Marketing', state_id: 'state_1', created_at: '2024-01-15T10:00:00Z', description: 'Promo de verano' },
-    { id: 'uuid-2', name: 'Newsletter IT', area_id: 'Tecnología', state_id: 'state_2', created_at: '2024-02-10T14:30:00Z', description: 'Updates internos' },
-    { id: 'uuid-3', name: 'Black Friday', area_id: 'Ventas', state_id: 'state_3', created_at: '2023-11-20T09:00:00Z', description: 'Campaña anual' },
-  ])
+  const [templates] = useState<TemplateRow[]>([
+    {
+      id: "uuid-1",
+      name: "Verano 2024",
+      area_id: AreaName.COMUNICACION_INTERNA,
+      state_id: TemplateStatus.ACTIVE,
+      created_at: "2024-01-15T10:00:00Z",
+      description: "Promo de verano",
+    },
+    {
+      id: "uuid-2",
+      name: "Newsletter IT",
+      area_id: AreaName.COMUNICACION_CORPORATIVA,
+      state_id: TemplateStatus.INACTIVE,
+      created_at: "2024-02-10T14:30:00Z",
+      description: "Updates internos",
+    },
+    {
+      id: "uuid-3",
+      name: "Black Friday",
+      area_id: AreaName.COMUNICACION_INTERNA,
+      state_id: TemplateStatus.REMOVED,
+      created_at: "2023-11-20T09:00:00Z",
+      description: "Campaña anual",
+    },
+    {
+      id: "uuid-4",
+      name: "Verano 2024",
+      area_id: AreaName.COMUNICACION_INTERNA,
+      state_id: TemplateStatus.ACTIVE,
+      created_at: "2024-01-15T10:00:00Z",
+      description: "Promo de verano",
+    },
+    {
+      id: "uuid-5",
+      name: "Newsletter IT",
+      area_id: AreaName.COMUNICACION_CORPORATIVA,
+      state_id: TemplateStatus.INACTIVE,
+      created_at: "2024-02-10T14:30:00Z",
+      description: "Updates internos",
+    },
+    {
+      id: "uuid-6",
+      name: "Black Friday",
+      area_id: AreaName.COMUNICACION_INTERNA,
+      state_id: TemplateStatus.REMOVED,
+      created_at: "2023-11-20T09:00:00Z",
+      description: "Campaña anual",
+    },
+    {
+      id: "uuid-7",
+      name: "Verano 2024",
+      area_id: AreaName.COMUNICACION_INTERNA,
+      state_id: TemplateStatus.ACTIVE,
+      created_at: "2024-01-15T10:00:00Z",
+      description: "Promo de verano",
+    },
+    {
+      id: "uuid-8",
+      name: "Newsletter IT",
+      area_id: AreaName.COMUNICACION_CORPORATIVA,
+      state_id: TemplateStatus.INACTIVE,
+      created_at: "2024-02-10T14:30:00Z",
+      description: "Updates internos",
+    },
+    {
+      id: "uuid-9",
+      name: "Black Friday",
+      area_id: AreaName.COMUNICACION_INTERNA,
+      state_id: TemplateStatus.REMOVED,
+      created_at: "2023-11-20T09:00:00Z",
+      description: "Campaña anual",
+    },
+  ]);
 
-  const filteredTemplates = useMemo(() => {
-    return templates
-      .filter(t =>
-        Object.values(t).some(value =>
-          value?.toString().toLowerCase().includes(search.toLowerCase())
-        )
-      )
-      .sort((a, b) => {
-        const isAsc = order === 'asc'
-        return (a[orderBy as keyof typeof a] < b[orderBy as keyof typeof b] ? -1 : 1) * (isAsc ? 1 : -1)
-      })
-  }, [templates, search, order, orderBy])
+const filteredTemplates = useMemo(() => {
+  const normalizedSearch = search.toLowerCase();
+
+  return templates
+    .filter((t) =>
+      [
+        ...Object.values(t),
+        AreaNameLabel[t.area_id],
+        TemplateStatusLabel[t.state_id],
+      ].some((value) =>
+        value?.toString().toLowerCase().includes(normalizedSearch),
+      ),
+    )
+    .filter((t) => TEMPLATE_FILTER_STATUSES[filter].includes(t.state_id))
+    .sort((a, b) => {
+      const isAsc = order === "asc";
+      const aValue = a[orderBy as keyof typeof a];
+      const bValue = b[orderBy as keyof typeof b];
+      return (aValue < bValue ? -1 : 1) * (isAsc ? 1 : -1);
+    });
+}, [templates, search, filter, order, orderBy]);
 
   const handleRequestSort = (property: string) => {
     const isAsc = orderBy === property && order === 'asc'
@@ -85,9 +239,11 @@ export function TemplatesPage() {
             </Stack>
 
             <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
-              <SearchBar
-                value={search}
-                onChange={setSearch}
+              <TemplateToolbarControls
+                search={search}
+                onSearchChange={setSearch}
+                filter={filter}
+                onFilterChange={setFilter}
               />
 
               <Button 
@@ -138,15 +294,15 @@ export function TemplatesPage() {
                         {template.description}
                       </Typography>
                     </TableCell>
-                    <TableCell>{template.area_id}</TableCell>
+                    <TableCell>{AreaNameLabel[template.area_id]}</TableCell>
                     <TableCell>
                       <Box sx={{
-                        color: STATE_MAP[template.state_id]?.color,
+                        color: TEMPLATE_STATUS_COLOR[template.state_id],
                         fontWeight: 600,
                         fontSize: '0.75rem',
                         textTransform: 'uppercase'
                       }}>
-                        • {STATE_MAP[template.state_id]?.label}
+                        {TemplateStatusLabel[template.state_id]}
                       </Box>
                     </TableCell>
                     <TableCell>
@@ -175,7 +331,7 @@ export function TemplatesPage() {
                         {role === 'ADMIN' && (
                           <>
                             <Tooltip title="Exportar">
-                              <IconButton size="small" color="primary"><ExportIcon fontSize="small" /></IconButton>
+                              <IconButton size="small" color="success"><ExportIcon fontSize="small" /></IconButton>
                             </Tooltip>
                             <Tooltip title="Borrar">
                               <IconButton size="small" color="error" onClick={() => setDeleteId(template.id)}>
@@ -185,7 +341,7 @@ export function TemplatesPage() {
                           </>
                         )}
 
-                        {role === 'FUNCTIONAL' && template.state_id !== 'state_2' && (
+                        {role === 'FUNCTIONAL' && template.state_id !== TemplateStatus.INACTIVE && (
                           <Button size="small" startIcon={<ReviewIcon />} variant="outlined">
                             Revisar
                           </Button>
