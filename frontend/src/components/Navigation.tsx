@@ -25,8 +25,8 @@ interface NavLink {
 }
 
 const navLinks: NavLink[] = [
-  { label: 'Inicio', path: '/dashboard', roles: ['ADMIN', 'FUNCTIONAL', 'USER'] },
-  { label: 'Templates', path: '/templates', roles: ['ADMIN', 'FUNCTIONAL', 'USER'] },
+  { label: 'Dashboard', path: '/dashboard', roles: ['ADMIN', 'FUNCTIONAL', 'USER'] },
+  { label: 'Templates', path: '/templates', roles: ['ADMIN', 'FUNCTIONAL'] },
   { label: 'Analitica', path: '/analytics', roles: ['ADMIN', 'FUNCTIONAL'] },
   { label: 'Revisiones', path: '/reviews', roles: ['ADMIN', 'FUNCTIONAL'] },
   { label: 'Usuarios', path: '/users', roles: ['ADMIN'] },
