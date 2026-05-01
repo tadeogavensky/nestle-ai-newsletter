@@ -103,34 +103,23 @@ export function LoginPage() {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        bgcolor: 'background.default',
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        //: 'background.default',
+        background: `url('/src/assets/brand_shapes/isolated-by-brand/nestle-classic/light-blue.svg') center center / 2000px 2000px no-repeat, ${theme.palette.background.default}`,
         px: 2,
       }}
     >
       <Container maxWidth="sm">
         <Stack spacing={4}>
-          <Box sx={{ textAlign: 'center' }}>
-            <Box
-              component="img"
-              src={theme.nestle.assets.logos.nestWhite}
-              alt="Nestle"
-              sx={{
-                width: 120,
-                height: 'auto',
-                display: 'inline-block',
-              }}
-            />
-          </Box>
 
           <Card
-            elevation={0}
+            elevation={8}
             sx={{
-              border: '1px solid',
-              borderColor: 'divider',
+              border: "1px solid",
+              borderColor: "divider",
               p: { xs: 3, md: 4 },
             }}
           >
@@ -141,11 +130,7 @@ export function LoginPage() {
 
               {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
-              <Box
-                component="form"
-                onSubmit={handleMicrosoftLogin}
-                noValidate
-              >
+              <Box component="form" onSubmit={handleMicrosoftLogin} noValidate>
                 <Stack spacing={2.5}>
                   <TextField
                     fullWidth
@@ -153,8 +138,8 @@ export function LoginPage() {
                     type="email"
                     value={email}
                     onChange={(event) => {
-                      setEmail(event.target.value)
-                      setFormErrors((prev) => ({ ...prev, email: undefined }))
+                      setEmail(event.target.value);
+                      setFormErrors((prev) => ({ ...prev, email: undefined }));
                     }}
                     error={!!formErrors.email}
                     helperText={formErrors.email}
@@ -168,8 +153,11 @@ export function LoginPage() {
                     type="password"
                     value={password}
                     onChange={(event) => {
-                      setPassword(event.target.value)
-                      setFormErrors((prev) => ({ ...prev, password: undefined }))
+                      setPassword(event.target.value);
+                      setFormErrors((prev) => ({
+                        ...prev,
+                        password: undefined,
+                      }));
                     }}
                     error={!!formErrors.password}
                     helperText={formErrors.password}
@@ -180,9 +168,9 @@ export function LoginPage() {
                   <RadioGroup
                     value={email}
                     onChange={(event) => {
-                      setEmail(event.target.value)
-                      setPassword('password123')
-                      setFormErrors({})
+                      setEmail(event.target.value);
+                      setPassword("password123");
+                      setFormErrors({});
                     }}
                   >
                     {MICROSOFT_SSO_USERS.map((microsoftUser) => (
@@ -192,15 +180,22 @@ export function LoginPage() {
                         control={<Radio disabled={loading} />}
                         label={
                           <Stack spacing={0.25}>
-                            <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                            <Typography
+                              variant="body2"
+                              sx={{ fontWeight: 700 }}
+                            >
                               {microsoftUser.name}
                             </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {microsoftUser.email} | {getRoleLabel(microsoftUser.role)}
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                            >
+                              {microsoftUser.email} |{" "}
+                              {getRoleLabel(microsoftUser.role)}
                             </Typography>
                           </Stack>
                         }
-                        sx={{ alignItems: 'flex-start', m: 0, py: 0.5 }}
+                        sx={{ alignItems: "flex-start", m: 0, py: 0.5 }}
                       />
                     ))}
                   </RadioGroup>
@@ -213,18 +208,26 @@ export function LoginPage() {
                     type="submit"
                     disabled={loading}
                   >
-                    {loading ? <CircularProgress size={24} color="inherit" /> : 'Login'}
+                    {loading ? (
+                      <CircularProgress size={24} color="inherit" />
+                    ) : (
+                      "Login"
+                    )}
                   </Button>
                 </Stack>
               </Box>
             </Stack>
           </Card>
 
-          <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ textAlign: "center" }}
+          >
             Sistema de newsletters de Nestle
           </Typography>
         </Stack>
       </Container>
     </Box>
-  )
+  );
 }
