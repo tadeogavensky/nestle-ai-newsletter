@@ -12,7 +12,7 @@ export type NewsletterStatus =
 
 export const NewsletterStatusLabel: Record<NewsletterStatus, string> = {
     [NewsletterStatus.DRAFT]: "Borrador",
-    [NewsletterStatus.IN_REVIEW]: "En RevisiÃ³n",
+    [NewsletterStatus.IN_REVIEW]: "En Revisión",
     [NewsletterStatus.CHANGES_REQUESTED]: "Cambios Pedidos",
     [NewsletterStatus.RESUBMITTED]: "Reenviado",
     [NewsletterStatus.APPROVED]: "Aprobado",

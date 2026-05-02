@@ -11,7 +11,7 @@ export type AssetType = (typeof AssetType)[keyof typeof AssetType];
 
 export const AssetTypeLabel: Record<AssetType, string> = {
     [AssetType.IMAGE]: "Imagen",
-    [AssetType.ICON]: "Ãcono",
+    [AssetType.ICON]: "Ícono",
     [AssetType.LOGO]: "Logo",
     [AssetType.SHAPE]: "Formas",
     [AssetType.LOCKUP]: "Lockup",

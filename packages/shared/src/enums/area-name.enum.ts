@@ -6,6 +6,6 @@ export const AreaName = {
 export type AreaName = (typeof AreaName)[keyof typeof AreaName];
 
 export const AreaNameLabel: Record<AreaName, string> = {
-    [AreaName.COMUNICACION_INTERNA]: "ComunicaciÃ³n Interna",
-    [AreaName.COMUNICACION_CORPORATIVA]: "ComunicaciÃ³n Corporativa",
+    [AreaName.COMUNICACION_INTERNA]: "Comunicación Interna",
+    [AreaName.COMUNICACION_CORPORATIVA]: "Comunicación Corporativa",
 };

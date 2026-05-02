@@ -6,5 +6,5 @@ export type NewsletterLanguage =
     (typeof NewsletterLanguage)[keyof typeof NewsletterLanguage];
 
 export const NewsletterLanguageLabel: Record<NewsletterLanguage, string> = {
-    [NewsletterLanguage.SPA]: "EspaÃ±ol",
+    [NewsletterLanguage.SPA]: "Español",
 };

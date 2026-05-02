@@ -17,6 +17,6 @@ export const BlockContentTypeLabel: Record<BlockContentType, string> = {
     [BlockContentType.DIVIDER]: "Divisor",
     [BlockContentType.CONTENT]: "Contenido",
     [BlockContentType.MULTIMEDIA]: "Multimedia",
-    [BlockContentType.ICONS]: "Ãconos",
+    [BlockContentType.ICONS]: "Íconos",
     [BlockContentType.SPECIAL]: "Bloques Especiales",
 };
