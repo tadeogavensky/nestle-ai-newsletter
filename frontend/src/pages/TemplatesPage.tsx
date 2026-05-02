@@ -163,7 +163,7 @@ export function TemplatesPage() {
                           </IconButton>
                         </Tooltip>
 
-                        {(role === 'ADMIN' || role === 'USER') && (
+                        {(role === 'ADMIN') && (
                           <Tooltip title="Editar">
                             <IconButton size="small" onClick={() => navigate(`/editar/${template.id}`)}>
                               <EditIcon fontSize="small" />
