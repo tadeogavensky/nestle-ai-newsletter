@@ -51,10 +51,11 @@ jobs:
       - name: Build and optionally push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: ./frontend
+          context: .
+          file: ./frontend/Dockerfile
           build-args: |
             VITE_API_URL=/api
           push: ${{ github.event_name == 'push' }}
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/nestle-newsletter-frontend:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/nestle-newsletter-frontend:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/nestle-ai-newsletter-frontend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/nestle-ai-newsletter-frontend:${{ github.sha }}
