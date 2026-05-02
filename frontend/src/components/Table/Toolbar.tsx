@@ -106,7 +106,7 @@ export function Toolbar({
               onClick={route} // Uses your existing route function
               sx={{ whiteSpace: "nowrap" }}
             >
-              Nuevo Template
+              Nuevo Newsletter
             </Button>
           )}
         </Stack>
