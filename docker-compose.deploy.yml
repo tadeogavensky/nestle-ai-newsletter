@@ -16,12 +16,14 @@ services:
     restart: unless-stopped
     depends_on:
       - postgres
+    expose:
+      - "3000"
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       DIRECT_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       NODE_ENV: production
-    ports:
-      - "${BACKEND_PORT}:3000"
+      CLIENT_ID: ${CLIENT_ID}
+      CLIENT_SECRET: ${CLIENT_SECRET}
 
   frontend:
     image: ${DOCKERHUB_USERNAME}/nestle-ai-newsletter-frontend:${APP_VERSION}

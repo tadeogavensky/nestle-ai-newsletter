@@ -21,7 +21,8 @@ services:
     environment:
       DATABASE_URL: postgresql://nestle:nestle@postgres:5432/nestle_newsletter
       DIRECT_URL: postgresql://nestle:nestle@postgres:5432/nestle_newsletter
-
+      CLIENT_ID: ${CLIENT_ID}
+      CLIENT_SECRET: ${CLIENT_SECRET}
   frontend:
     build: ./frontend
     ports:

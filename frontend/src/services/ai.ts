@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { apiBaseUrl } from '../config/api'
 
 export type ImproveTextRequest = {
   text: string
@@ -10,8 +11,6 @@ export type ImproveTextResponse = {
   provider: 'nestle' | 'gemini'
   model: string
 }
-
-const apiBaseUrl = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 
 export async function improveText(
   request: ImproveTextRequest,

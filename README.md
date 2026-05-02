@@ -28,6 +28,7 @@ Application for creating and managing internal newsletters with a React frontend
 |-- docker-compose.yaml
 |-- docker-compose.deploy.yml
 |-- .env.deploy.example
+|-- README_DEPLOY.md
 `-- README.md
 ```
 
@@ -59,7 +60,7 @@ DATABASE_URL=postgresql://nestle:nestle@postgres:5432/nestle_newsletter
 DIRECT_URL=postgresql://nestle:nestle@postgres:5432/nestle_newsletter
 ```
 
-`docker-compose.deploy.yml` is the separate deployment compose. It uses published Docker Hub images and does not build source code locally.
+`docker-compose.deploy.yml` is the separate deployment compose. It uses published Docker Hub images, does not build source code locally, and routes browser API calls through `/api` with nginx proxying to `backend:3000`.
 
 ### Environment Variables
 
@@ -319,6 +320,7 @@ Compose files:
 - `docker-compose.yaml` is for local development.
 - `docker-compose.deploy.yml` is for deployment.
 - Deployment uses published images from Docker Hub. It does not build backend or frontend locally.
+- The deployed frontend calls the backend through `/api`, and nginx proxies that traffic to `backend:3000`.
 
 Deployment environment file:
 
@@ -358,6 +360,8 @@ docker compose -f docker-compose.deploy.yml --env-file .env exec -T postgres sh 
 docker compose -f docker-compose.deploy.yml --env-file .env exec -T postgres sh -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < database/seed.sql
 ```
 
+The backend is not exposed publicly by default in deployment compose. Only the frontend port is published.
+
 ## Espanol
 
 Aplicacion para crear y gestionar newsletters internos con frontend React, backend NestJS, Prisma 7 y base PostgreSQL local para desarrollo.
@@ -382,6 +386,7 @@ Aplicacion para crear y gestionar newsletters internos con frontend React, backe
 |-- docker-compose.yaml
 |-- docker-compose.deploy.yml
 |-- .env.deploy.example
+|-- README_DEPLOY.md
 `-- README.md
 ```
 
@@ -413,7 +418,7 @@ DATABASE_URL=postgresql://nestle:nestle@postgres:5432/nestle_newsletter
 DIRECT_URL=postgresql://nestle:nestle@postgres:5432/nestle_newsletter
 ```
 
-`docker-compose.deploy.yml` es el compose separado de deployment. Usa imagenes publicadas en Docker Hub y no buildea el codigo fuente localmente.
+`docker-compose.deploy.yml` es el compose separado de deployment. Usa imagenes publicadas en Docker Hub, no buildea el codigo fuente localmente y enruta las llamadas del navegador por `/api` con nginx apuntando a `backend:3000`.
 
 ### Variables De Entorno
 
@@ -673,6 +678,7 @@ Archivos compose:
 - `docker-compose.yaml` es para desarrollo local.
 - `docker-compose.deploy.yml` es para deployment.
 - El deployment usa imagenes publicadas en Docker Hub. No hace build local de backend ni frontend.
+- El frontend desplegado llama al backend por `/api`, y nginx hace proxy interno hacia `backend:3000`.
 
 Archivo de entorno para deployment:
 
@@ -711,3 +717,5 @@ Inicializacion de base la primera vez si PostgreSQL esta vacio:
 docker compose -f docker-compose.deploy.yml --env-file .env exec -T postgres sh -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < database/init.sql
 docker compose -f docker-compose.deploy.yml --env-file .env exec -T postgres sh -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < database/seed.sql
 ```
+
+En deployment el backend no se expone publicamente por defecto. Solo se publica el puerto del frontend.
