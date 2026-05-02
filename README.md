@@ -26,6 +26,8 @@ Application for creating and managing internal newsletters with a React frontend
 |   `-- seed.sql             # Minimal local seed data
 |-- .github/workflows/
 |-- docker-compose.yaml
+|-- docker-compose.deploy.yml
+|-- .env.deploy.example
 `-- README.md
 ```
 
@@ -56,6 +58,8 @@ If you run the backend container, its internal database settings are:
 DATABASE_URL=postgresql://nestle:nestle@postgres:5432/nestle_newsletter
 DIRECT_URL=postgresql://nestle:nestle@postgres:5432/nestle_newsletter
 ```
+
+`docker-compose.deploy.yml` is the separate deployment compose. It uses published Docker Hub images and does not build source code locally.
 
 ### Environment Variables
 
@@ -285,7 +289,7 @@ If a secret is committed by accident:
 
 Docker Hub setup:
 
-- Create the repositories `nestle-newsletter-backend` and `nestle-newsletter-frontend`.
+- Create the repositories `nestle-ai-newsletter-backend` and `nestle-ai-newsletter-frontend`.
 - Create a Docker Hub Personal Access Token with `Read & Write` permissions.
 - Save these GitHub Actions secrets in the repository:
 - `DOCKERHUB_USERNAME`
@@ -304,8 +308,54 @@ Published image tags:
 Manual pull example:
 
 ```bash
-docker pull <DOCKERHUB_USERNAME>/nestle-newsletter-backend:latest
-docker pull <DOCKERHUB_USERNAME>/nestle-newsletter-frontend:latest
+docker pull <DOCKERHUB_USERNAME>/nestle-ai-newsletter-backend:latest
+docker pull <DOCKERHUB_USERNAME>/nestle-ai-newsletter-frontend:latest
+```
+
+### Deployment With Docker Hub
+
+Compose files:
+
+- `docker-compose.yaml` is for local development.
+- `docker-compose.deploy.yml` is for deployment.
+- Deployment uses published images from Docker Hub. It does not build backend or frontend locally.
+
+Deployment environment file:
+
+1. Copy `.env.deploy.example` to `.env`.
+2. Set `DOCKERHUB_USERNAME`.
+3. Set `APP_VERSION`.
+
+`APP_VERSION` can be:
+
+- `latest`
+- a commit SHA tag
+- a version such as `v1.0.0`
+
+Deployment commands:
+
+```bash
+docker compose -f docker-compose.deploy.yml --env-file .env pull
+docker compose -f docker-compose.deploy.yml --env-file .env up -d
+```
+
+Check status:
+
+```bash
+docker compose -f docker-compose.deploy.yml --env-file .env ps
+```
+
+View backend logs:
+
+```bash
+docker compose -f docker-compose.deploy.yml --env-file .env logs backend
+```
+
+First database initialization if PostgreSQL is empty:
+
+```bash
+docker compose -f docker-compose.deploy.yml --env-file .env exec -T postgres sh -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < database/init.sql
+docker compose -f docker-compose.deploy.yml --env-file .env exec -T postgres sh -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < database/seed.sql
 ```
 
 ## Espanol
@@ -330,6 +380,8 @@ Aplicacion para crear y gestionar newsletters internos con frontend React, backe
 |   `-- seed.sql             # Seeds minimos locales
 |-- .github/workflows/
 |-- docker-compose.yaml
+|-- docker-compose.deploy.yml
+|-- .env.deploy.example
 `-- README.md
 ```
 
@@ -360,6 +412,8 @@ Si se corre el backend dentro de Docker, usa:
 DATABASE_URL=postgresql://nestle:nestle@postgres:5432/nestle_newsletter
 DIRECT_URL=postgresql://nestle:nestle@postgres:5432/nestle_newsletter
 ```
+
+`docker-compose.deploy.yml` es el compose separado de deployment. Usa imagenes publicadas en Docker Hub y no buildea el codigo fuente localmente.
 
 ### Variables De Entorno
 
@@ -589,7 +643,7 @@ Si una secret se sube por error:
 
 Configuracion de Docker Hub:
 
-- Crear los repositorios `nestle-newsletter-backend` y `nestle-newsletter-frontend`.
+- Crear los repositorios `nestle-ai-newsletter-backend` y `nestle-ai-newsletter-frontend`.
 - Crear un Personal Access Token de Docker Hub con permisos `Read & Write`.
 - Guardar estos secrets en GitHub Actions:
 - `DOCKERHUB_USERNAME`
@@ -608,6 +662,52 @@ Tags publicados:
 Prueba manual:
 
 ```bash
-docker pull <DOCKERHUB_USERNAME>/nestle-newsletter-backend:latest
-docker pull <DOCKERHUB_USERNAME>/nestle-newsletter-frontend:latest
+docker pull <DOCKERHUB_USERNAME>/nestle-ai-newsletter-backend:latest
+docker pull <DOCKERHUB_USERNAME>/nestle-ai-newsletter-frontend:latest
+```
+
+### Deployment Con Docker Hub
+
+Archivos compose:
+
+- `docker-compose.yaml` es para desarrollo local.
+- `docker-compose.deploy.yml` es para deployment.
+- El deployment usa imagenes publicadas en Docker Hub. No hace build local de backend ni frontend.
+
+Archivo de entorno para deployment:
+
+1. Copiar `.env.deploy.example` a `.env`.
+2. Configurar `DOCKERHUB_USERNAME`.
+3. Configurar `APP_VERSION`.
+
+`APP_VERSION` puede ser:
+
+- `latest`
+- un SHA de commit
+- una version como `v1.0.0`
+
+Comandos de deployment:
+
+```bash
+docker compose -f docker-compose.deploy.yml --env-file .env pull
+docker compose -f docker-compose.deploy.yml --env-file .env up -d
+```
+
+Ver estado:
+
+```bash
+docker compose -f docker-compose.deploy.yml --env-file .env ps
+```
+
+Ver logs del backend:
+
+```bash
+docker compose -f docker-compose.deploy.yml --env-file .env logs backend
+```
+
+Inicializacion de base la primera vez si PostgreSQL esta vacio:
+
+```bash
+docker compose -f docker-compose.deploy.yml --env-file .env exec -T postgres sh -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < database/init.sql
+docker compose -f docker-compose.deploy.yml --env-file .env exec -T postgres sh -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < database/seed.sql
 ```

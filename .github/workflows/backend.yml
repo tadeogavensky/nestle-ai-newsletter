@@ -2,12 +2,12 @@ name: Backend CI
 
 on:
   push:
-    branches: [main, staging, docker, feature/docker-database]
+    branches: [main, staging]
     paths:
       - 'backend/**'
       - '.github/workflows/backend.yml'
   pull_request:
-    branches: [main, staging, docker, feature/docker-database]
+    branches: [main, staging]
     paths:
       - 'backend/**'
       - '.github/workflows/backend.yml'

@@ -2,6 +2,7 @@ node_modules/
 frontend/.corepack/
 
 # Environment variables
+.env
 backend/.env
 frontend/.env
 
