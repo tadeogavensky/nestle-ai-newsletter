@@ -5,13 +5,15 @@ on:
   push:
     branches: [main, staging, feature/docker-database]
     paths:
-      - 'backend/**'
-      - '.github/workflows/backend.yml'
+      - "backend/**"
+      - "packages/shared/**"
+      - ".github/workflows/backend.yml"
   pull_request:
     branches: [main, staging, feature/docker-database]
     paths:
-      - 'backend/**'
-      - '.github/workflows/backend.yml'
+      - "backend/**"
+      - "packages/shared/**"
+      - ".github/workflows/backend.yml"
 
 jobs:
   backend:
