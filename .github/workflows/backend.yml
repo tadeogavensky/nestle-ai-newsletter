@@ -54,5 +54,5 @@ jobs:
           context: ./backend
           push: ${{ github.event_name == 'push' }}
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/nestle-newsletter-backend:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/nestle-newsletter-backend:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/nestle-ai-newsletter-backend:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/nestle-ai-newsletter-backend:${{ github.sha }}
