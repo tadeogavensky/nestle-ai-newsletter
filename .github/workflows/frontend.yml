@@ -3,12 +3,12 @@ name: Frontend CI
 on:
   workflow_dispatch:
   push:
-    branches: [main, staging]
+    branches: [main, staging, feature/docker-database]
     paths:
       - 'frontend/**'
       - '.github/workflows/frontend.yml'
   pull_request:
-    branches: [main, staging]
+    branches: [main, staging, feature/docker-database]
     paths:
       - 'frontend/**'
       - '.github/workflows/frontend.yml'

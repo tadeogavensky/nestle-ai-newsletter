@@ -3,12 +3,12 @@ name: Backend CI
 on:
   workflow_dispatch:
   push:
-    branches: [main, staging]
+    branches: [main, staging, feature/docker-database]
     paths:
       - 'backend/**'
       - '.github/workflows/backend.yml'
   pull_request:
-    branches: [main, staging]
+    branches: [main, staging, feature/docker-database]
     paths:
       - 'backend/**'
       - '.github/workflows/backend.yml'
