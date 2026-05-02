@@ -1,6 +1,5 @@
 import { useMemo, useState } from 'react';
 import {
-  Avatar,
   Box,
   Button,
   Chip,
@@ -19,10 +18,13 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import {
+  NewsletterStatus,
+  NewsletterStatusLabel,
+} from '../../../../packages/shared/src/enums/newsletter-status.enum';
 import { ModalDelete } from '../ModalDelete';
 import { TableSortLabel } from '@mui/material';
-
-type NewsletterStatus = 'Pendiente' | 'Aprobado' | 'Programado' | 'Borrador';
+import Tooltip from "@mui/material/Tooltip";
 
 interface NewsletterRow {
   id: string;
@@ -40,12 +42,24 @@ interface Props {
   filter: 'ALL' | 'PENDING';
 }
 
+const pendingStatuses = new Set<NewsletterStatus>([
+  NewsletterStatus.IN_REVIEW,
+  NewsletterStatus.CHANGES_REQUESTED,
+  NewsletterStatus.RESUBMITTED,
+]);
+
 const getStatusColor = (status: NewsletterStatus) => {
   switch (status) {
-    case 'Pendiente': return 'warning';
-    case 'Aprobado': return 'success';
-    case 'Programado': return 'info';
-    case 'Borrador': return 'default';
+    case NewsletterStatus.IN_REVIEW:
+    case NewsletterStatus.CHANGES_REQUESTED:
+    case NewsletterStatus.RESUBMITTED:
+      return 'warning';
+    case NewsletterStatus.APPROVED:
+      return 'success';
+    case NewsletterStatus.DISCARDED:
+      return 'error';
+    case NewsletterStatus.DRAFT:
+      return 'default';
     default: return 'default';
   }
 };
@@ -56,7 +70,7 @@ const mockNewsletters: NewsletterRow[] = [
     id: '1',
     title: 'Newsletter 1',
     autor: 'autor 1',
-    state: 'Pendiente',
+    state: NewsletterStatus.IN_REVIEW,
     language: 'English',
     reviewer: 'revisor 1',
     publish_date: '01-10-2023',
@@ -66,7 +80,7 @@ const mockNewsletters: NewsletterRow[] = [
     id: '2',
     title: 'Newsletter 2',
     autor: 'autor 2',
-    state: 'Aprobado',
+    state: NewsletterStatus.APPROVED,
     language: 'Spanish',
     reviewer: 'admin',
     publish_date: '02-10-2023',
@@ -76,7 +90,7 @@ const mockNewsletters: NewsletterRow[] = [
     id: '3',
     title: 'Newsletter 3',
     autor: 'autor 3',
-    state: 'Programado',
+    state: NewsletterStatus.CHANGES_REQUESTED,
     language: 'French',
     reviewer: 'revisor 2',
     publish_date: '03-10-2023',
@@ -86,7 +100,7 @@ const mockNewsletters: NewsletterRow[] = [
     id: '4',
     title: 'Newsletter 4',
     autor: 'autor 4',
-    state: 'Borrador',
+    state: NewsletterStatus.DRAFT,
     language: 'English',
     reviewer: 'admin',
     publish_date: null,
@@ -96,7 +110,7 @@ const mockNewsletters: NewsletterRow[] = [
     id: '5',
     title: 'Newsletter 5',
     autor: 'autor 2',
-    state: 'Pendiente',
+    state: NewsletterStatus.RESUBMITTED,
     language: 'Spanish',
     reviewer: 'revisor 3',
     publish_date: '04-10-2023',
@@ -106,7 +120,7 @@ const mockNewsletters: NewsletterRow[] = [
     id: '6',
     title: 'Newsletter 6',
     autor: 'autor 1',
-    state: 'Aprobado',
+    state: NewsletterStatus.APPROVED,
     language: 'French',
     reviewer: 'admin',
     publish_date: '05-10-2023',
@@ -116,7 +130,7 @@ const mockNewsletters: NewsletterRow[] = [
     id: '7',
     title: 'Newsletter 7',
     autor: 'autor 2',
-    state: 'Programado',
+    state: NewsletterStatus.DISCARDED,
     language: 'English',
     reviewer: 'revisor 4',
     publish_date: '06-10-2023',
@@ -126,7 +140,7 @@ const mockNewsletters: NewsletterRow[] = [
     id: '8',
     title: 'Newsletter 8',
     autor: 'autor 5',
-    state: 'Borrador',
+    state: NewsletterStatus.DRAFT,
     language: 'Spanish',
     reviewer: 'admin',
     publish_date: null,
@@ -136,7 +150,7 @@ const mockNewsletters: NewsletterRow[] = [
     id: '9',
     title: 'Newsletter 9',
     autor: 'autor 3',
-    state: 'Pendiente',
+    state: NewsletterStatus.IN_REVIEW,
     language: 'French',
     reviewer: 'revisor 4',
     publish_date: '07-10-2023',
@@ -146,7 +160,7 @@ const mockNewsletters: NewsletterRow[] = [
     id: '10',
     title: 'Newsletter 10',
     autor: 'autor 1',
-    state: 'Aprobado',
+    state: NewsletterStatus.APPROVED,
     language: 'English',
     reviewer: 'revisor 1',
     publish_date: '08-10-2023',
@@ -183,12 +197,17 @@ export function NewslettersTable({ search, filter }: Props) {
   const filteredData = useMemo(() => {
     return data
       .filter(item =>
-        Object.values(item).some(value =>
-          value?.toString().toLowerCase().includes(search.toLowerCase())
-        )
+        Object.entries(item).some(([key, value]) => {
+          const searchableValue =
+            key === 'state' && value
+              ? NewsletterStatusLabel[value as NewsletterStatus]
+              : value;
+
+          return searchableValue?.toString().toLowerCase().includes(search.toLowerCase());
+        })
       )
       .filter(item =>
-        filter === 'ALL' ? true : item.state === 'Pendiente'
+        filter === 'ALL' ? true : pendingStatuses.has(item.state)
       )
       .sort((a, b) => {
         const aValue = getComparableValue(a[orderBy]);
@@ -208,92 +227,93 @@ export function NewslettersTable({ search, filter }: Props) {
         <MuiTable>
           <TableHead>
             <TableRow>
-
-              <TableCell sortDirection={orderBy === 'title' ? order : false}>
+              <TableCell sortDirection={orderBy === "title" ? order : false}>
                 <TableSortLabel
-                  active={orderBy === 'title'}
-                  direction={orderBy === 'title' ? order : 'asc'}
-                  onClick={() => handleSort('title')}
+                  active={orderBy === "title"}
+                  direction={orderBy === "title" ? order : "asc"}
+                  onClick={() => handleSort("title")}
                 >
                   Título
                 </TableSortLabel>
               </TableCell>
 
-              <TableCell sortDirection={orderBy === 'autor' ? order : false}>
+              <TableCell sortDirection={orderBy === "autor" ? order : false}>
                 <TableSortLabel
-                  active={orderBy === 'autor'}
-                  direction={orderBy === 'autor' ? order : 'asc'}
-                  onClick={() => handleSort('autor')}
+                  active={orderBy === "autor"}
+                  direction={orderBy === "autor" ? order : "asc"}
+                  onClick={() => handleSort("autor")}
                 >
                   Autor
                 </TableSortLabel>
               </TableCell>
 
-              <TableCell sortDirection={orderBy === 'language' ? order : false}>
+              <TableCell sortDirection={orderBy === "language" ? order : false}>
                 <TableSortLabel
-                  active={orderBy === 'language'}
-                  direction={orderBy === 'language' ? order : 'asc'}
-                  onClick={() => handleSort('language')}
+                  active={orderBy === "language"}
+                  direction={orderBy === "language" ? order : "asc"}
+                  onClick={() => handleSort("language")}
                 >
                   Idioma
                 </TableSortLabel>
               </TableCell>
 
-              <TableCell sortDirection={orderBy === 'reviewer' ? order : false}>
+              <TableCell sortDirection={orderBy === "reviewer" ? order : false}>
                 <TableSortLabel
-                  active={orderBy === 'reviewer'}
-                  direction={orderBy === 'reviewer' ? order : 'asc'}
-                  onClick={() => handleSort('reviewer')}
+                  active={orderBy === "reviewer"}
+                  direction={orderBy === "reviewer" ? order : "asc"}
+                  onClick={() => handleSort("reviewer")}
                 >
                   Revisado por
                 </TableSortLabel>
               </TableCell>
 
-              <TableCell sortDirection={orderBy === 'publish_date' ? order : false}>
+              <TableCell
+                sortDirection={orderBy === "publish_date" ? order : false}
+              >
                 <TableSortLabel
-                  active={orderBy === 'publish_date'}
-                  direction={orderBy === 'publish_date' ? order : 'asc'}
-                  onClick={() => handleSort('publish_date')}
+                  active={orderBy === "publish_date"}
+                  direction={orderBy === "publish_date" ? order : "asc"}
+                  onClick={() => handleSort("publish_date")}
                 >
                   Publicación
                 </TableSortLabel>
               </TableCell>
 
-              <TableCell sortDirection={orderBy === 'state' ? order : false}>
+              <TableCell sortDirection={orderBy === "state" ? order : false}>
                 <TableSortLabel
-                  active={orderBy === 'state'}
-                  direction={orderBy === 'state' ? order : 'asc'}
-                  onClick={() => handleSort('state')}
+                  active={orderBy === "state"}
+                  direction={orderBy === "state" ? order : "asc"}
+                  onClick={() => handleSort("state")}
                 >
                   Estado
                 </TableSortLabel>
               </TableCell>
 
-              <TableCell sortDirection={orderBy === 'updated_at' ? order : false}>
+              <TableCell
+                sortDirection={orderBy === "updated_at" ? order : false}
+              >
                 <TableSortLabel
-                  active={orderBy === 'updated_at'}
-                  direction={orderBy === 'updated_at' ? order : 'asc'}
-                  onClick={() => handleSort('updated_at')}
+                  active={orderBy === "updated_at"}
+                  direction={orderBy === "updated_at" ? order : "asc"}
+                  onClick={() => handleSort("updated_at")}
                 >
                   Actualización
                 </TableSortLabel>
               </TableCell>
 
               <TableCell align="right">Acciones</TableCell>
-
             </TableRow>
           </TableHead>
 
           <TableBody>
             {visibleData.map((n) => (
               <TableRow key={n.id} hover>
-
                 <TableCell>
                   <Stack direction="row" spacing={1.5}>
-                    <Avatar>{n.title[0]}</Avatar>
                     <Box>
-                      <Typography sx={{ fontWeight: 600 }}>{n.title}</Typography>
-                      <Typography variant="caption">{n.id}</Typography>
+                      <Typography sx={{ fontWeight: 600 }}>
+                        {n.title}
+                      </Typography>
                     </Box>
                   </Stack>
                 </TableCell>
@@ -302,14 +322,12 @@ export function NewslettersTable({ search, filter }: Props) {
                 <TableCell>{n.language}</TableCell>
                 <TableCell>{n.reviewer}</TableCell>
 
-                <TableCell>
-                  {n.publish_date ?? '—'}
-                </TableCell>
+                <TableCell>{n.publish_date ?? "—"}</TableCell>
 
                 <TableCell>
                   <Chip
                     size="small"
-                    label={n.state}
+                    label={NewsletterStatusLabel[n.state]}
                     color={getStatusColor(n.state)}
                   />
                 </TableCell>
@@ -317,21 +335,28 @@ export function NewslettersTable({ search, filter }: Props) {
                 <TableCell>{n.updated_at}</TableCell>
 
                 <TableCell align="right">
-                  <Stack direction="row" spacing={1} sx={{ justifyContent: 'flex-end' }}>
-                    <IconButton>
-                      <VisibilityIcon />
-                    </IconButton>
-
-                    <IconButton>
-                      <EditIcon />
-                    </IconButton>
-
-                    <IconButton onClick={() => setDeleteId(n.id)}>
-                      <DeleteIcon />
-                    </IconButton>
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    sx={{ justifyContent: "flex-end" }}
+                  >
+                    <Tooltip title="Vista Previa" arrow>
+                      <IconButton>
+                        <VisibilityIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Editar" arrow>
+                      <IconButton>
+                        <EditIcon />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Eliminar" arrow>
+                      <IconButton onClick={() => setDeleteId(n.id)}>
+                        <DeleteIcon />
+                      </IconButton>
+                    </Tooltip>
                   </Stack>
                 </TableCell>
-
               </TableRow>
             ))}
           </TableBody>
@@ -340,8 +365,8 @@ export function NewslettersTable({ search, filter }: Props) {
 
       {/* Cargar más */}
       {visibleCount < filteredData.length && (
-        <Box sx={{ mt: 2, textAlign: 'center' }}>
-          <Button onClick={() => setVisibleCount(v => v + 5)}>
+        <Box sx={{ mt: 2, textAlign: "center" }}>
+          <Button onClick={() => setVisibleCount((v) => v + 5)}>
             Cargar más
           </Button>
         </Box>
@@ -352,7 +377,7 @@ export function NewslettersTable({ search, filter }: Props) {
         open={!!deleteId}
         onClose={() => setDeleteId(null)}
         onConfirm={() => {
-          setData(prev => prev.filter(n => n.id !== deleteId));
+          setData((prev) => prev.filter((n) => n.id !== deleteId));
           setDeleteId(null);
         }}
       />

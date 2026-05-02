@@ -69,8 +69,14 @@ Create `backend/.env` locally from [backend/.env.example](/C:/Users/Tadeo/Deskto
 Required local database values:
 
 ```env
-DATABASE_URL="postgresql://nestle:nestle@localhost:5433/nestle_newsletter"
-DIRECT_URL="postgresql://nestle:nestle@localhost:5433/nestle_newsletter"
+DATABASE_URL="postgresql://..."
+DIRECT_URL="postgresql://..."
+PORT=3000
+AI_PROVIDER="gemini"
+GEMINI_API_KEY="AIza..."
+GEMINI_MODEL="gemini-2.5-flash-lite"
+NESTLE_GENIA_URL="https://eur-sdr-int-pub.nestle.com/api/dv-exp-sandbox-openai-api/1/genai/GCP/gemini-2.5-pro/generateContent"
+NESTLE_GENIA_MODEL="gemini-2.5-pro"
 ```
 
 Notes:
@@ -79,6 +85,10 @@ Notes:
 - `DIRECT_URL` is used for direct Prisma tasks and is also accepted by `PrismaService`.
 - `backend/.env` is ignored by Git through the root `.gitignore`.
 - `backend/.env.example` must contain placeholders only, never real secrets.
+- `AI_PROVIDER` selects the active provider for `POST /ai/improve-text` and `POST /ai/generate-newsletter`. Use `gemini` by default or `nestle` to route through Nestle GenIA.
+- `GEMINI_API_KEY` is required when `AI_PROVIDER="gemini"`.
+- `CLIENT_ID` and `CLIENT_SECRET` are required when `AI_PROVIDER="nestle"`.
+- `GEMINI_MODEL`, `NESTLE_GENIA_URL`, and `NESTLE_GENIA_MODEL` are optional overrides for the AI endpoints.
 
 ### Daily Development
 
@@ -427,8 +437,14 @@ Crear `backend/.env` a partir de [backend/.env.example](/C:/Users/Tadeo/Desktop/
 Valores locales requeridos:
 
 ```env
-DATABASE_URL="postgresql://nestle:nestle@localhost:5433/nestle_newsletter"
-DIRECT_URL="postgresql://nestle:nestle@localhost:5433/nestle_newsletter"
+DATABASE_URL="postgresql://..."
+DIRECT_URL="postgresql://..."
+PORT=3000
+AI_PROVIDER="gemini"
+GEMINI_API_KEY="AIza..."
+GEMINI_MODEL="gemini-2.5-flash-lite"
+NESTLE_GENIA_URL="https://eur-sdr-int-pub.nestle.com/api/dv-exp-sandbox-openai-api/1/genai/GCP/gemini-2.5-pro/generateContent"
+NESTLE_GENIA_MODEL="gemini-2.5-pro"
 ```
 
 Notas:
@@ -437,6 +453,10 @@ Notas:
 - `DIRECT_URL` sirve para tareas directas de Prisma y tambien lo acepta `PrismaService`.
 - `backend/.env` esta ignorado por Git desde el `.gitignore` root.
 - `backend/.env.example` debe tener placeholders, nunca secretos reales.
+- `AI_PROVIDER` selecciona el proveedor activo para `POST /ai/improve-text` y `POST /ai/generate-newsletter`. Usar `gemini` por defecto o `nestle` para enrutar por Nestle GenIA.
+- `GEMINI_API_KEY` es obligatoria cuando `AI_PROVIDER="gemini"`.
+- `CLIENT_ID` y `CLIENT_SECRET` son obligatorias cuando `AI_PROVIDER="nestle"`.
+- `GEMINI_MODEL`, `NESTLE_GENIA_URL` y `NESTLE_GENIA_MODEL` son overrides opcionales para los endpoints de IA.
 
 ### Desarrollo Diario
 

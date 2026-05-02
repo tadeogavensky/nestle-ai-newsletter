@@ -21,15 +21,37 @@ import {
 import type { ChipProps } from '@mui/material'
 import { RateReviewOutlined as ReviewIcon } from '@mui/icons-material'
 import { useNavigate } from 'react-router'
-import { useAuth } from '../contexts/AuthContext'
+import {
+  NewsletterStatus,
+  NewsletterStatusLabel,
+  type NewsletterStatus as NewsletterStatusValue,
+} from '../../../packages/shared/src/enums/newsletter-status.enum'
+import {
+  AreaName,
+  AreaNameLabel,
+  type AreaName as AreaNameValue,
+} from '../../../packages/shared/src/enums/area-name.enum'
+import { useAuth, type User } from '../contexts/AuthContext'
 import SearchBar from '../components/SearchBar'
+
+type NewsletterReviewStatus = Extract<
+  NewsletterStatusValue,
+  typeof NewsletterStatus.IN_REVIEW |
+  typeof NewsletterStatus.CHANGES_REQUESTED |
+  typeof NewsletterStatus.RESUBMITTED
+>
+
+const actionableReviewStatuses = new Set<NewsletterReviewStatus>([
+  NewsletterStatus.IN_REVIEW,
+  NewsletterStatus.RESUBMITTED,
+])
 
 interface NewsletterReview {
   id: string
   title: string
   author: string
-  area: string
-  status: 'pending' | 'reviewed' | 'approved'
+  area: AreaNameValue
+  status: NewsletterReviewStatus
   submittedDate: string
   content: string
 }
@@ -39,8 +61,8 @@ const reviews: NewsletterReview[] = [
     id: '1',
     title: 'Newsletter - Marzo 2024',
     author: 'Juan Perez',
-    area: 'Marketing',
-    status: 'pending',
+    area: AreaName.COMUNICACION_INTERNA,
+    status: NewsletterStatus.IN_REVIEW,
     submittedDate: '2024-03-15',
     content: 'Contenido de newsletter para marzo...',
   },
@@ -48,8 +70,8 @@ const reviews: NewsletterReview[] = [
     id: '2',
     title: 'Promocion de Primavera',
     author: 'Maria Garcia',
-    area: 'Ventas',
-    status: 'pending',
+    area: AreaName.COMUNICACION_CORPORATIVA,
+    status: NewsletterStatus.CHANGES_REQUESTED,
     submittedDate: '2024-03-16',
     content: 'Contenido de promocion...',
   },
@@ -57,8 +79,8 @@ const reviews: NewsletterReview[] = [
     id: '3',
     title: 'Newsletter - Febrero 2024',
     author: 'Pedro Lopez',
-    area: 'Marketing',
-    status: 'approved',
+    area: AreaName.COMUNICACION_INTERNA,
+    status: NewsletterStatus.RESUBMITTED,
     submittedDate: '2024-02-28',
     content: 'Contenido aprobado...',
   },
@@ -66,21 +88,45 @@ const reviews: NewsletterReview[] = [
 
 const getStatusColor = (status: NewsletterReview['status']): ChipProps['color'] => {
   switch (status) {
-    case 'pending':  return 'warning'
-    case 'reviewed': return 'info'
-    case 'approved': return 'success'
+    case NewsletterStatus.IN_REVIEW: return 'warning'
+    case NewsletterStatus.CHANGES_REQUESTED: return 'error'
+    case NewsletterStatus.RESUBMITTED: return 'info'
   }
 }
 
 const getStatusLabel = (status: NewsletterReview['status']) => {
-  switch (status) {
-    case 'pending':  return 'Pendiente'
-    case 'reviewed': return 'Revisado'
-    case 'approved': return 'Aprobado'
-  }
+  return NewsletterStatusLabel[status]
 }
 
 type SortableKey = 'title' | 'author' | 'area' | 'status' | 'submittedDate'
+
+const reviewMatchesSearch = (review: NewsletterReview, normalizedSearch: string): boolean => {
+  const searchableValues = [
+    review.id,
+    review.title,
+    review.author,
+    AreaNameLabel[review.area],
+    NewsletterStatusLabel[review.status],
+    review.submittedDate,
+    review.content,
+  ]
+
+  return searchableValues.some((value) => value.toLowerCase().includes(normalizedSearch))
+}
+
+const isAreaName = (value: unknown): value is AreaNameValue => {
+  return Object.values(AreaName).some((areaName) => areaName === value)
+}
+
+const getUserArea = (user: User | null): AreaNameValue | null => {
+  const userWithArea: User & { area?: unknown } | null = user
+
+  if (!isAreaName(userWithArea?.area)) {
+    return null
+  }
+
+  return userWithArea.area
+}
 
 export function ReviewsPage() {
   const { user } = useAuth()
@@ -93,20 +139,19 @@ export function ReviewsPage() {
   const [limit, setLimit]     = useState(5)
 
   const isAdmin = user?.role === 'ADMIN'
+  const userArea = getUserArea(user)
 
   const filteredReviews = useMemo(() => {
+    const normalizedSearch = search.toLowerCase()
+
     return reviews
-      .filter((r) => isAdmin || r.area === user?.area)
-      .filter((r) =>
-        Object.values(r).some((v) =>
-          v?.toString().toLowerCase().includes(search.toLowerCase())
-        )
-      )
+      .filter((r) => isAdmin || !userArea || r.area === userArea)
+      .filter((r) => reviewMatchesSearch(r, normalizedSearch))
       .sort((a, b) => {
         const isAsc = order === 'asc'
         return (a[orderBy] < b[orderBy] ? -1 : 1) * (isAsc ? 1 : -1)
       })
-  }, [search, order, orderBy, isAdmin, user?.area])
+  }, [search, order, orderBy, isAdmin, userArea])
 
   const handleRequestSort = (property: SortableKey) => {
     const isAsc = orderBy === property && order === 'asc'
@@ -143,7 +188,9 @@ export function ReviewsPage() {
               <Typography variant="body1" color="text.secondary">
                 {isAdmin
                   ? 'Revisá todos los newsletters pendientes.'
-                  : `Mostrando newsletters de tu área: ${user?.area}.`}
+                  : userArea
+                    ? `Mostrando newsletters de tu área: ${AreaNameLabel[userArea]}.`
+                    : 'Mostrando newsletters para revisión.'}
               </Typography>
             </Stack>
 
@@ -192,7 +239,7 @@ export function ReviewsPage() {
                       </TableCell>
 
                       <TableCell>{review.author}</TableCell>
-                      <TableCell>{review.area}</TableCell>
+                      <TableCell>{AreaNameLabel[review.area]}</TableCell>
 
                       <TableCell>
                         <Chip
@@ -208,7 +255,7 @@ export function ReviewsPage() {
 
                       <TableCell align="right">
                         <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'flex-end' }}>
-                          {review.status === 'pending' && (
+                          {actionableReviewStatuses.has(review.status) && (
                             <Tooltip title="Revisar">
                               <IconButton
                                 size="small"
@@ -230,7 +277,7 @@ export function ReviewsPage() {
             {limit < filteredReviews.length && (
               <Box sx={{ p: 2, textAlign: 'center', borderTop: '1px solid', borderColor: 'divider' }}>
                 <Button onClick={() => setLimit((l) => l + 5)}>
-                  Cargar más resultados
+                  Cargar más
                 </Button>
               </Box>
             )}
