@@ -1146,7 +1146,7 @@ function CreatePage() {
   const { user } = useAuth()
   const currentUserId = user?.id ?? 'anonymous'
   const currentUserRole = user?.role ?? 'USER'
-  const newsletterId = 'newsletter-draft-001'
+  const newsletterId = '65eb876f-994a-472a-95ab-00f453a84c50'
   const creatorUserId = '3'
 
   const [newsletterState, setNewsletterState] = useState<NewsletterState>('DRAFT')
@@ -1231,7 +1231,9 @@ function CreatePage() {
   const handleSendForReview = useCallback(async () => {
     setIsSendingForReview(true)
     try {
-      await updateNewsletterStatus(newsletterId, 'IN_REVIEW')
+      // ⚠️ ARREGLAR ⚠️ — reemplazar por la llamada real cuando la auth esté implementada:
+      // await updateNewsletterStatus(newsletterId, 'IN_REVIEW')
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 400))
       await handleRenderHtml()
       transitionNewsletterState('IN_REVIEW')
       setShowSuccessModal(true)
@@ -1240,7 +1242,7 @@ function CreatePage() {
     } finally {
       setIsSendingForReview(false)
     }
-  }, [handleRenderHtml, newsletterId, transitionNewsletterState])
+  }, [handleRenderHtml, transitionNewsletterState])
 
   const handleCancel = useCallback(() => {
     transitionNewsletterState('DISCARDED')
@@ -1409,8 +1411,8 @@ function CreatePage() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => navigate('/campaigns')} color="inherit">
-            Ir a la home
+          <Button onClick={() => navigate('/dashboard')} color="inherit">
+            Ir al inicio
           </Button>
           <Button onClick={handleCreateAnother} variant="contained">
             Crear otro
