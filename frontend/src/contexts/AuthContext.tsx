@@ -9,8 +9,7 @@ export interface User {
   email: string
   name: string
   role: UserRole
-  state: string
-  area: string
+  area?: string
 }
 
 interface StoredSession {

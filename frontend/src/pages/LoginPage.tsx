@@ -7,8 +7,9 @@ import {
   Container,
   Stack,
   TextField,
-  ToggleButton,
-  ToggleButtonGroup,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
   Typography,
   useTheme,
 } from '@mui/material'
@@ -102,52 +103,34 @@ export function LoginPage() {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        bgcolor: 'background.default',
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        //: 'background.default',
+        background: `url('/src/assets/brand_shapes/isolated-by-brand/nestle-classic/light-blue.svg') center center / 2000px 2000px no-repeat, ${theme.palette.background.default}`,
         px: 2,
       }}
     >
       <Container maxWidth="sm">
         <Stack spacing={4}>
-          <Box sx={{ textAlign: 'center' }}>
-            <Box
-              component="img"
-              src={theme.nestle.assets.logos.nestWhite}
-              alt="Nestle"
-              sx={{
-                width: 120,
-                height: 'auto',
-                display: 'inline-block',
-              }}
-            />
-          </Box>
 
           <Card
-            elevation={0}
+            elevation={8}
             sx={{
-              border: '1px solid',
-              borderColor: 'divider',
+              border: "1px solid",
+              borderColor: "divider",
               p: { xs: 3, md: 4 },
             }}
           >
             <Stack spacing={3}>
               <Stack spacing={1}>
                 <Typography variant="h3">Iniciar sesion</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Acceso hardcoded con Microsoft SSO para demo.
-                </Typography>
               </Stack>
 
               {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
 
-              <Box
-                component="form"
-                onSubmit={handleMicrosoftLogin}
-                noValidate
-              >
+              <Box component="form" onSubmit={handleMicrosoftLogin} noValidate>
                 <Stack spacing={2.5}>
                   <TextField
                     fullWidth
@@ -155,8 +138,8 @@ export function LoginPage() {
                     type="email"
                     value={email}
                     onChange={(event) => {
-                      setEmail(event.target.value)
-                      setFormErrors((prev) => ({ ...prev, email: undefined }))
+                      setEmail(event.target.value);
+                      setFormErrors((prev) => ({ ...prev, email: undefined }));
                     }}
                     error={!!formErrors.email}
                     helperText={formErrors.email}
@@ -166,12 +149,15 @@ export function LoginPage() {
 
                   <TextField
                     fullWidth
-                    label="Clave demo"
+                    label="Contraseña"
                     type="password"
                     value={password}
                     onChange={(event) => {
-                      setPassword(event.target.value)
-                      setFormErrors((prev) => ({ ...prev, password: undefined }))
+                      setPassword(event.target.value);
+                      setFormErrors((prev) => ({
+                        ...prev,
+                        password: undefined,
+                      }));
                     }}
                     error={!!formErrors.password}
                     helperText={formErrors.password}
@@ -179,51 +165,40 @@ export function LoginPage() {
                     required
                   />
 
-                  <ToggleButtonGroup
-                    exclusive
-                    fullWidth
+                  <RadioGroup
                     value={email}
-                    onChange={(_, value: string | null) => {
-                      if (value) {
-                        setEmail(value)
-                        setPassword('password123')
-                        setFormErrors({})
-                      }
-                    }}
-                    sx={{
-                      display: 'grid',
-                      gridTemplateColumns: '1fr',
-                      gap: 1,
-                      '& .MuiToggleButtonGroup-grouped': {
-                        borderRadius: 1,
-                        border: '1px solid',
-                        borderColor: 'divider',
-                      },
+                    onChange={(event) => {
+                      setEmail(event.target.value);
+                      setPassword("password123");
+                      setFormErrors({});
                     }}
                   >
                     {MICROSOFT_SSO_USERS.map((microsoftUser) => (
-                      <ToggleButton
+                      <FormControlLabel
                         key={microsoftUser.id}
                         value={microsoftUser.email}
-                        disabled={loading}
-                        sx={{
-                          justifyContent: 'flex-start',
-                          textAlign: 'left',
-                          px: 2,
-                          py: 1.5,
-                        }}
-                      >
-                        <Stack spacing={0.25}>
-                          <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                            {microsoftUser.name}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {microsoftUser.email} | {getRoleLabel(microsoftUser.role)}
-                          </Typography>
-                        </Stack>
-                      </ToggleButton>
+                        control={<Radio disabled={loading} />}
+                        label={
+                          <Stack spacing={0.25}>
+                            <Typography
+                              variant="body2"
+                              sx={{ fontWeight: 700 }}
+                            >
+                              {microsoftUser.name}
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                            >
+                              {microsoftUser.email} |{" "}
+                              {getRoleLabel(microsoftUser.role)}
+                            </Typography>
+                          </Stack>
+                        }
+                        sx={{ alignItems: "flex-start", m: 0, py: 0.5 }}
+                      />
                     ))}
-                  </ToggleButtonGroup>
+                  </RadioGroup>
 
                   <Button
                     fullWidth
@@ -233,18 +208,26 @@ export function LoginPage() {
                     type="submit"
                     disabled={loading}
                   >
-                    {loading ? <CircularProgress size={24} color="inherit" /> : 'Continuar con Microsoft'}
+                    {loading ? (
+                      <CircularProgress size={24} color="inherit" />
+                    ) : (
+                      "Login"
+                    )}
                   </Button>
                 </Stack>
               </Box>
             </Stack>
           </Card>
 
-          <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{ textAlign: "center" }}
+          >
             Sistema de newsletters de Nestle
           </Typography>
         </Stack>
       </Container>
     </Box>
-  )
+  );
 }

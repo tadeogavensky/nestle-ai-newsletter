@@ -1,27 +1,29 @@
-import { useState, useMemo } from 'react'
+﻿import { useState, useMemo } from 'react'
 import {
-  Box, Button, Card, Container, Stack, Typography, useTheme,
+  Box, Button, Card, Chip, Container, Stack, Typography, useTheme,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-  TextField, InputAdornment, IconButton, Tooltip,
+  IconButton, Tooltip,
   TableSortLabel
 } from '@mui/material'
 import {
-  Search as SearchIcon,
   DeleteOutlined as DeleteIcon,
   EditOutlined as EditIcon,
   VisibilityOutlined as ViewIcon,
   FileDownloadOutlined as ExportIcon,
   CheckCircleOutlined as ReviewIcon,
-  Add as AddIcon // Importamos el icono para el botón nuevo
+  Add as AddIcon
 } from '@mui/icons-material'
 import { useNavigate } from 'react-router'
 import { useAuth } from '../contexts/AuthContext'
 import { ModalDelete } from '../components/ModalDelete'
+import SearchBar from '../components/SearchBar'
 
-const STATE_MAP: Record<string, { label: string; color: string }> = {
-  'state_1': { label: 'Publicado', color: 'success.main' },
-  'state_2': { label: 'En borrador', color: 'warning.main' },
-  'state_3': { label: 'Publicado', color: 'success.main' },
+type StatusChipColor = 'default' | 'success' | 'warning'
+
+const STATE_MAP: Record<string, { label: string; color: StatusChipColor }> = {
+  'state_1': { label: 'Publicado', color: 'success' },
+  'state_2': { label: 'En borrador', color: 'warning' },
+  'state_3': { label: 'Publicado', color: 'success' },
 }
 
 export function TemplatesPage() {
@@ -75,6 +77,7 @@ export function TemplatesPage() {
     }}>
       <Container maxWidth="lg" disableGutters>
         <Stack spacing={4}>
+          {/* Header */}
           <Stack direction="row" sx={{ justifyContent: "space-between", alignItems: "flex-end" }}>
             <Stack spacing={1}>
               <Typography variant="h2">Templates</Typography>
@@ -84,21 +87,9 @@ export function TemplatesPage() {
             </Stack>
 
             <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
-              <TextField
-                placeholder="Buscar ..."
-                size="small"
+              <SearchBar
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                sx={{ width: 250 }}
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon fontSize="small" />
-                      </InputAdornment>
-                    ),
-                  }
-                }}
+                onChange={setSearch}
               />
 
               <Button 
@@ -123,7 +114,7 @@ export function TemplatesPage() {
                       direction={orderBy === 'name' ? order : 'asc'}
                       onClick={() => handleRequestSort('name')}
                     >
-                      Nombre
+                      Título
                     </TableSortLabel>
                   </TableCell>
                   <TableCell>Área</TableCell>
@@ -151,14 +142,11 @@ export function TemplatesPage() {
                     </TableCell>
                     <TableCell>{template.area_id}</TableCell>
                     <TableCell>
-                      <Box sx={{
-                        color: STATE_MAP[template.state_id]?.color,
-                        fontWeight: 600,
-                        fontSize: '0.75rem',
-                        textTransform: 'uppercase'
-                      }}>
-                        • {STATE_MAP[template.state_id]?.label}
-                      </Box>
+                      <Chip
+                        size="small"
+                        label={STATE_MAP[template.state_id]?.label}
+                        color={STATE_MAP[template.state_id]?.color ?? 'default'}
+                      />
                     </TableCell>
                     <TableCell>
                       {new Date(template.created_at).toLocaleDateString()}
