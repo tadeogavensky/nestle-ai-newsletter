@@ -1,4 +1,4 @@
-import {
+import React, {
   useCallback,
   useEffect,
   useMemo,
@@ -13,6 +13,11 @@ import {
   Box,
   Button,
   Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Divider,
   FormControl,
   IconButton,
@@ -43,6 +48,10 @@ import {
 import {
   type GenerateNewsletterRequest,
 } from '../api/ai'
+import { 
+  
+
+ } from '../services/newsletters.ts'
 
 // ⚠️ ARREGLAR ⚠️ — la generacion con IA está mockeada, descomentar cuando el servicio ande
 // import {
@@ -119,6 +128,7 @@ type CreatePageContext = {
   isRenderingHtml: boolean
   isExportingPng: boolean
   onGenerate: (request: GenerateNewsletterRequest) => Promise<void>
+  onResetGeneration: () => void
   onSelectTemplate: (templateId: string) => void
   onCancel: () => void
   onSendForReview: () => Promise<void>
@@ -134,6 +144,7 @@ type CreatePageContext = {
   onExportToPng: () => Promise<void>
   improvingBlockId: string | null
   isGenerating: boolean
+  isSendingForReview: boolean
   aiError: string | null
 }
 
@@ -553,10 +564,18 @@ function DraftActionPane({ context }: PaneProps) {
     context.templates.find((template) => template.id === context.selectedTemplateId) ??
     context.templates[0]
 
+  const activeTab = context.isGenerated ? 1 : 0
+
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
+    if (newValue === 0 && context.isGenerated) {
+      context.onResetGeneration()
+    }
+  }
+
   return (
     <Stack spacing={2}>
-      <Tabs value={context.isGenerated ? 1 : 0}>
-        <Tab label="Generar" disabled={context.isGenerated} />
+      <Tabs value={activeTab} onChange={handleTabChange}>
+        <Tab label="Generar" />
         <Tab label="Editar" disabled={!context.isGenerated} />
       </Tabs>
 
@@ -1056,7 +1075,7 @@ function GenerationForm({
 
       <Button
         variant="contained"
-        disabled={context.isGenerating || isUploadingAssets || Object.keys(formErrors).length > 0}
+        disabled={context.isGenerating}
         onClick={() => void submitGenerationForm()}
       >
         {context.isGenerating || isUploadingAssets ? "Generando..." : "Generar"}
@@ -1114,8 +1133,16 @@ function EditForm({
 
       <Divider />
 
-      <Button variant="contained" onClick={onSubmit}>{submitLabel}</Button>
-      <Button variant="outlined" color="error" onClick={context.onCancel}>Cancelar</Button>
+      <Button
+        variant="contained"
+        onClick={onSubmit}
+        disabled={context.isSendingForReview}
+      >
+        {context.isSendingForReview ? 'Enviando...' : submitLabel}
+      </Button>
+      <Button variant="outlined" color="error" onClick={context.onCancel} disabled={context.isSendingForReview}>
+        Cancelar
+      </Button>
     </Stack>
   )
 }
@@ -1283,7 +1310,7 @@ function CreatePage() {
   const { user } = useAuth()
   const currentUserId = user?.id ?? 'anonymous'
   const currentUserRole = user?.role ?? 'USER'
-  const newsletterId = 'newsletter-draft-001'
+  const newsletterId = '65eb876f-994a-472a-95ab-00f453a84c50'
   const creatorUserId = '3'
 
   const [newsletterState, setNewsletterState] = useState<NewsletterState>('DRAFT')
@@ -1296,7 +1323,10 @@ function CreatePage() {
   const [exportOptions, setExportOptions] = useState<ExportOption[]>([])
   const [isRenderingHtml, setIsRenderingHtml] = useState(false)
   const [isExportingPng, setIsExportingPng] = useState(false)
+  const [improvingBlockId, setImprovingBlockId] = useState<string | null>(null)
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isSendingForReview, setIsSendingForReview] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [aiError, setAiError] = useState<string | null>(null)
 
   const allCommentaries = useMemo(
@@ -1363,8 +1393,19 @@ function CreatePage() {
   }, [blocks])
 
   const handleSendForReview = useCallback(async () => {
-    await handleRenderHtml()
-    transitionNewsletterState('IN_REVIEW')
+    setIsSendingForReview(true)
+    try {
+      // ⚠️ ARREGLAR ⚠️ — reemplazar por la llamada real cuando la auth esté implementada:
+      // await updateNewsletterStatus(newsletterId, 'IN_REVIEW')
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 400))
+      await handleRenderHtml()
+      transitionNewsletterState('IN_REVIEW')
+      setShowSuccessModal(true)
+    } catch {
+      setAiError('No se pudo enviar a revisión en este momento. Intenta de nuevo.')
+    } finally {
+      setIsSendingForReview(false)
+    }
   }, [handleRenderHtml, transitionNewsletterState])
 
   const handleCancel = useCallback(() => {
@@ -1430,10 +1471,12 @@ function CreatePage() {
       exportOptions,
       isRenderingHtml,
       isExportingPng,
-      improvingBlockId: null,
+      improvingBlockId,
       isGenerating,
+      isSendingForReview,
       aiError,
       onGenerate: handleGenerate,
+      onResetGeneration: () => setIsGenerated(false),
       onSelectTemplate: setSelectedTemplateId,
       onCancel: handleCancel,
       onSendForReview: handleSendForReview,
@@ -1463,6 +1506,9 @@ function CreatePage() {
       handleImproveBlockText,
       handleSendForReview,
       handleSendFeedback,
+      improvingBlockId,
+      isGenerating,
+      isSendingForReview,
       isExportingPng,
       isGenerated,
       isGenerating,
@@ -1475,6 +1521,17 @@ function CreatePage() {
       transitionNewsletterState,
     ],
   )
+
+  const handleCreateAnother = () => {
+    setShowSuccessModal(false)
+    setNewsletterState('DRAFT')
+    setIsGenerated(false)
+    setBlocks(initialBlocks)
+    setSelectedBlockId(initialBlocks[0].id)
+    setNewsletterComment(null)
+    setRenderedHtml('')
+    setAiError(null)
+  }
 
   const { PreviewPane, ActionPane } = newsletterStateMap[newsletterState]
 
@@ -1509,6 +1566,23 @@ function CreatePage() {
           <ActionPane context={context} />
         </Stack>
       </Box>
+
+      <Dialog open={showSuccessModal} onClose={() => setShowSuccessModal(false)}>
+        <DialogTitle>Newsletter enviado a revisión</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Tu newsletter fue enviado correctamente. ¿Qué querés hacer ahora?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => navigate('/dashboard')} color="inherit">
+            Ir al inicio
+          </Button>
+          <Button onClick={handleCreateAnother} variant="contained">
+            Crear otro
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }
