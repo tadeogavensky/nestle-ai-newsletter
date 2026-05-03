@@ -35,11 +35,12 @@ Application for creating and managing internal newsletters with a React frontend
 ### Local Development Stack
 
 - PostgreSQL 16 in Docker Compose
+- MinIO in Docker Compose for S3-compatible object storage
 - NestJS backend run locally with `pnpm`
 - React + Vite frontend run locally with `pnpm`
 - Prisma 7 with PostgreSQL
 
-The project no longer uses Supabase as the cloud database target for local development. For daily development, only PostgreSQL should run in Docker. Backend and frontend should run directly on the host with `pnpm`.
+The project uses PostgreSQL in Docker for local development. Supabase is not part of the local database setup. For daily development, only PostgreSQL should run in Docker. Backend and frontend should run directly on the host with `pnpm`.
 
 ### Docker Compose
 
@@ -49,18 +50,28 @@ The project no longer uses Supabase as the cloud database target for local devel
 - `postgres:16`
 - `POSTGRES_USER=nestle`
 - `POSTGRES_PASSWORD=nestle`
-- `POSTGRES_DB=nestle_newsletter`
+- `POSTGRES_DB=nestle_ai_newsletter_db`
 - host/container port mapping `5433:5432`
 - persistent volume `postgres_data:/var/lib/postgresql/data`
+- `minio` service present
+- MinIO API port `9000`
+- MinIO console port `9001`
+- persistent volume `minio_data:/data`
 
 If you run the backend container, its internal database settings are:
 
 ```env
-DATABASE_URL=postgresql://nestle:nestle@postgres:5432/nestle_newsletter
-DIRECT_URL=postgresql://nestle:nestle@postgres:5432/nestle_newsletter
+DATABASE_URL=postgresql://nestle:nestle@postgres:5432/nestle_ai_newsletter_db
+DIRECT_URL=postgresql://nestle:nestle@postgres:5432/nestle_ai_newsletter_db
+S3_ENDPOINT=http://minio:9000
+S3_REGION=us-east-1
+S3_BUCKET=nestle-assets
+S3_ACCESS_KEY=${MINIO_ROOT_USER}
+S3_SECRET_KEY=${MINIO_ROOT_PASSWORD}
+S3_FORCE_PATH_STYLE=true
 ```
 
-`docker-compose.deploy.yml` is the separate deployment compose. It uses published Docker Hub images, does not build source code locally, and routes browser API calls through `/api` with nginx proxying to `backend:3000`.
+`docker-compose.deploy.yml` is the separate deployment compose. It uses published Docker Hub images, does not build source code locally, routes browser API calls through `/api` with nginx proxying to `backend:3000`, and includes MinIO as the object storage service.
 
 ### Environment Variables
 
@@ -72,6 +83,14 @@ Required local database values:
 DATABASE_URL="postgresql://..."
 DIRECT_URL="postgresql://..."
 PORT=3000
+S3_ENDPOINT="http://localhost:9000"
+S3_REGION="us-east-1"
+S3_BUCKET="nestle-assets"
+S3_ACCESS_KEY="minioadmin"
+S3_SECRET_KEY="minioadmin123"
+S3_FORCE_PATH_STYLE="true"
+MINIO_ROOT_USER="minioadmin"
+MINIO_ROOT_PASSWORD="minioadmin123"
 AI_PROVIDER="gemini"
 GEMINI_API_KEY="AIza..."
 GEMINI_MODEL="gemini-2.5-flash-lite"
@@ -89,13 +108,16 @@ Notes:
 - `GEMINI_API_KEY` is required when `AI_PROVIDER="gemini"`.
 - `CLIENT_ID` and `CLIENT_SECRET` are required when `AI_PROVIDER="nestle"`.
 - `GEMINI_MODEL`, `NESTLE_GENIA_URL`, and `NESTLE_GENIA_MODEL` are optional overrides for the AI endpoints.
+- `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, and `S3_FORCE_PATH_STYLE` configure the S3-compatible storage client used for MinIO.
+- `MINIO_ROOT_USER` and `MINIO_ROOT_PASSWORD` are local Docker defaults for MinIO. Do not commit real secrets.
+- The current schema still stores the object key in `assets.url` temporarily. Binary content stays in MinIO, not PostgreSQL.
 
 ### Daily Development
 
 For normal development:
 
 ```bash
-docker compose up -d postgres
+docker compose up -d postgres minio minio-init
 pnpm --dir backend dev
 pnpm --dir frontend dev
 ```
@@ -104,13 +126,15 @@ Development URLs:
 
 - PostgreSQL from the host: `localhost:5433`
 - PostgreSQL from Docker services: `postgres:5432`
+- MinIO API: `http://localhost:9000`
+- MinIO Console: `http://localhost:9001`
 - Backend: `http://localhost:3000`
 - Frontend: `http://localhost:5173`
 
 Notes:
 
 - You do not need to run backend or frontend in Docker during daily development.
-- PostgreSQL runs in Docker.
+- PostgreSQL and MinIO run in Docker.
 - Backend and frontend run locally with `pnpm`.
 
 If your backend package does not expose `dev`, use:
@@ -124,31 +148,33 @@ pnpm --dir backend run start:dev
 1. Start PostgreSQL:
 
 ```bash
-docker compose up -d postgres
+docker compose up -d postgres minio minio-init
 ```
 
-2. Wait until PostgreSQL is ready:
+2. Wait until PostgreSQL and MinIO are ready:
 
 ```bash
 docker compose logs postgres
+docker compose logs minio
+docker compose logs minio-init
 ```
 
 3. Load the schema:
 
 ```bash
-docker compose exec -T postgres psql -U nestle -d nestle_newsletter < database/init.sql
+docker compose exec -T postgres psql -U nestle -d nestle_ai_newsletter_db < database/init.sql
 ```
 
 4. Load the seed:
 
 ```bash
-docker compose exec -T postgres psql -U nestle -d nestle_newsletter < database/seed.sql
+docker compose exec -T postgres psql -U nestle -d nestle_ai_newsletter_db < database/seed.sql
 ```
 
 5. Validate tables:
 
 ```bash
-docker compose exec postgres psql -U nestle -d nestle_newsletter
+docker compose exec postgres psql -U nestle -d nestle_ai_newsletter_db
 \dt
 ```
 
@@ -213,13 +239,47 @@ git diff backend/prisma/schema.prisma
 
 The expected diff should be empty or cosmetic only. Large structural changes usually mean `database/init.sql` is not aligned with `backend/prisma/schema.prisma`.
 
+10. Validate MinIO:
+
+```bash
+docker compose ps
+```
+
+Open:
+
+- `http://localhost:9001`
+
+Log in with:
+
+- user `minioadmin`
+- password `minioadmin123`
+
+Confirm that the bucket `nestle-assets` exists.
+
+Asset storage keys are split by purpose:
+
+- seeded catalog files keep their relative path under `backend/assets`, for example `assets/brand_shapes/isolated-by-brand/maggi/bottle/dark-green.svg`
+- user uploads go under `assets/uploads/<type>/...`
+
+Test one upload against MinIO and PostgreSQL:
+
+```bash
+pnpm --dir backend run assets:test-minio -- --file assets/logos/nestle_isotype.png --type LOGO
+```
+
+Seed the full local asset catalog from `backend/assets`:
+
+```bash
+pnpm --dir backend run assets:seed-minio
+```
+
 ### PowerShell Alternative
 
 If the `<` operator fails in Windows PowerShell, use:
 
 ```powershell
-Get-Content .\database\init.sql -Raw | docker compose exec -T postgres psql -U nestle -d nestle_newsletter
-Get-Content .\database\seed.sql -Raw | docker compose exec -T postgres psql -U nestle -d nestle_newsletter
+Get-Content .\database\init.sql -Raw | docker compose exec -T postgres psql -U nestle -d nestle_ai_newsletter_db
+Get-Content .\database\seed.sql -Raw | docker compose exec -T postgres psql -U nestle -d nestle_ai_newsletter_db
 ```
 
 ### Prisma Notes
@@ -277,8 +337,8 @@ After `docker compose down -v`, run:
 
 ```bash
 docker compose up -d postgres
-docker compose exec -T postgres psql -U nestle -d nestle_newsletter < database/init.sql
-docker compose exec -T postgres psql -U nestle -d nestle_newsletter < database/seed.sql
+docker compose exec -T postgres psql -U nestle -d nestle_ai_newsletter_db < database/init.sql
+docker compose exec -T postgres psql -U nestle -d nestle_ai_newsletter_db < database/seed.sql
 ```
 
 ### Security
@@ -331,12 +391,14 @@ Compose files:
 - `docker-compose.deploy.yml` is for deployment.
 - Deployment uses published images from Docker Hub. It does not build backend or frontend locally.
 - The deployed frontend calls the backend through `/api`, and nginx proxies that traffic to `backend:3000`.
+- MinIO replaces Supabase Storage and provides S3-compatible object storage for assets, images, fonts, and exports.
 
 Deployment environment file:
 
-1. Copy `.env.deploy.example` to `.env`.
+1. Copy `.env.deploy.example` to `.env.deploy`.
 2. Set `DOCKERHUB_USERNAME`.
 3. Set `APP_VERSION`.
+4. Set `MINIO_ROOT_USER` and `MINIO_ROOT_PASSWORD`.
 
 `APP_VERSION` can be:
 
@@ -348,29 +410,35 @@ Deployment commands:
 
 ```bash
 docker compose -f docker-compose.deploy.yml --env-file .env pull
-docker compose -f docker-compose.deploy.yml --env-file .env up -d
+docker compose -f docker-compose.deploy.yml --env-file .env.deploy up -d
 ```
 
 Check status:
 
 ```bash
-docker compose -f docker-compose.deploy.yml --env-file .env ps
+docker compose -f docker-compose.deploy.yml --env-file .env.deploy ps
 ```
+
+MinIO ports:
+
+- API `9000`
+- Console `9001`
 
 View backend logs:
 
 ```bash
-docker compose -f docker-compose.deploy.yml --env-file .env logs backend
+docker compose -f docker-compose.deploy.yml --env-file .env.deploy logs backend
 ```
 
 First database initialization if PostgreSQL is empty:
 
 ```bash
-docker compose -f docker-compose.deploy.yml --env-file .env exec -T postgres sh -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < database/init.sql
-docker compose -f docker-compose.deploy.yml --env-file .env exec -T postgres sh -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < database/seed.sql
+docker compose -f docker-compose.deploy.yml --env-file .env.deploy exec -T postgres sh -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < database/init.sql
+docker compose -f docker-compose.deploy.yml --env-file .env.deploy exec -T postgres sh -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < database/seed.sql
 ```
 
 The backend is not exposed publicly by default in deployment compose. Only the frontend port is published.
+MinIO can be validated through `http://localhost:9001` or `http://SERVER:${MINIO_CONSOLE_PORT}` after deployment.
 
 ## Espanol
 
@@ -403,11 +471,12 @@ Aplicacion para crear y gestionar newsletters internos con frontend React, backe
 ### Stack De Desarrollo Local
 
 - PostgreSQL 16 en Docker Compose
+- MinIO en Docker Compose como object storage compatible con S3
 - Backend NestJS corriendo local con `pnpm`
 - Frontend React + Vite corriendo local con `pnpm`
 - Prisma 7 con PostgreSQL
 
-El proyecto ya no usa Supabase como base cloud para el desarrollo local. En el dia a dia se recomienda levantar solo PostgreSQL en Docker y correr backend/frontend en el host con `pnpm`.
+El proyecto usa PostgreSQL en Docker para desarrollo local. Supabase no forma parte del setup local de base de datos. En el dia a dia se recomienda levantar solo PostgreSQL en Docker y correr backend/frontend en el host con `pnpm`.
 
 ### Docker Compose
 
@@ -417,18 +486,28 @@ El proyecto ya no usa Supabase como base cloud para el desarrollo local. En el d
 - imagen `postgres:16`
 - `POSTGRES_USER=nestle`
 - `POSTGRES_PASSWORD=nestle`
-- `POSTGRES_DB=nestle_newsletter`
+- `POSTGRES_DB=nestle_ai_newsletter_db`
 - mapeo `5433:5432`
 - volumen persistente `postgres_data:/var/lib/postgresql/data`
+- servicio `minio`
+- puerto API `9000`
+- puerto consola `9001`
+- volumen persistente `minio_data:/data`
 
 Si se corre el backend dentro de Docker, usa:
 
 ```env
-DATABASE_URL=postgresql://nestle:nestle@postgres:5432/nestle_newsletter
-DIRECT_URL=postgresql://nestle:nestle@postgres:5432/nestle_newsletter
+DATABASE_URL=postgresql://nestle:nestle@postgres:5432/nestle_ai_newsletter_db
+DIRECT_URL=postgresql://nestle:nestle@postgres:5432/nestle_ai_newsletter_db
+S3_ENDPOINT=http://minio:9000
+S3_REGION=us-east-1
+S3_BUCKET=nestle-assets
+S3_ACCESS_KEY=${MINIO_ROOT_USER}
+S3_SECRET_KEY=${MINIO_ROOT_PASSWORD}
+S3_FORCE_PATH_STYLE=true
 ```
 
-`docker-compose.deploy.yml` es el compose separado de deployment. Usa imagenes publicadas en Docker Hub, no buildea el codigo fuente localmente y enruta las llamadas del navegador por `/api` con nginx apuntando a `backend:3000`.
+`docker-compose.deploy.yml` es el compose separado de deployment. Usa imagenes publicadas en Docker Hub, no buildea el codigo fuente localmente, enruta las llamadas del navegador por `/api` con nginx apuntando a `backend:3000` e incluye MinIO como servicio de object storage.
 
 ### Variables De Entorno
 
@@ -440,6 +519,14 @@ Valores locales requeridos:
 DATABASE_URL="postgresql://..."
 DIRECT_URL="postgresql://..."
 PORT=3000
+S3_ENDPOINT="http://localhost:9000"
+S3_REGION="us-east-1"
+S3_BUCKET="nestle-assets"
+S3_ACCESS_KEY="minioadmin"
+S3_SECRET_KEY="minioadmin123"
+S3_FORCE_PATH_STYLE="true"
+MINIO_ROOT_USER="minioadmin"
+MINIO_ROOT_PASSWORD="minioadmin123"
 AI_PROVIDER="gemini"
 GEMINI_API_KEY="AIza..."
 GEMINI_MODEL="gemini-2.5-flash-lite"
@@ -457,13 +544,16 @@ Notas:
 - `GEMINI_API_KEY` es obligatoria cuando `AI_PROVIDER="gemini"`.
 - `CLIENT_ID` y `CLIENT_SECRET` son obligatorias cuando `AI_PROVIDER="nestle"`.
 - `GEMINI_MODEL`, `NESTLE_GENIA_URL` y `NESTLE_GENIA_MODEL` son overrides opcionales para los endpoints de IA.
+- `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` y `S3_FORCE_PATH_STYLE` configuran el cliente S3-compatible usado para MinIO.
+- `MINIO_ROOT_USER` y `MINIO_ROOT_PASSWORD` son defaults locales de Docker para MinIO. No commitear secretos reales.
+- El schema actual guarda temporalmente la object key en `assets.url`. Los binarios quedan en MinIO, no en PostgreSQL.
 
 ### Desarrollo Diario
 
 Para desarrollar normalmente:
 
 ```bash
-docker compose up -d postgres
+docker compose up -d postgres minio minio-init
 pnpm --dir backend dev
 pnpm --dir frontend dev
 ```
@@ -472,13 +562,15 @@ URLs:
 
 - PostgreSQL desde el host: `localhost:5433`
 - PostgreSQL desde Docker: `postgres:5432`
+- MinIO API: `http://localhost:9000`
+- Consola MinIO: `http://localhost:9001`
 - Backend: `http://localhost:3000`
 - Frontend: `http://localhost:5173`
 
 Notas:
 
 - No hace falta correr backend/frontend en Docker durante el desarrollo diario.
-- PostgreSQL corre en Docker.
+- PostgreSQL y MinIO corren en Docker.
 - Backend y frontend corren con `pnpm`.
 
 Si el backend no expone `dev`, usar:
@@ -492,31 +584,33 @@ pnpm --dir backend run start:dev
 1. Levantar PostgreSQL:
 
 ```bash
-docker compose up -d postgres
+docker compose up -d postgres minio minio-init
 ```
 
 2. Esperar a que este listo:
 
 ```bash
 docker compose logs postgres
+docker compose logs minio
+docker compose logs minio-init
 ```
 
 3. Cargar schema:
 
 ```bash
-docker compose exec -T postgres psql -U nestle -d nestle_newsletter < database/init.sql
+docker compose exec -T postgres psql -U nestle -d nestle_ai_newsletter_db < database/init.sql
 ```
 
 4. Cargar seed:
 
 ```bash
-docker compose exec -T postgres psql -U nestle -d nestle_newsletter < database/seed.sql
+docker compose exec -T postgres psql -U nestle -d nestle_ai_newsletter_db < database/seed.sql
 ```
 
 5. Validar tablas:
 
 ```bash
-docker compose exec postgres psql -U nestle -d nestle_newsletter
+docker compose exec postgres psql -U nestle -d nestle_ai_newsletter_db
 \dt
 ```
 
@@ -581,13 +675,47 @@ git diff backend/prisma/schema.prisma
 
 El diff esperado deberia ser vacio o solo cosmetico. Si aparecen cambios estructurales grandes, `database/init.sql` no esta alineado con `backend/prisma/schema.prisma`.
 
+10. Validar MinIO:
+
+```bash
+docker compose ps
+```
+
+Abrir:
+
+- `http://localhost:9001`
+
+Ingresar con:
+
+- usuario `minioadmin`
+- password `minioadmin123`
+
+Verificar que exista el bucket `nestle-assets`.
+
+Las storage keys de assets ahora se separan por proposito:
+
+- los assets seedados conservan la ruta relativa de `backend/assets`, por ejemplo `assets/brand_shapes/isolated-by-brand/maggi/bottle/dark-green.svg`
+- los uploads del usuario van bajo `assets/uploads/<type>/...`
+
+Probar una carga puntual contra MinIO y PostgreSQL:
+
+```bash
+pnpm --dir backend run assets:test-minio -- --file assets/logos/nestle_isotype.png --type LOGO
+```
+
+Seedear el catalogo completo desde `backend/assets`:
+
+```bash
+pnpm --dir backend run assets:seed-minio
+```
+
 ### Alternativa PowerShell
 
 Si el operador `<` falla en Windows PowerShell, usar:
 
 ```powershell
-Get-Content .\database\init.sql -Raw | docker compose exec -T postgres psql -U nestle -d nestle_newsletter
-Get-Content .\database\seed.sql -Raw | docker compose exec -T postgres psql -U nestle -d nestle_newsletter
+Get-Content .\database\init.sql -Raw | docker compose exec -T postgres psql -U nestle -d nestle_ai_newsletter_db
+Get-Content .\database\seed.sql -Raw | docker compose exec -T postgres psql -U nestle -d nestle_ai_newsletter_db
 ```
 
 ### Notas De Prisma
@@ -645,8 +773,8 @@ Despues de `docker compose down -v`, correr:
 
 ```bash
 docker compose up -d postgres
-docker compose exec -T postgres psql -U nestle -d nestle_newsletter < database/init.sql
-docker compose exec -T postgres psql -U nestle -d nestle_newsletter < database/seed.sql
+docker compose exec -T postgres psql -U nestle -d nestle_ai_newsletter_db < database/init.sql
+docker compose exec -T postgres psql -U nestle -d nestle_ai_newsletter_db < database/seed.sql
 ```
 
 ### Seguridad
@@ -699,12 +827,14 @@ Archivos compose:
 - `docker-compose.deploy.yml` es para deployment.
 - El deployment usa imagenes publicadas en Docker Hub. No hace build local de backend ni frontend.
 - El frontend desplegado llama al backend por `/api`, y nginx hace proxy interno hacia `backend:3000`.
+- MinIO reemplaza Supabase Storage y provee object storage compatible con S3 para assets, imagenes, fuentes y exports.
 
 Archivo de entorno para deployment:
 
-1. Copiar `.env.deploy.example` a `.env`.
+1. Copiar `.env.deploy.example` a `.env.deploy`.
 2. Configurar `DOCKERHUB_USERNAME`.
 3. Configurar `APP_VERSION`.
+4. Configurar `MINIO_ROOT_USER` y `MINIO_ROOT_PASSWORD`.
 
 `APP_VERSION` puede ser:
 
@@ -715,27 +845,33 @@ Archivo de entorno para deployment:
 Comandos de deployment:
 
 ```bash
-docker compose -f docker-compose.deploy.yml --env-file .env pull
-docker compose -f docker-compose.deploy.yml --env-file .env up -d
+docker compose -f docker-compose.deploy.yml --env-file .env.deploy pull
+docker compose -f docker-compose.deploy.yml --env-file .env.deploy up -d
 ```
 
 Ver estado:
 
 ```bash
-docker compose -f docker-compose.deploy.yml --env-file .env ps
+docker compose -f docker-compose.deploy.yml --env-file .env.deploy ps
 ```
+
+Puertos MinIO:
+
+- API `9000`
+- Consola `9001`
 
 Ver logs del backend:
 
 ```bash
-docker compose -f docker-compose.deploy.yml --env-file .env logs backend
+docker compose -f docker-compose.deploy.yml --env-file .env.deploy logs backend
 ```
 
 Inicializacion de base la primera vez si PostgreSQL esta vacio:
 
 ```bash
-docker compose -f docker-compose.deploy.yml --env-file .env exec -T postgres sh -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < database/init.sql
-docker compose -f docker-compose.deploy.yml --env-file .env exec -T postgres sh -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < database/seed.sql
+docker compose -f docker-compose.deploy.yml --env-file .env.deploy exec -T postgres sh -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < database/init.sql
+docker compose -f docker-compose.deploy.yml --env-file .env.deploy exec -T postgres sh -lc 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < database/seed.sql
 ```
 
 En deployment el backend no se expone publicamente por defecto. Solo se publica el puerto del frontend.
+MinIO se puede validar en `http://localhost:9001` o `http://SERVIDOR:${MINIO_CONSOLE_PORT}` despues del deployment.

@@ -1,19 +1,19 @@
 import { asset_type } from '@prisma/client';
 
-export interface UploadedAiFile {
+export interface UploadedAssetFile {
   originalname: string;
   mimetype: string;
   size: number;
   buffer: Buffer;
 }
 
-export interface UploadedAiAssetDto {
+export interface UploadedAssetDto {
   id: string;
   name: string;
   url: string;
   type: asset_type;
 }
 
-export interface UploadAiAssetsResponseDto {
-  assets: UploadedAiAssetDto[];
+export interface UploadAssetsResponseDto {
+  assets: UploadedAssetDto[];
 }

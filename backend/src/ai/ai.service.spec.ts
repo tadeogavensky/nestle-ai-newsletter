@@ -1,9 +1,6 @@
-import { BadRequestException, ServiceUnavailableException } from '@nestjs/common';
+import { ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AiService } from './ai.service';
-import { PrismaService } from '../prisma/prisma.service';
-import { SupabaseService } from '../supabase/supabase.service';
-import { UploadedAiFile } from './dto/upload-ai-asset.dto';
 
 type ConfigValues = Record<string, string | undefined>;
 
@@ -14,19 +11,8 @@ function createConfigService(values: ConfigValues): ConfigService {
 }
 
 function createService(values: ConfigValues = {}) {
-  const prisma = {
-    assets: {
-      create: jest.fn(),
-    },
-  } as unknown as PrismaService;
-  const supabaseService = {
-    uploadAsset: jest.fn(),
-  } as unknown as SupabaseService;
-
   return {
-    service: new AiService(createConfigService(values), prisma, supabaseService),
-    prisma,
-    supabaseService,
+    service: new AiService(createConfigService(values)),
   };
 }
 
@@ -167,9 +153,9 @@ describe('AiService', () => {
       model: 'gemini-2.5-flash-lite',
     });
 
-    const fetchBody = JSON.parse(
-      (global.fetch as jest.Mock).mock.calls[0][1].body as string,
-    ) as {
+    const fetchMock = global.fetch as jest.MockedFunction<typeof fetch>;
+    const requestInit = fetchMock.mock.calls[0]?.[1];
+    const fetchBody = JSON.parse((requestInit?.body as string | undefined) ?? '{}') as {
       contents: Array<{ parts: Array<{ text: string }> }>;
     };
 
@@ -177,20 +163,5 @@ describe('AiService', () => {
     expect(fetchBody.contents[0].parts[0].text).toContain(
       '"templateId":"weekly-brief"',
     );
-  });
-
-  it('rejects invalid asset files', async () => {
-    const { service } = createService();
-
-    await expect(
-      service.uploadAssets([
-        {
-          originalname: 'document.pdf',
-          mimetype: 'application/pdf',
-          size: 1200,
-          buffer: Buffer.from('fake'),
-        } as UploadedAiFile,
-      ]),
-    ).rejects.toBeInstanceOf(BadRequestException);
   });
 });

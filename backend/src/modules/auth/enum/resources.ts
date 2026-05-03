@@ -4,4 +4,5 @@ export enum Resource {
     NEWSLETTERS = 'newsletters',
     AI = 'ai',
     AREAS = 'areas',
+    ASSETS = 'assets',
 }

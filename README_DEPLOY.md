@@ -7,6 +7,7 @@ This deployment setup uses:
 - `docker-compose.deploy.yml`
 - published Docker Hub images
 - `postgres:16` for the database
+- MinIO for S3-compatible object storage
 - nginx inside the frontend container to proxy `/api` to `backend:3000`
 
 The backend is not exposed publicly by default. The browser talks to the frontend, and the frontend container forwards API traffic internally.
@@ -24,16 +25,18 @@ The backend is not exposed publicly by default. The browser talks to the fronten
 Copy the deployment environment file:
 
 ```bash
-cp .env.deploy.example .env
+cp .env.deploy.example .env.deploy
 ```
 
-Complete these values in `.env`:
+Complete these values in `.env.deploy`:
 
 - `POSTGRES_PASSWORD`
 - `CLIENT_ID`
 - `CLIENT_SECRET`
 - `DOCKERHUB_USERNAME`
 - `APP_VERSION`
+- `MINIO_ROOT_USER`
+- `MINIO_ROOT_PASSWORD`
 
 `APP_VERSION` can be:
 
@@ -51,28 +54,33 @@ docker login
 
 ```bash
 docker compose -f docker-compose.deploy.yml --env-file .env pull
-docker compose -f docker-compose.deploy.yml --env-file .env up -d
+docker compose -f docker-compose.deploy.yml --env-file .env.deploy up -d
 ```
 
 Check status:
 
 ```bash
-docker compose -f docker-compose.deploy.yml --env-file .env ps
+docker compose -f docker-compose.deploy.yml --env-file .env.deploy ps
 ```
 
 View backend logs:
 
 ```bash
-docker compose -f docker-compose.deploy.yml --env-file .env logs backend
+docker compose -f docker-compose.deploy.yml --env-file .env.deploy logs backend
 ```
+
+MinIO ports:
+
+- API `9000`
+- Console `9001`
 
 ## Initialize The Database
 
 Run these commands only the first time, when PostgreSQL is empty:
 
 ```bash
-docker compose -f docker-compose.deploy.yml --env-file .env exec -T postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < database/init.sql
-docker compose -f docker-compose.deploy.yml --env-file .env exec -T postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < database/seed.sql
+docker compose -f docker-compose.deploy.yml --env-file .env.deploy exec -T postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < database/init.sql
+docker compose -f docker-compose.deploy.yml --env-file .env.deploy exec -T postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < database/seed.sql
 ```
 
 ## Validate Access
@@ -81,14 +89,21 @@ Open:
 
 - `http://localhost:${FRONTEND_PORT}`
 - or `http://SERVER:${FRONTEND_PORT}`
+- `http://localhost:${MINIO_CONSOLE_PORT}`
+- or `http://SERVER:${MINIO_CONSOLE_PORT}`
 
 The frontend serves the SPA and proxies:
 
 - browser request `/api/health`
 - internal upstream `http://backend:3000/health`
 
+Validate MinIO:
+
+- sign in with `MINIO_ROOT_USER` and `MINIO_ROOT_PASSWORD`
+- confirm that bucket `nestle-assets` exists
+
 ## Notes
 
 - `docker-compose.deploy.yml` uses `image:`, not local `build:`.
 - `docker-compose.yaml` remains the local development compose.
-- MinIO is intentionally not included yet.
+- MinIO replaces Supabase Storage in this deployment setup.

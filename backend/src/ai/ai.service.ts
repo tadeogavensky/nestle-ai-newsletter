@@ -6,7 +6,6 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { asset_type } from '@prisma/client';
 import { z } from 'zod';
 import {
   ImproveTextRequestDto,
@@ -18,15 +17,9 @@ import {
   GeneratedNewsletterBlockDto,
 } from './dto/generate-newsletter.dto';
 import {
-  UploadedAiFile,
-  UploadAiAssetsResponseDto,
-} from './dto/upload-ai-asset.dto';
-import {
   GeminiGenerateContentSuccess,
   NestleGeniaGenerateContentSuccess,
 } from './ai.types';
-import { PrismaService } from '../prisma/prisma.service';
-import { SupabaseService } from '../supabase/supabase.service';
 
 type GenerateContentResponse =
   | GeminiGenerateContentSuccess
@@ -39,24 +32,12 @@ export class AiService {
     'No se pudo mejorar el texto en este momento.';
   private readonly generationPublicErrorMessage =
     'No se pudo generar el newsletter en este momento.';
-  private readonly allowedAssetMimeTypes = new Set([
-    'image/jpeg',
-    'image/png',
-    'image/webp',
-    'image/gif',
-    'image/svg+xml',
-  ]);
-  private readonly maxAssetSizeBytes = 5 * 1024 * 1024;
   private readonly textImprovementInstruction =
     'You are a Spanish copy editor for internal Nestle newsletters. Improve the text for clarity, fluency, tone, and readability while keeping the original meaning. Return only the improved text in Spanish, with no markdown, bullets, or explanations.';
   private readonly defaultNestleGeniaUrl =
     'https://eur-sdr-int-pub.nestle.com/api/dv-exp-sandbox-openai-api/1/genai/GCP/gemini-2.5-pro/generateContent';
 
-  constructor(
-    private readonly configService: ConfigService,
-    private readonly prisma: PrismaService,
-    private readonly supabaseService: SupabaseService,
-  ) {}
+  constructor(private readonly configService: ConfigService) {}
 
   async improveText(
     request: ImproveTextRequestDto,
@@ -80,52 +61,6 @@ export class AiService {
     }
 
     return this.improveWithGemini(originalText);
-  }
-
-  async uploadAssets(
-    files: UploadedAiFile[],
-  ): Promise<UploadAiAssetsResponseDto> {
-    try {
-      const assets = await Promise.all(
-        files.map(async (file) => {
-          this.validateAssetFile(file);
-
-          const uploadedAsset = await this.supabaseService.uploadAsset(
-            file.originalname,
-            file.buffer,
-            file.mimetype,
-          );
-
-          const asset = await this.prisma.assets.create({
-            data: {
-              name: file.originalname,
-              url: uploadedAsset.url,
-              type: asset_type.IMAGE,
-            },
-            select: {
-              id: true,
-              name: true,
-              url: true,
-              type: true,
-            },
-          });
-
-          return asset;
-        }),
-      );
-
-      return { assets };
-    } catch (error) {
-      if (error instanceof BadRequestException) {
-        throw error;
-      }
-
-      this.logger.error('AI asset upload failed.');
-
-      throw new ServiceUnavailableException(
-        'No se pudieron cargar los assets en este momento.',
-      );
-    }
   }
 
   async generateNewsletter(
@@ -481,24 +416,6 @@ export class AiService {
     const fencedJson = trimmedText.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
 
     return fencedJson?.[1]?.trim() ?? trimmedText;
-  }
-
-  private validateAssetFile(file: UploadedAiFile): void {
-    if (!this.allowedAssetMimeTypes.has(file.mimetype)) {
-      throw new BadRequestException(
-        'Solo se permiten imagenes JPG, PNG, WebP, GIF o SVG.',
-      );
-    }
-
-    if (file.size > this.maxAssetSizeBytes) {
-      throw new BadRequestException(
-        'Cada archivo debe pesar 5 MB o menos.',
-      );
-    }
-
-    if (!file.buffer?.length) {
-      throw new BadRequestException('El archivo cargado esta vacio.');
-    }
   }
 
   private extractNestleModelFromUrl(url: string): string {

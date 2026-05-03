@@ -19,20 +19,20 @@ export class AppController {
     return this.appService.getHealth();
   }
 
-  @Get('prisma-test')
-  async testPrismaConnection() {
+  @Get('db-health')
+  async testDatabaseHealth() {
     try {
-      const areas = await this.prisma.areas.findMany();
+      await this.prisma.$queryRaw`SELECT 1`;
 
       return {
         ok: true,
-        count: areas.length,
-        areas,
+        message: 'Database connection is healthy',
       };
     } catch (error) {
       return {
         ok: false,
-        error: error instanceof Error ? error.message : 'Unknown Prisma error',
+        message: 'Database connection failed',
+        error: error instanceof Error ? error.message : 'Unknown error',
       };
     }
   }
