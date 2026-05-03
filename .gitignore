@@ -13,13 +13,3 @@ frontend/dist/
 frontend/build/
 
 backend/eslint.config.mjs
-
-# Lock files
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
-
-backend/node_modules/
-frontend/node_modules/
-backend/pnpm-lock.yaml
-frontend/pnpm-lock.yaml
