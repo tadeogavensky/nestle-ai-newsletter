@@ -8,12 +8,13 @@ import {
     InputLabel,
     FormControl
 } from '@mui/material';
+import type { SelectChangeEvent } from '@mui/material';
 import type { User } from '../contexts/AuthContext';
 import { AreaName, AreaNameLabel } from '../../../packages/shared/src/enums/area-name.enum';
 import { UserRole, UserRoleLabel } from '../../../packages/shared/src/enums/user-role.enum';
 import { UserStatus, UserStatusLabel } from '../../../packages/shared/src/enums/user-status.enum';
 import { enumToOptions } from '../../../packages/shared/src/utils/enum-to-options';
-import { useState, type ChangeEvent } from 'react';
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react';
 
 const STATE_OPTIONS = enumToOptions(UserStatus, UserStatusLabel);
 const AREA_OPTIONS = enumToOptions(AreaName, AreaNameLabel);
@@ -39,19 +40,45 @@ export function ModalEdit({
 
     const [formData, setFormData] = useState<User | null>(user);
 
-    const handleInputChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    useEffect(() => {
+        setFormData(user);
+    }, [user]);
+
+    const handleInputChange = (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = event.target;
 
-        setFormData((prevData) => ({
+        if (name !== 'name' && name !== 'email') return;
+
+        setFormData((prevData) => prevData ? ({
             ...prevData,
             [name]: value,
-        }));
+        }) : prevData);
     };
 
-    const handleConfirm = (event: ChangeEvent<HTMLFormElement>) => {
+    const handleRoleChange = (event: SelectChangeEvent<User['role']>) => {
+        setFormData((prevData) => prevData ? ({
+            ...prevData,
+            role: event.target.value as User['role'],
+        }) : prevData);
+    };
+
+    const handleStateChange = (event: SelectChangeEvent<User['state']>) => {
+        setFormData((prevData) => prevData ? ({
+            ...prevData,
+            state: event.target.value as User['state'],
+        }) : prevData);
+    };
+
+    const handleAreaChange = (event: SelectChangeEvent<string>) => {
+        setFormData((prevData) => prevData ? ({
+            ...prevData,
+            area: event.target.value,
+        }) : prevData);
+    };
+
+    const handleConfirm = (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
         onClose();
-        console.log("test")
     }
 
     return (
@@ -62,11 +89,11 @@ export function ModalEdit({
                     <DialogContentText>{description}</DialogContentText>
                     {formData && (
                         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
-                            <TextField name="name" label="Nombre" value={formData?.name} onChange={handleInputChange} />
-                            <TextField name="email" label="Email" value={formData?.email} onChange={handleInputChange} />
+                            <TextField name="name" label="Nombre" value={formData.name} onChange={handleInputChange} />
+                            <TextField name="email" label="Email" value={formData.email} onChange={handleInputChange} />
                             <FormControl>
                                 <InputLabel>Rol</InputLabel>
-                                <Select name="role" value={formData?.role} label="Rol" onChange={handleInputChange}>
+                                <Select<User['role']> name="role" value={formData.role} label="Rol" onChange={handleRoleChange}>
                                     {ROLE_OPTIONS.map(role => (
                                         <MenuItem key={role.value} value={role.value}>
                                             {role.label}
@@ -76,7 +103,7 @@ export function ModalEdit({
                             </FormControl>
                             <FormControl>
                                 <InputLabel>Estado</InputLabel>
-                                <Select name="state" value={formData?.state} label="Estado" onChange={handleInputChange}>
+                                <Select<User['state']> name="state" value={formData.state} label="Estado" onChange={handleStateChange}>
                                     {STATE_OPTIONS.map(state => (
                                         <MenuItem key={state.value} value={state.value} >
                                             {state.label}
@@ -86,7 +113,7 @@ export function ModalEdit({
                             </FormControl>
                             <FormControl>
                                 <InputLabel>Area</InputLabel>
-                                <Select name="area" value={formData?.area} label="Area" onChange={handleInputChange}>
+                                <Select<string> name="area" value={formData.area ?? ''} label="Area" onChange={handleAreaChange}>
                                     {AREA_OPTIONS.map(area => (
                                         <MenuItem key={area.value} value={area.value}>
                                             {area.label}
