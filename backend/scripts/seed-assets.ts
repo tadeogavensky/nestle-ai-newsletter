@@ -98,7 +98,7 @@ async function main(): Promise<void> {
         continue;
       }
 
-      await assetsService.upsertSeededAsset({
+      const asset = await assetsService.upsertSeededAsset({
         name: seedFile.fileName,
         type: seedFile.target.type,
         storageKey: seedFile.storageKey,
@@ -107,6 +107,12 @@ async function main(): Promise<void> {
         sizeBytes: buffer.length,
         fromBrand: true,
       });
+      const brandKitName = inferBrandKitName(seedFile.relativePath);
+
+      if (brandKitName) {
+        await linkAssetToBrandKit(prisma, asset.id, brandKitName);
+      }
+
       seededAssets += 1;
     }
 
@@ -221,6 +227,18 @@ function buildStorageKey(
     return buildFontStorageKey(relativePath);
   }
 
+  if (relativePath.startsWith('keywords/')) {
+    return `assets/keywords/${basename(relativePath)}`;
+  }
+
+  if (relativePath.startsWith('logos/')) {
+    return buildBrandScopedAssetStorageKey(relativePath, 'logos');
+  }
+
+  if (relativePath.startsWith('lockups/')) {
+    return buildBrandScopedAssetStorageKey(relativePath, 'lockups');
+  }
+
   if (relativePath.startsWith('shapes/brands/')) {
     return `assets/shapes/brand/${relativePath.slice('shapes/brands/'.length)}`;
   }
@@ -242,6 +260,21 @@ function buildFontStorageKey(relativePath: string): string {
   const brandSegment = normalizeStoragePathSegment(segments[1]);
   const fileSegments = segments.slice(2).join('/');
   return `fonts/${brandSegment}/${fileSegments}`;
+}
+
+function buildBrandScopedAssetStorageKey(
+  relativePath: string,
+  rootDirectory: 'logos' | 'lockups',
+): string {
+  const segments = relativePath.split('/');
+
+  if (segments.length <= 2) {
+    return `assets/${rootDirectory}/nestle/${segments[segments.length - 1]}`;
+  }
+
+  const brandSegment = normalizeStoragePathSegment(segments[1]);
+  const fileSegments = segments.slice(2).join('/');
+  return `assets/${rootDirectory}/${brandSegment}/${fileSegments}`;
 }
 
 function resolveMimeType(filePath: string): string {
@@ -287,6 +320,31 @@ function inferFontGroupName(relativePath: string): string {
     .join(' ');
 }
 
+function inferBrandKitName(relativePath: string): string | null {
+  const segments = relativePath.split('/');
+
+  if (relativePath.startsWith('shapes/brands/') && segments[2]) {
+    return humanizeBrandName(segments[2]);
+  }
+
+  if (
+    (relativePath.startsWith('logos/') || relativePath.startsWith('lockups/')) &&
+    segments[1]
+  ) {
+    return humanizeBrandName(segments.length <= 2 ? 'nestle' : segments[1]);
+  }
+
+  return null;
+}
+
+function humanizeBrandName(value: string): string {
+  return value
+    .split(/[-_]+/)
+    .filter(Boolean)
+    .map((segment) => segment[0]?.toUpperCase() + segment.slice(1))
+    .join(' ');
+}
+
 function normalizeStoragePathSegment(value: string): string {
   return (
     value
@@ -301,6 +359,8 @@ async function assertDatabaseReady(prisma: PrismaService): Promise<void> {
   await assertTableExists(prisma, 'assets');
   await assertTableExists(prisma, 'fonts');
   await assertTableExists(prisma, 'font_groups');
+  await assertTableExists(prisma, 'brand_kit');
+  await assertTableExists(prisma, 'brandkit_assets');
 }
 
 async function assertTableExists(
@@ -316,6 +376,37 @@ async function assertTableExists(
       `Required table public.${tableName} is missing. Run database/init.sql and database/seed.sql before assets:seed-minio.`,
     );
   }
+}
+
+async function linkAssetToBrandKit(
+  prisma: PrismaService,
+  assetId: string,
+  brandKitName: string,
+): Promise<void> {
+  const brandKit = await prisma.brand_kit.findFirst({
+    where: {
+      name: brandKitName,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!brandKit) {
+    throw new Error(
+      `Required brand kit "${brandKitName}" is missing. Run database/seed.sql before assets:seed-minio.`,
+    );
+  }
+
+  await prisma.brandkit_assets.createMany({
+    data: [
+      {
+        brand_kit_id: brandKit.id,
+        asset_id: assetId,
+      },
+    ],
+    skipDuplicates: true,
+  });
 }
 
 function getObjectPrefix(storageKey: string): string {
