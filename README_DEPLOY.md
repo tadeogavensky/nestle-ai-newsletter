@@ -100,10 +100,24 @@ The frontend serves the SPA and proxies:
 Validate MinIO:
 
 - sign in with `MINIO_ROOT_USER` and `MINIO_ROOT_PASSWORD`
-- confirm that bucket `nestle-assets` exists
+- confirm that these private buckets exist:
+- `nestle-ai-newsletter-assets`
+- `nestle-ai-newsletter-fonts`
+- `nestle-ai-newsletter-exports`
+
+MinIO bucket commands:
+
+```bash
+docker compose -f docker-compose.deploy.yml --env-file .env.deploy up -d minio minio-init
+docker compose -f docker-compose.deploy.yml --env-file .env.deploy logs minio-init
+```
 
 ## Notes
 
 - `docker-compose.deploy.yml` uses `image:`, not local `build:`.
 - `docker-compose.yaml` remains the local development compose.
 - MinIO replaces Supabase Storage in this deployment setup.
+- Buckets are created automatically by `minio-init`.
+- Buckets are private by default.
+- Asset, font, and export uploads will be implemented in a later phase.
+- PostgreSQL stores metadata only; binary content stays in MinIO.

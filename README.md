@@ -65,7 +65,9 @@ DATABASE_URL=postgresql://nestle:nestle@postgres:5432/nestle_ai_newsletter_db
 DIRECT_URL=postgresql://nestle:nestle@postgres:5432/nestle_ai_newsletter_db
 S3_ENDPOINT=http://minio:9000
 S3_REGION=us-east-1
-S3_BUCKET=nestle-assets
+S3_ASSETS_BUCKET=nestle-ai-newsletter-assets
+S3_FONTS_BUCKET=nestle-ai-newsletter-fonts
+S3_EXPORTS_BUCKET=nestle-ai-newsletter-exports
 S3_ACCESS_KEY=${MINIO_ROOT_USER}
 S3_SECRET_KEY=${MINIO_ROOT_PASSWORD}
 S3_FORCE_PATH_STYLE=true
@@ -85,7 +87,9 @@ DIRECT_URL="postgresql://..."
 PORT=3000
 S3_ENDPOINT="http://localhost:9000"
 S3_REGION="us-east-1"
-S3_BUCKET="nestle-assets"
+S3_ASSETS_BUCKET="nestle-ai-newsletter-assets"
+S3_FONTS_BUCKET="nestle-ai-newsletter-fonts"
+S3_EXPORTS_BUCKET="nestle-ai-newsletter-exports"
 S3_ACCESS_KEY="minioadmin"
 S3_SECRET_KEY="minioadmin123"
 S3_FORCE_PATH_STYLE="true"
@@ -106,9 +110,9 @@ Notes:
 - `CLIENT_ID` and `CLIENT_SECRET` are required for `POST /ai/improve-text` and `POST /ai/generate-newsletter`.
 - `NESTLE_GENIA_URL` is an optional override for the Nestle GenIA endpoint if the sandbox route changes.
 - `NESTLE_GENIA_MODEL` is an optional override for the model name returned by the backend when the URL alone is not the desired source of truth.
-- `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, and `S3_FORCE_PATH_STYLE` configure the S3-compatible storage client used for MinIO.
+- `S3_ENDPOINT`, `S3_REGION`, `S3_FORCE_PATH_STYLE`, `S3_ASSETS_BUCKET`, `S3_FONTS_BUCKET`, `S3_EXPORTS_BUCKET`, `S3_ACCESS_KEY`, and `S3_SECRET_KEY` configure the S3-compatible storage client used for MinIO.
 - `MINIO_ROOT_USER` and `MINIO_ROOT_PASSWORD` are local Docker defaults for MinIO. Do not commit real secrets.
-- The current schema still stores the object key in `assets.url` temporarily. Binary content stays in MinIO, not PostgreSQL.
+- Binary content stays in MinIO, not PostgreSQL. PostgreSQL stores metadata such as bucket, object key, object prefix, and file name.
 
 ### Daily Development
 
@@ -237,7 +241,7 @@ git diff backend/prisma/schema.prisma
 
 The expected diff should be empty or cosmetic only. Large structural changes usually mean `database/init.sql` is not aligned with `backend/prisma/schema.prisma`.
 
-10. Validate MinIO:
+10. Validate MinIO buckets:
 
 ```bash
 docker compose ps
@@ -252,24 +256,41 @@ Log in with:
 - user `minioadmin`
 - password `minioadmin123`
 
-Confirm that the bucket `nestle-assets` exists.
+Confirm that these private buckets exist:
 
-Asset storage keys are split by purpose:
+- `nestle-ai-newsletter-assets`
+- `nestle-ai-newsletter-fonts`
+- `nestle-ai-newsletter-exports`
 
-- seeded catalog files keep their relative path under `backend/assets`, for example `assets/brand_shapes/isolated-by-brand/maggi/bottle/dark-green.svg`
-- user uploads go under `assets/uploads/<type>/...`
+### MinIO Buckets
 
-Test one upload against MinIO and PostgreSQL:
+MinIO API:
+
+- `http://localhost:9000`
+
+MinIO Console:
+
+- `http://localhost:9001`
+
+Buckets:
+
+- `nestle-ai-newsletter-assets`
+- `nestle-ai-newsletter-fonts`
+- `nestle-ai-newsletter-exports`
+
+Local commands:
 
 ```bash
-pnpm --dir backend run assets:test-minio -- --file assets/logos/nestle_isotype.png --type LOGO
+docker compose up -d minio minio-init
+docker compose logs minio-init
 ```
 
-Seed the full local asset catalog from `backend/assets`:
+Notes:
 
-```bash
-pnpm --dir backend run assets:seed-minio
-```
+- `minio-init` creates the buckets automatically.
+- Buckets are private by default.
+- Asset, font, and export uploads will be implemented in a later phase.
+- No binary content is stored in PostgreSQL.
 
 ### PowerShell Alternative
 
@@ -422,6 +443,13 @@ MinIO ports:
 - API `9000`
 - Console `9001`
 
+Deployment bucket validation:
+
+```bash
+docker compose -f docker-compose.deploy.yml --env-file .env.deploy up -d minio minio-init
+docker compose -f docker-compose.deploy.yml --env-file .env.deploy logs minio-init
+```
+
 View backend logs:
 
 ```bash
@@ -499,7 +527,9 @@ DATABASE_URL=postgresql://nestle:nestle@postgres:5432/nestle_ai_newsletter_db
 DIRECT_URL=postgresql://nestle:nestle@postgres:5432/nestle_ai_newsletter_db
 S3_ENDPOINT=http://minio:9000
 S3_REGION=us-east-1
-S3_BUCKET=nestle-assets
+S3_ASSETS_BUCKET=nestle-ai-newsletter-assets
+S3_FONTS_BUCKET=nestle-ai-newsletter-fonts
+S3_EXPORTS_BUCKET=nestle-ai-newsletter-exports
 S3_ACCESS_KEY=${MINIO_ROOT_USER}
 S3_SECRET_KEY=${MINIO_ROOT_PASSWORD}
 S3_FORCE_PATH_STYLE=true
@@ -519,7 +549,9 @@ DIRECT_URL="postgresql://..."
 PORT=3000
 S3_ENDPOINT="http://localhost:9000"
 S3_REGION="us-east-1"
-S3_BUCKET="nestle-assets"
+S3_ASSETS_BUCKET="nestle-ai-newsletter-assets"
+S3_FONTS_BUCKET="nestle-ai-newsletter-fonts"
+S3_EXPORTS_BUCKET="nestle-ai-newsletter-exports"
 S3_ACCESS_KEY="minioadmin"
 S3_SECRET_KEY="minioadmin123"
 S3_FORCE_PATH_STYLE="true"
@@ -540,9 +572,9 @@ Notas:
 - `CLIENT_ID` y `CLIENT_SECRET` son obligatorias para `POST /ai/improve-text` y `POST /ai/generate-newsletter`.
 - `NESTLE_GENIA_URL` es un override opcional del endpoint Nestle GenIA si cambia la ruta del sandbox.
 - `NESTLE_GENIA_MODEL` es un override opcional del nombre de modelo que devuelve el backend cuando la URL no alcanza como fuente de verdad.
-- `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY`, `S3_SECRET_KEY` y `S3_FORCE_PATH_STYLE` configuran el cliente S3-compatible usado para MinIO.
+- `S3_ENDPOINT`, `S3_REGION`, `S3_FORCE_PATH_STYLE`, `S3_ASSETS_BUCKET`, `S3_FONTS_BUCKET`, `S3_EXPORTS_BUCKET`, `S3_ACCESS_KEY` y `S3_SECRET_KEY` configuran el cliente S3-compatible usado para MinIO.
 - `MINIO_ROOT_USER` y `MINIO_ROOT_PASSWORD` son defaults locales de Docker para MinIO. No commitear secretos reales.
-- El schema actual guarda temporalmente la object key en `assets.url`. Los binarios quedan en MinIO, no en PostgreSQL.
+- Los binarios quedan en MinIO, no en PostgreSQL. PostgreSQL guarda metadata como bucket, object key, object prefix y file name.
 
 ### Desarrollo Diario
 
@@ -671,7 +703,7 @@ git diff backend/prisma/schema.prisma
 
 El diff esperado deberia ser vacio o solo cosmetico. Si aparecen cambios estructurales grandes, `database/init.sql` no esta alineado con `backend/prisma/schema.prisma`.
 
-10. Validar MinIO:
+10. Validar buckets de MinIO:
 
 ```bash
 docker compose ps
@@ -686,24 +718,41 @@ Ingresar con:
 - usuario `minioadmin`
 - password `minioadmin123`
 
-Verificar que exista el bucket `nestle-assets`.
+Verificar que existan estos buckets privados:
 
-Las storage keys de assets ahora se separan por proposito:
+- `nestle-ai-newsletter-assets`
+- `nestle-ai-newsletter-fonts`
+- `nestle-ai-newsletter-exports`
 
-- los assets seedados conservan la ruta relativa de `backend/assets`, por ejemplo `assets/brand_shapes/isolated-by-brand/maggi/bottle/dark-green.svg`
-- los uploads del usuario van bajo `assets/uploads/<type>/...`
+### Buckets de MinIO
 
-Probar una carga puntual contra MinIO y PostgreSQL:
+API de MinIO:
+
+- `http://localhost:9000`
+
+Consola de MinIO:
+
+- `http://localhost:9001`
+
+Buckets:
+
+- `nestle-ai-newsletter-assets`
+- `nestle-ai-newsletter-fonts`
+- `nestle-ai-newsletter-exports`
+
+Comandos locales:
 
 ```bash
-pnpm --dir backend run assets:test-minio -- --file assets/logos/nestle_isotype.png --type LOGO
+docker compose up -d minio minio-init
+docker compose logs minio-init
 ```
 
-Seedear el catalogo completo desde `backend/assets`:
+Notas:
 
-```bash
-pnpm --dir backend run assets:seed-minio
-```
+- `minio-init` crea los buckets automaticamente.
+- Los buckets son privados por defecto.
+- La carga de assets, fonts y exports se implementara en una fase posterior.
+- No se guardan binarios en PostgreSQL.
 
 ### Alternativa PowerShell
 
@@ -855,6 +904,13 @@ Puertos MinIO:
 
 - API `9000`
 - Consola `9001`
+
+Validacion de buckets en deployment:
+
+```bash
+docker compose -f docker-compose.deploy.yml --env-file .env.deploy up -d minio minio-init
+docker compose -f docker-compose.deploy.yml --env-file .env.deploy logs minio-init
+```
 
 Ver logs del backend:
 
