@@ -32,6 +32,17 @@ $$;
 
 DO $$
 BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'storage_object_source') THEN
+        CREATE TYPE public.storage_object_source AS ENUM (
+            'SYSTEM',
+            'USER'
+        );
+    END IF;
+END
+$$;
+
+DO $$
+BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'block_content_type') THEN
         CREATE TYPE public.block_content_type AS ENUM (
             'LAYOUT',
@@ -113,6 +124,9 @@ $$;
 CREATE TABLE public.areas (
     id uuid NOT NULL DEFAULT gen_random_uuid(),
     name public.area_name NOT NULL,
+    created_at timestamp with time zone NOT NULL DEFAULT now(),
+    updated_at timestamp with time zone NOT NULL DEFAULT now(),
+    deleted_at timestamp with time zone,
     CONSTRAINT areas_pkey PRIMARY KEY (id),
     CONSTRAINT areas_name_unique UNIQUE (name)
 );
@@ -120,10 +134,22 @@ CREATE TABLE public.areas (
 CREATE TABLE public.assets (
     id uuid NOT NULL DEFAULT gen_random_uuid(),
     name text NOT NULL,
-    url text NOT NULL,
     description text,
     created_at timestamp with time zone NOT NULL DEFAULT now(),
+    updated_at timestamp with time zone NOT NULL DEFAULT now(),
+    deleted_at timestamp with time zone,
     type public.asset_type NOT NULL,
+    bucket text NOT NULL,
+    object_key text NOT NULL,
+    object_prefix text NOT NULL,
+    file_name text NOT NULL,
+    extension text,
+    mime_type text,
+    size_bytes bigint,
+    checksum text,
+    from_brand boolean NOT NULL DEFAULT false,
+    source public.storage_object_source NOT NULL DEFAULT 'SYSTEM'::public.storage_object_source,
+    created_by_user_id uuid,
     CONSTRAINT assets_pkey PRIMARY KEY (id)
 );
 
@@ -133,6 +159,9 @@ CREATE TABLE public.block_content (
     display_order integer,
     must_fill boolean NOT NULL DEFAULT false,
     type public.block_content_type NOT NULL,
+    created_at timestamp with time zone NOT NULL DEFAULT now(),
+    updated_at timestamp with time zone NOT NULL DEFAULT now(),
+    deleted_at timestamp with time zone,
     CONSTRAINT block_content_pkey PRIMARY KEY (id)
 );
 
@@ -140,6 +169,9 @@ CREATE TABLE public.colors (
     id uuid NOT NULL DEFAULT gen_random_uuid(),
     name text NOT NULL,
     hex text NOT NULL,
+    created_at timestamp with time zone NOT NULL DEFAULT now(),
+    updated_at timestamp with time zone NOT NULL DEFAULT now(),
+    deleted_at timestamp with time zone,
     CONSTRAINT colors_pkey PRIMARY KEY (id),
     CONSTRAINT colors_hex_key UNIQUE (hex)
 );
@@ -152,11 +184,34 @@ CREATE TABLE public.export_types (
     CONSTRAINT export_types_code_key UNIQUE (code)
 );
 
-CREATE TABLE public.fonts (
+CREATE TABLE public.font_groups (
     id uuid NOT NULL DEFAULT gen_random_uuid(),
     name text NOT NULL,
-    url text NOT NULL,
     created_at timestamp with time zone NOT NULL DEFAULT now(),
+    updated_at timestamp with time zone NOT NULL DEFAULT now(),
+    deleted_at timestamp with time zone,
+    CONSTRAINT font_groups_pkey PRIMARY KEY (id),
+    CONSTRAINT font_groups_name_key UNIQUE (name)
+);
+
+CREATE TABLE public.fonts (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    font_group_id uuid NOT NULL,
+    name text NOT NULL,
+    style text NOT NULL,
+    bucket text NOT NULL,
+    object_key text NOT NULL,
+    object_prefix text NOT NULL,
+    file_name text NOT NULL,
+    extension text,
+    mime_type text,
+    size_bytes bigint,
+    checksum text,
+    source public.storage_object_source NOT NULL DEFAULT 'SYSTEM'::public.storage_object_source,
+    created_by_user_id uuid,
+    created_at timestamp with time zone NOT NULL DEFAULT now(),
+    updated_at timestamp with time zone NOT NULL DEFAULT now(),
+    deleted_at timestamp with time zone,
     CONSTRAINT fonts_pkey PRIMARY KEY (id)
 );
 
@@ -185,6 +240,8 @@ CREATE TABLE public.users (
     email text NOT NULL,
     area_id uuid,
     created_at timestamp with time zone NOT NULL DEFAULT now(),
+    updated_at timestamp with time zone NOT NULL DEFAULT now(),
+    deleted_at timestamp with time zone,
     role public.user_role NOT NULL DEFAULT 'USER'::public.user_role,
     state public.user_state NOT NULL DEFAULT 'ACTIVE'::public.user_state,
     CONSTRAINT users_pkey PRIMARY KEY (id),
@@ -193,11 +250,13 @@ CREATE TABLE public.users (
 
 CREATE TABLE public.brand_kit (
     id uuid NOT NULL DEFAULT gen_random_uuid(),
-    font_id uuid,
+    font_group_id uuid,
     created_by_user_id uuid,
     name text NOT NULL,
     active boolean NOT NULL DEFAULT true,
     created_at timestamp with time zone NOT NULL DEFAULT now(),
+    updated_at timestamp with time zone NOT NULL DEFAULT now(),
+    deleted_at timestamp with time zone,
     CONSTRAINT brand_kit_pkey PRIMARY KEY (id)
 );
 
@@ -228,24 +287,32 @@ CREATE TABLE public.templates (
     prompt_base text,
     created_by_user_id uuid,
     created_at timestamp with time zone NOT NULL DEFAULT now(),
+    updated_at timestamp with time zone NOT NULL DEFAULT now(),
+    deleted_at timestamp with time zone,
     CONSTRAINT templates_pkey PRIMARY KEY (id)
 );
 
 CREATE TABLE public.assets_block (
     block_id uuid NOT NULL,
     asset_id uuid NOT NULL,
+    created_at timestamp with time zone NOT NULL DEFAULT now(),
+    deleted_at timestamp with time zone,
     CONSTRAINT assets_block_pkey PRIMARY KEY (block_id, asset_id)
 );
 
 CREATE TABLE public.brandkit_assets (
     brand_kit_id uuid NOT NULL,
     asset_id uuid NOT NULL,
+    created_at timestamp with time zone NOT NULL DEFAULT now(),
+    deleted_at timestamp with time zone,
     CONSTRAINT brandkit_assets_pkey PRIMARY KEY (brand_kit_id, asset_id)
 );
 
 CREATE TABLE public.color_palette (
     brand_kit_id uuid NOT NULL,
     color_id uuid NOT NULL,
+    created_at timestamp with time zone NOT NULL DEFAULT now(),
+    deleted_at timestamp with time zone,
     CONSTRAINT color_palette_pkey PRIMARY KEY (brand_kit_id, color_id)
 );
 
@@ -256,6 +323,8 @@ CREATE TABLE public.commentary (
     show boolean NOT NULL DEFAULT true,
     content text,
     created_at timestamp with time zone NOT NULL DEFAULT now(),
+    updated_at timestamp with time zone NOT NULL DEFAULT now(),
+    deleted_at timestamp with time zone,
     CONSTRAINT commentary_pkey PRIMARY KEY (id)
 );
 
@@ -264,6 +333,9 @@ CREATE TABLE public.hyperlinks (
     block_content_id uuid,
     url text NOT NULL,
     label text,
+    created_at timestamp with time zone NOT NULL DEFAULT now(),
+    updated_at timestamp with time zone NOT NULL DEFAULT now(),
+    deleted_at timestamp with time zone,
     CONSTRAINT hyperlinks_pkey PRIMARY KEY (id)
 );
 
@@ -274,6 +346,7 @@ CREATE TABLE public.newsletters (
     theme_tag text,
     created_at timestamp with time zone NOT NULL DEFAULT now(),
     updated_at timestamp with time zone NOT NULL DEFAULT now(),
+    deleted_at timestamp with time zone,
     publish_date timestamp with time zone,
     brand_kit_id uuid,
     template_id uuid,
@@ -291,14 +364,26 @@ CREATE TABLE public.newsletter_blocks (
     display_order integer,
     row integer,
     grid_column integer,
+    created_at timestamp with time zone NOT NULL DEFAULT now(),
+    deleted_at timestamp with time zone,
     CONSTRAINT newsletter_blocks_pkey PRIMARY KEY (newsletter_id, block_content_id)
 );
 
 CREATE TABLE public.newsletter_exports (
     export_id uuid NOT NULL,
     newsletter_id uuid NOT NULL,
-    url_file text,
+    bucket text NOT NULL,
+    object_key text NOT NULL,
+    object_prefix text NOT NULL,
+    file_name text NOT NULL,
+    extension text,
+    mime_type text,
+    size_bytes bigint,
+    checksum text,
+    created_by_user_id uuid,
     created_at timestamp with time zone NOT NULL DEFAULT now(),
+    updated_at timestamp with time zone NOT NULL DEFAULT now(),
+    deleted_at timestamp with time zone,
     CONSTRAINT newsletter_exports_pkey PRIMARY KEY (export_id, newsletter_id)
 );
 
@@ -332,14 +417,28 @@ ALTER TABLE public.users
     ON DELETE NO ACTION;
 
 ALTER TABLE public.brand_kit
-    ADD CONSTRAINT brand_kit_font_id_fkey
-    FOREIGN KEY (font_id)
-    REFERENCES public.fonts(id)
+    ADD CONSTRAINT brand_kit_font_group_id_fkey
+    FOREIGN KEY (font_group_id)
+    REFERENCES public.font_groups(id)
     ON UPDATE NO ACTION
     ON DELETE NO ACTION;
 
+ALTER TABLE public.fonts
+    ADD CONSTRAINT fonts_font_group_id_fkey
+    FOREIGN KEY (font_group_id)
+    REFERENCES public.font_groups(id)
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
 ALTER TABLE public.brand_kit
     ADD CONSTRAINT brand_kit_created_by_user_id_fkey
+    FOREIGN KEY (created_by_user_id)
+    REFERENCES public.users(id)
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION;
+
+ALTER TABLE public.assets
+    ADD CONSTRAINT assets_created_by_user_id_fkey
     FOREIGN KEY (created_by_user_id)
     REFERENCES public.users(id)
     ON UPDATE NO ACTION
@@ -385,42 +484,42 @@ ALTER TABLE public.assets_block
     FOREIGN KEY (block_id)
     REFERENCES public.block_content(id)
     ON UPDATE NO ACTION
-    ON DELETE CASCADE;
+    ON DELETE NO ACTION;
 
 ALTER TABLE public.assets_block
     ADD CONSTRAINT assets_block_asset_id_fkey
     FOREIGN KEY (asset_id)
     REFERENCES public.assets(id)
     ON UPDATE NO ACTION
-    ON DELETE CASCADE;
+    ON DELETE NO ACTION;
 
 ALTER TABLE public.brandkit_assets
     ADD CONSTRAINT brandkit_assets_brand_kit_id_fkey
     FOREIGN KEY (brand_kit_id)
     REFERENCES public.brand_kit(id)
     ON UPDATE NO ACTION
-    ON DELETE CASCADE;
+    ON DELETE NO ACTION;
 
 ALTER TABLE public.brandkit_assets
     ADD CONSTRAINT brandkit_assets_asset_id_fkey
     FOREIGN KEY (asset_id)
     REFERENCES public.assets(id)
     ON UPDATE NO ACTION
-    ON DELETE CASCADE;
+    ON DELETE NO ACTION;
 
 ALTER TABLE public.color_palette
     ADD CONSTRAINT color_palette_brand_kit_id_fkey
     FOREIGN KEY (brand_kit_id)
     REFERENCES public.brand_kit(id)
     ON UPDATE NO ACTION
-    ON DELETE CASCADE;
+    ON DELETE NO ACTION;
 
 ALTER TABLE public.color_palette
     ADD CONSTRAINT color_palette_color_id_fkey
     FOREIGN KEY (color_id)
     REFERENCES public.colors(id)
     ON UPDATE NO ACTION
-    ON DELETE CASCADE;
+    ON DELETE NO ACTION;
 
 ALTER TABLE public.commentary
     ADD CONSTRAINT commentary_block_content_id_fkey
@@ -483,28 +582,42 @@ ALTER TABLE public.newsletter_blocks
     FOREIGN KEY (newsletter_id)
     REFERENCES public.newsletters(id)
     ON UPDATE NO ACTION
-    ON DELETE CASCADE;
+    ON DELETE NO ACTION;
 
 ALTER TABLE public.newsletter_blocks
     ADD CONSTRAINT newsletter_blocks_block_content_id_fkey
     FOREIGN KEY (block_content_id)
     REFERENCES public.block_content(id)
     ON UPDATE NO ACTION
-    ON DELETE CASCADE;
+    ON DELETE NO ACTION;
 
 ALTER TABLE public.newsletter_exports
     ADD CONSTRAINT newsletter_exports_export_id_fkey
     FOREIGN KEY (export_id)
     REFERENCES public.exports(id)
     ON UPDATE NO ACTION
-    ON DELETE CASCADE;
+    ON DELETE NO ACTION;
 
 ALTER TABLE public.newsletter_exports
     ADD CONSTRAINT newsletter_exports_newsletter_id_fkey
     FOREIGN KEY (newsletter_id)
     REFERENCES public.newsletters(id)
     ON UPDATE NO ACTION
-    ON DELETE CASCADE;
+    ON DELETE NO ACTION;
+
+ALTER TABLE public.newsletter_exports
+    ADD CONSTRAINT newsletter_exports_created_by_user_id_fkey
+    FOREIGN KEY (created_by_user_id)
+    REFERENCES public.users(id)
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION;
+
+ALTER TABLE public.fonts
+    ADD CONSTRAINT fonts_created_by_user_id_fkey
+    FOREIGN KEY (created_by_user_id)
+    REFERENCES public.users(id)
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION;
 
 ALTER TABLE public.newsletter_state_log
     ADD CONSTRAINT newsletter_state_log_newsletter_id_fkey
@@ -537,11 +650,20 @@ CREATE INDEX assets_block_asset_id_idx
 CREATE INDEX assets_block_block_id_idx
     ON public.assets_block(block_id);
 
+CREATE UNIQUE INDEX assets_bucket_object_key_key
+    ON public.assets(bucket, object_key);
+
+CREATE INDEX assets_created_by_user_id_idx
+    ON public.assets(created_by_user_id);
+
 CREATE INDEX brandkit_assets_asset_id_idx
     ON public.brandkit_assets(asset_id);
 
 CREATE INDEX brandkit_assets_brand_kit_id_idx
     ON public.brandkit_assets(brand_kit_id);
+
+CREATE INDEX brand_kit_font_group_id_idx
+    ON public.brand_kit(font_group_id);
 
 CREATE INDEX color_palette_brand_kit_id_idx
     ON public.color_palette(brand_kit_id);
@@ -558,6 +680,15 @@ CREATE INDEX commentary_commented_by_user_id_idx
 CREATE INDEX exports_export_type_id_idx
     ON public.exports(export_type_id);
 
+CREATE UNIQUE INDEX fonts_bucket_object_key_key
+    ON public.fonts(bucket, object_key);
+
+CREATE INDEX fonts_font_group_id_idx
+    ON public.fonts(font_group_id);
+
+CREATE INDEX fonts_created_by_user_id_idx
+    ON public.fonts(created_by_user_id);
+
 CREATE INDEX hyperlinks_block_content_id_idx
     ON public.hyperlinks(block_content_id);
 
@@ -572,6 +703,12 @@ CREATE INDEX newsletter_exports_export_id_idx
 
 CREATE INDEX newsletter_exports_newsletter_id_idx
     ON public.newsletter_exports(newsletter_id);
+
+CREATE UNIQUE INDEX newsletter_exports_bucket_object_key_key
+    ON public.newsletter_exports(bucket, object_key);
+
+CREATE INDEX newsletter_exports_created_by_user_id_idx
+    ON public.newsletter_exports(created_by_user_id);
 
 CREATE INDEX newsletter_state_log_newsletter_id_idx
     ON public.newsletter_state_log(newsletter_id);

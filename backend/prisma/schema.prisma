@@ -9,27 +9,48 @@ datasource db {
 model areas {
   id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        area_name     @unique(map: "areas_name_unique")
+  created_at  DateTime      @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime      @updatedAt @db.Timestamptz(6)
+  deleted_at  DateTime?     @db.Timestamptz(6)
   newsletters newsletters[]
   templates   templates[]
   users       users[]
 }
 
 model assets {
-  id              String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name            String
-  url             String
-  description     String?
-  created_at      DateTime          @default(now()) @db.Timestamptz(6)
-  type            asset_type
-  assets_block    assets_block[]
-  brandkit_assets brandkit_assets[]
+  id                 String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name               String
+  description        String?
+  created_at         DateTime              @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime              @updatedAt @db.Timestamptz(6)
+  deleted_at         DateTime?             @db.Timestamptz(6)
+  type               asset_type
+  bucket             String
+  object_key         String
+  object_prefix      String
+  file_name          String
+  extension          String?
+  mime_type          String?
+  size_bytes         BigInt?
+  checksum           String?
+  from_brand         Boolean               @default(false)
+  source             storage_object_source @default(SYSTEM)
+  created_by_user_id String?               @db.Uuid
+  users              users?                @relation("assets_created_by_user_idTousers", fields: [created_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  assets_block       assets_block[]
+  brandkit_assets    brandkit_assets[]
+
+  @@unique([bucket, object_key])
+  @@index([created_by_user_id])
 }
 
 model assets_block {
   block_id      String        @db.Uuid
   asset_id      String        @db.Uuid
-  assets        assets        @relation(fields: [asset_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  block_content block_content @relation(fields: [block_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  created_at    DateTime      @default(now()) @db.Timestamptz(6)
+  deleted_at    DateTime?     @db.Timestamptz(6)
+  assets        assets        @relation(fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  block_content block_content @relation(fields: [block_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@id([block_id, asset_id])
   @@index([asset_id])
@@ -42,6 +63,9 @@ model block_content {
   display_order     Int?
   must_fill         Boolean             @default(false)
   type              block_content_type
+  created_at        DateTime            @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime            @updatedAt @db.Timestamptz(6)
+  deleted_at        DateTime?           @db.Timestamptz(6)
   assets_block      assets_block[]
   commentary        commentary[]
   hyperlinks        hyperlinks[]
@@ -50,23 +74,29 @@ model block_content {
 
 model brand_kit {
   id                 String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  font_id            String?           @db.Uuid
+  font_group_id      String?           @db.Uuid
   created_by_user_id String?           @db.Uuid
   name               String
   active             Boolean           @default(true)
   created_at         DateTime          @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime          @updatedAt @db.Timestamptz(6)
+  deleted_at         DateTime?         @db.Timestamptz(6)
   users              users?            @relation(fields: [created_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  fonts              fonts?            @relation(fields: [font_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  font_groups        font_groups?      @relation(fields: [font_group_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   brandkit_assets    brandkit_assets[]
   color_palette      color_palette[]
   newsletters        newsletters[]
+
+  @@index([font_group_id])
 }
 
 model brandkit_assets {
   brand_kit_id String    @db.Uuid
   asset_id     String    @db.Uuid
-  assets       assets    @relation(fields: [asset_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  brand_kit    brand_kit @relation(fields: [brand_kit_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  created_at   DateTime  @default(now()) @db.Timestamptz(6)
+  deleted_at   DateTime? @db.Timestamptz(6)
+  assets       assets    @relation(fields: [asset_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  brand_kit    brand_kit @relation(fields: [brand_kit_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@id([brand_kit_id, asset_id])
   @@index([asset_id])
@@ -76,8 +106,10 @@ model brandkit_assets {
 model color_palette {
   brand_kit_id String    @db.Uuid
   color_id     String    @db.Uuid
-  brand_kit    brand_kit @relation(fields: [brand_kit_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  colors       colors    @relation(fields: [color_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  created_at   DateTime  @default(now()) @db.Timestamptz(6)
+  deleted_at   DateTime? @db.Timestamptz(6)
+  brand_kit    brand_kit @relation(fields: [brand_kit_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  colors       colors    @relation(fields: [color_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@id([brand_kit_id, color_id])
   @@index([brand_kit_id])
@@ -88,6 +120,9 @@ model colors {
   id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name          String
   hex           String          @unique
+  created_at    DateTime        @default(now()) @db.Timestamptz(6)
+  updated_at    DateTime        @updatedAt @db.Timestamptz(6)
+  deleted_at    DateTime?       @db.Timestamptz(6)
   color_palette color_palette[]
 }
 
@@ -98,6 +133,8 @@ model commentary {
   show                 Boolean        @default(true)
   content              String?
   created_at           DateTime       @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime       @updatedAt @db.Timestamptz(6)
+  deleted_at           DateTime?      @db.Timestamptz(6)
   block_content        block_content? @relation(fields: [block_content_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   users                users?         @relation(fields: [commented_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
@@ -122,11 +159,39 @@ model exports {
 }
 
 model fonts {
+  id                 String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  font_group_id      String                @db.Uuid
+  name               String
+  style              String
+  bucket             String
+  object_key         String
+  object_prefix      String
+  file_name          String
+  extension          String?
+  mime_type          String?
+  size_bytes         BigInt?
+  checksum           String?
+  source             storage_object_source @default(SYSTEM)
+  created_by_user_id String?               @db.Uuid
+  created_at         DateTime              @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime              @updatedAt @db.Timestamptz(6)
+  deleted_at         DateTime?             @db.Timestamptz(6)
+  users              users?                @relation("fonts_created_by_user_idTousers", fields: [created_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  font_groups        font_groups           @relation(fields: [font_group_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([bucket, object_key])
+  @@index([font_group_id])
+  @@index([created_by_user_id])
+}
+
+model font_groups {
   id         String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name       String
-  url        String
+  name       String      @unique
   created_at DateTime    @default(now()) @db.Timestamptz(6)
+  updated_at DateTime    @updatedAt @db.Timestamptz(6)
+  deleted_at DateTime?   @db.Timestamptz(6)
   brand_kit  brand_kit[]
+  fonts      fonts[]
 }
 
 model hyperlinks {
@@ -134,6 +199,9 @@ model hyperlinks {
   block_content_id String?        @db.Uuid
   url              String
   label            String?
+  created_at       DateTime       @default(now()) @db.Timestamptz(6)
+  updated_at       DateTime       @updatedAt @db.Timestamptz(6)
+  deleted_at       DateTime?      @db.Timestamptz(6)
   block_content    block_content? @relation(fields: [block_content_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([block_content_id])
@@ -145,8 +213,10 @@ model newsletter_blocks {
   display_order    Int?
   row              Int?
   grid_column      Int?
-  block_content    block_content @relation(fields: [block_content_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  newsletters      newsletters   @relation(fields: [newsletter_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  created_at       DateTime      @default(now()) @db.Timestamptz(6)
+  deleted_at       DateTime?     @db.Timestamptz(6)
+  block_content    block_content @relation(fields: [block_content_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  newsletters      newsletters   @relation(fields: [newsletter_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@id([newsletter_id, block_content_id])
   @@index([block_content_id])
@@ -154,16 +224,29 @@ model newsletter_blocks {
 }
 
 model newsletter_exports {
-  export_id     String      @db.Uuid
-  newsletter_id String      @db.Uuid
-  url_file      String?
-  created_at    DateTime    @default(now()) @db.Timestamptz(6)
-  exports       exports     @relation(fields: [export_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  newsletters   newsletters @relation(fields: [newsletter_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  export_id          String      @db.Uuid
+  newsletter_id      String      @db.Uuid
+  bucket             String
+  object_key         String
+  object_prefix      String
+  file_name          String
+  extension          String?
+  mime_type          String?
+  size_bytes         BigInt?
+  checksum           String?
+  created_by_user_id String?     @db.Uuid
+  created_at         DateTime    @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime    @updatedAt @db.Timestamptz(6)
+  deleted_at         DateTime?   @db.Timestamptz(6)
+  users              users?      @relation("newsletter_exports_created_by_user_idTousers", fields: [created_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  exports            exports     @relation(fields: [export_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  newsletters        newsletters @relation(fields: [newsletter_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
 
   @@id([export_id, newsletter_id])
+  @@unique([bucket, object_key])
   @@index([export_id])
   @@index([newsletter_id])
+  @@index([created_by_user_id])
 }
 
 model newsletter_state_log {
@@ -187,7 +270,8 @@ model newsletters {
   area_id                                      String?                @db.Uuid
   theme_tag                                    String?
   created_at                                   DateTime               @default(now()) @db.Timestamptz(6)
-  updated_at                                   DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at                                   DateTime               @updatedAt @db.Timestamptz(6)
+  deleted_at                                   DateTime?              @db.Timestamptz(6)
   publish_date                                 DateTime?              @db.Timestamptz(6)
   brand_kit_id                                 String?                @db.Uuid
   template_id                                  String?                @db.Uuid
@@ -229,6 +313,8 @@ model templates {
   prompt_base        String?
   created_by_user_id String?         @db.Uuid
   created_at         DateTime        @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime        @updatedAt @db.Timestamptz(6)
+  deleted_at         DateTime?       @db.Timestamptz(6)
   newsletters        newsletters[]
   areas              areas?          @relation(fields: [area_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
   users              users?          @relation(fields: [created_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
@@ -246,10 +332,15 @@ model users {
   email                                              String                 @unique
   area_id                                            String?                @db.Uuid
   created_at                                         DateTime               @default(now()) @db.Timestamptz(6)
+  updated_at                                         DateTime               @updatedAt @db.Timestamptz(6)
+  deleted_at                                         DateTime?              @db.Timestamptz(6)
   role                                               user_role              @default(USER)
   state                                              user_state             @default(ACTIVE)
+  assets_created                                     assets[]               @relation("assets_created_by_user_idTousers")
   brand_kit                                          brand_kit[]
   commentary                                         commentary[]
+  fonts_created                                      fonts[]                @relation("fonts_created_by_user_idTousers")
+  newsletter_exports_created                         newsletter_exports[]   @relation("newsletter_exports_created_by_user_idTousers")
   newsletter_state_log                               newsletter_state_log[]
   newsletters_newsletters_approved_by_user_idTousers newsletters[]          @relation("newsletters_approved_by_user_idTousers")
   newsletters_newsletters_created_by_user_idTousers  newsletters[]          @relation("newsletters_created_by_user_idTousers")
@@ -307,6 +398,11 @@ enum asset_type {
   SHAPE
   LOCKUP
   KEYWORD
+}
+
+enum storage_object_source {
+  SYSTEM
+  USER
 }
 
 enum block_content_type {
