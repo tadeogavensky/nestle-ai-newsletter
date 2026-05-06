@@ -1,5 +1,4 @@
 import axios from 'axios'
-import { apiBaseUrl } from '../config/api'
 
 export type NewsletterStatus =
   | 'DRAFT'
@@ -13,5 +12,5 @@ export async function updateNewsletterStatus(
   newsletterId: string,
   state: NewsletterStatus,
 ): Promise<void> {
-  await axios.post(`${apiBaseUrl}/newsletters/${newsletterId}/status`, { state })
+  await axios.post(`/newsletters/${newsletterId}/status`, { state })
 }

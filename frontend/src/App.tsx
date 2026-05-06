@@ -147,7 +147,7 @@ function BackendConnectionDemo() {
     setError(null)
 
     try {
-      const response = await axios.get<ApiHealth>(`${apiBaseUrl}/health`)
+      const response = await axios.get<ApiHealth>('/health')
       setHealth(response.data)
     } catch (connectionError) {
       setHealth(null)

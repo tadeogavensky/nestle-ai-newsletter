@@ -1,5 +1,4 @@
 import axios from 'axios'
-import { apiBaseUrl } from '../config/api'
 
 export type ImproveTextRequest = {
   text: string
@@ -40,10 +39,7 @@ export type GenerateNewsletterResponse = {
 export async function improveText(
   request: ImproveTextRequest,
 ): Promise<ImproveTextResponse> {
-  const response = await axios.post<ImproveTextResponse>(
-    `${apiBaseUrl}/ai/improve-text`,
-    request,
-  )
+  const response = await axios.post<ImproveTextResponse>('/ai/improve-text', request)
 
   return response.data
 }
@@ -52,7 +48,7 @@ export async function generateNewsletter(
   request: GenerateNewsletterRequest,
 ): Promise<GenerateNewsletterResponse> {
   const response = await axios.post<GenerateNewsletterResponse>(
-    `${apiBaseUrl}/ai/generate-newsletter`,
+    '/ai/generate-newsletter',
     request,
   )
 

@@ -1,5 +1,4 @@
 import axios from 'axios'
-import { apiBaseUrl } from '../config/api'
 
 export type AssetType =
   | 'IMAGE'
@@ -23,7 +22,7 @@ export type UploadAssetsResponse = {
 export async function listAssets(
   type?: AssetType,
 ): Promise<UploadAssetsResponse> {
-  const response = await axios.get<UploadAssetsResponse>(`${apiBaseUrl}/assets`, {
+  const response = await axios.get<UploadAssetsResponse>('/assets', {
     params: type ? { type } : undefined,
   })
 
@@ -42,7 +41,7 @@ export async function uploadAssets(
   formData.append('type', type)
 
   const response = await axios.post<UploadAssetsResponse>(
-    `${apiBaseUrl}/assets`,
+    '/assets',
     formData,
     {
       headers: {

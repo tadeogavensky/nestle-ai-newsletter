@@ -1,11 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BadRequestException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException } from '@nestjs/common';
+import { MockAuthGuard } from '../modules/auth/guards/mockup.guard';
+import { PermissionsGuard } from '../modules/auth/guards/permissions.guard';
 import { AssetsController } from './assets.controller';
 import { AssetsService } from './assets.service';
 
 describe('AssetsController', () => {
   let controller: AssetsController;
   const assetsService = {
+    listAssets: jest.fn(),
     uploadAssets: jest.fn(),
   };
 
@@ -18,7 +21,12 @@ describe('AssetsController', () => {
           useValue: assetsService,
         },
       ],
-    }).compile();
+    })
+      .overrideGuard(MockAuthGuard)
+      .useValue({ canActivate: jest.fn().mockReturnValue(true) })
+      .overrideGuard(PermissionsGuard)
+      .useValue({ canActivate: jest.fn().mockReturnValue(true) })
+      .compile();
 
     controller = module.get<AssetsController>(AssetsController);
   });
@@ -31,26 +39,18 @@ describe('AssetsController', () => {
     expect(controller).toBeDefined();
   });
 
-  it('rejects asset uploads without bearer authentication', () => {
-    expect(() => controller.uploadAssets(undefined, 'IMAGE', [])).toThrow(
-      UnauthorizedException,
-    );
-  });
-
-  it('rejects asset listing without bearer authentication', () => {
-    expect(() => controller.listAssets(undefined)).toThrow(
-      UnauthorizedException,
-    );
-  });
-
   it('rejects asset uploads with invalid asset type', () => {
-    expect(() =>
-      controller.uploadAssets('Bearer token', 'NOT_VALID', []),
-    ).toThrow(BadRequestException);
+    expect(() => controller.uploadAssets('NOT_VALID', [])).toThrow(
+      BadRequestException,
+    );
   });
 
   it('rejects asset listing with invalid asset type', () => {
-    expect(() => controller.listAssets('Bearer token', 'NOT_VALID')).toThrow(
+    expect(() => controller.listAssets('NOT_VALID')).toThrow(BadRequestException);
+  });
+
+  it('rejects asset uploads without files', () => {
+    expect(() => controller.uploadAssets('IMAGE', [])).toThrow(
       BadRequestException,
     );
   });
