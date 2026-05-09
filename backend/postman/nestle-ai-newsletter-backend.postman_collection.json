@@ -1,0 +1,1094 @@
+{
+  "info": {
+    "_postman_id": "4cdbf6fd-7d6c-446d-846e-7e1ee6b10f87",
+    "name": "Nestle AI Newsletter Backend",
+    "description": "Coleccion de Postman generada desde los controladores actuales de backend/src. Incluye auth mock via headers x-user-id, x-user-role y x-area, mas Authorization Bearer para los endpoints que hoy lo aceptan o validan. Completa los bodies y las variables de IDs segun tus datos locales.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const mockHeaders = [",
+          "  { key: 'Authorization', value: `Bearer ${pm.collectionVariables.get('bearerToken')}` },",
+          "  { key: 'x-user-id', value: pm.collectionVariables.get('mockUserId') },",
+          "  { key: 'x-user-role', value: pm.collectionVariables.get('mockUserRole') },",
+          "  { key: 'x-area', value: pm.collectionVariables.get('mockArea') }",
+          "];",
+          "",
+          "for (const header of mockHeaders) {",
+          "  pm.request.headers.upsert(header);",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "bearerToken",
+      "value": "mock-token"
+    },
+    {
+      "key": "mockUserId",
+      "value": "11111111-1111-1111-1111-111111111111"
+    },
+    {
+      "key": "mockUserRole",
+      "value": "ADMIN"
+    },
+    {
+      "key": "mockArea",
+      "value": "COMUNICACION_INTERNA"
+    },
+    {
+      "key": "areaId",
+      "value": "22222222-2222-2222-2222-222222222222"
+    },
+    {
+      "key": "brandKitId",
+      "value": "33333333-3333-3333-3333-333333333333"
+    },
+    {
+      "key": "fontId",
+      "value": "44444444-4444-4444-4444-444444444444"
+    },
+    {
+      "key": "templateId",
+      "value": "55555555-5555-5555-5555-555555555555"
+    },
+    {
+      "key": "templateStateId",
+      "value": "66666666-6666-6666-6666-666666666666"
+    },
+    {
+      "key": "templateAssetId",
+      "value": "77777777-7777-7777-7777-777777777777"
+    },
+    {
+      "key": "newsletterId",
+      "value": "88888888-8888-8888-8888-888888888888"
+    },
+    {
+      "key": "newsletterCommentId",
+      "value": "99999999-9999-9999-9999-999999999999"
+    },
+    {
+      "key": "newsletterExportId",
+      "value": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+    },
+    {
+      "key": "assetId",
+      "value": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb"
+    }
+  ],
+  "item": [
+    {
+      "name": "App",
+      "item": [
+        {
+          "name": "GET /",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                ""
+              ]
+            },
+            "description": "Endpoint raiz."
+          }
+        },
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "description": "Health check."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "POST /auth/login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /auth/user",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/user",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "user"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "AI",
+      "item": [
+        {
+          "name": "POST /ai/improve-text",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"text\": \"Necesito mejorar este copy para la newsletter interna de Nestle.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/improve-text",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ai",
+                "improve-text"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /ai/generate-newsletter",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"area\": \"COMUNICACION_INTERNA\",\n  \"templateId\": \"{{templateId}}\",\n  \"topic\": \"Semana de bienestar\",\n  \"objective\": \"Informar las actividades y promover participacion.\",\n  \"audience\": \"Colaboradores de Nestle Argentina\",\n  \"keyMessages\": [\n    \"Habra charlas y talleres durante toda la semana.\",\n    \"Las actividades son gratuitas y abiertas para todas las areas.\"\n  ],\n  \"tone\": \"Cercano y motivador\",\n  \"relevantDates\": \"Del 20 al 24 de mayo\",\n  \"cta\": \"Inscribite desde la intranet.\",\n  \"contact\": \"equipo.comunicacion@nestle.com\",\n  \"linksOrSources\": [\n    \"https://intranet.nestle.com/bienestar\"\n  ],\n  \"additionalContext\": \"Usar lenguaje claro y orientado a la accion.\",\n  \"assetIds\": [\n    \"{{assetId}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai/generate-newsletter",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ai",
+                "generate-newsletter"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Areas",
+      "item": [
+        {
+          "name": "GET /areas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/areas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "areas"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /areas/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/areas/{{areaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "areas",
+                "{{areaId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Assets",
+      "item": [
+        {
+          "name": "GET /assets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/assets?type=IMAGE",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "assets"
+              ],
+              "query": [
+                {
+                  "key": "type",
+                  "value": "IMAGE"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /assets",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "type",
+                  "value": "IMAGE",
+                  "type": "text"
+                },
+                {
+                  "key": "files",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/assets",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "assets"
+              ]
+            },
+            "description": "Selecciona hasta 5 archivos de imagen en el campo files."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brand Kit",
+      "item": [
+        {
+          "name": "GET /brand-kit",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/brand-kit",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "brand-kit"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /brand-kit",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Brand Kit Corporativo\",\n  \"fontId\": \"{{fontId}}\",\n  \"createdByUserId\": \"{{mockUserId}}\",\n  \"active\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/brand-kit",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "brand-kit"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PATCH /brand-kit/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Brand Kit Corporativo Actualizado\",\n  \"active\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/brand-kit/{{brandKitId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "brand-kit",
+                "{{brandKitId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Fonts",
+      "item": [
+        {
+          "name": "GET /fonts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/fonts?groupName=Corporate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "fonts"
+              ],
+              "query": [
+                {
+                  "key": "groupName",
+                  "value": "Corporate"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /fonts",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "groupName",
+                  "value": "Corporate",
+                  "type": "text"
+                },
+                {
+                  "key": "files",
+                  "type": "file",
+                  "src": []
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/fonts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "fonts"
+              ]
+            },
+            "description": "Selecciona uno o varios archivos de fuente en el campo files."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Newsletters",
+      "item": [
+        {
+          "name": "GET /newsletters",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/newsletters?page=1&limit=10",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "newsletters"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /newsletters",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Newsletter Mayo 2026\",\n  \"areaId\": \"{{areaId}}\",\n  \"themeTag\": \"Bienestar\",\n  \"publishDate\": \"2026-05-20T00:00:00.000Z\",\n  \"brandKitId\": \"{{brandKitId}}\",\n  \"templateId\": \"{{templateId}}\",\n  \"approvedByUserId\": \"{{mockUserId}}\",\n  \"createdByUserId\": \"{{mockUserId}}\",\n  \"state\": \"DRAFT\",\n  \"language\": \"SPA\",\n  \"format\": \"PORTRAIT\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/newsletters",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "newsletters"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /newsletters/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/newsletters/{{newsletterId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "newsletters",
+                "{{newsletterId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PATCH /newsletters/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Newsletter Mayo 2026 Actualizada\",\n  \"themeTag\": \"People & Culture\",\n  \"format\": \"LANDSCAPE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/newsletters/{{newsletterId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "newsletters",
+                "{{newsletterId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /newsletters/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/newsletters/{{newsletterId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "newsletters",
+                "{{newsletterId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /newsletters/:id/status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"state\": \"IN_REVIEW\",\n  \"previousState\": \"DRAFT\",\n  \"reviewedByUserId\": \"{{mockUserId}}\",\n  \"allCommentaries\": \"Pasa a revision interna.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/newsletters/{{newsletterId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "newsletters",
+                "{{newsletterId}}",
+                "status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /newsletters/:id/logs",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"previousState\": \"DRAFT\",\n  \"newState\": \"IN_REVIEW\",\n  \"reviewedByUserId\": \"{{mockUserId}}\",\n  \"allCommentaries\": \"Se registro el cambio de estado.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/newsletters/{{newsletterId}}/logs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "newsletters",
+                "{{newsletterId}}",
+                "logs"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /newsletters/:id/logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/newsletters/{{newsletterId}}/logs",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "newsletters",
+                "{{newsletterId}}",
+                "logs"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /newsletters/:id/comments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/newsletters/{{newsletterId}}/comments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "newsletters",
+                "{{newsletterId}}",
+                "comments"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /newsletters/:id/comments",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"blockContentId\": \"{{assetId}}\",\n  \"commentedByUserId\": \"{{mockUserId}}\",\n  \"show\": true,\n  \"content\": \"Revisar la claridad del segundo bloque.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/newsletters/{{newsletterId}}/comments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "newsletters",
+                "{{newsletterId}}",
+                "comments"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PATCH /newsletters/:id/comments/:commentId",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"show\": false,\n  \"content\": \"Comentario actualizado luego de la revision.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/newsletters/{{newsletterId}}/comments/{{newsletterCommentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "newsletters",
+                "{{newsletterId}}",
+                "comments",
+                "{{newsletterCommentId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PATCH /newsletters/:id/exports/:exportId",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"urlFile\": \"https://example.com/exports/newsletter-mayo-2026.pdf\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/newsletters/{{newsletterId}}/exports/{{newsletterExportId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "newsletters",
+                "{{newsletterId}}",
+                "exports",
+                "{{newsletterExportId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /newsletters/:id/exports",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/newsletters/{{newsletterId}}/exports",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "newsletters",
+                "{{newsletterId}}",
+                "exports"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Templates",
+      "item": [
+        {
+          "name": "GET /templates",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/templates",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "templates"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /templates",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Template Corporativo\",\n  \"description\": \"Template base para comunicacion interna.\",\n  \"areaId\": \"{{areaId}}\",\n  \"layout\": \"two-columns\",\n  \"stateId\": \"{{templateStateId}}\",\n  \"promptBase\": \"Escribi en tono corporativo y cercano.\",\n  \"createdByUserId\": \"{{mockUserId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/templates",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "templates"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /templates/:id",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/templates/{{templateId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "templates",
+                "{{templateId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PATCH /templates/:id",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Template Corporativo Actualizado\",\n  \"description\": \"Nueva descripcion del template.\",\n  \"layout\": \"single-column\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/templates/{{templateId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "templates",
+                "{{templateId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "DELETE /templates/:id",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/templates/{{templateId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "templates",
+                "{{templateId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /templates/:id/status",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"stateId\": \"{{templateStateId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/templates/{{templateId}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "templates",
+                "{{templateId}}",
+                "status"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /templates/:id/blocks",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"blocks\": [\n    {\n      \"content\": \"Titulo principal\",\n      \"displayOrder\": 1,\n      \"mustFill\": true,\n      \"type\": \"CONTENT\"\n    },\n    {\n      \"content\": \"CTA final\",\n      \"displayOrder\": 2,\n      \"mustFill\": false,\n      \"type\": \"SPECIAL\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/templates/{{templateId}}/blocks",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "templates",
+                "{{templateId}}",
+                "blocks"
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /templates/:id/assets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/templates/{{templateId}}/assets",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "templates",
+                "{{templateId}}",
+                "assets"
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /templates/:id/assets",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Hero image\",\n  \"url\": \"https://example.com/assets/hero-image.png\",\n  \"description\": \"Imagen principal del template.\",\n  \"type\": \"IMAGE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/templates/{{templateId}}/assets",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "templates",
+                "{{templateId}}",
+                "assets"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PATCH /templates/:id/assets/:assetId",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Hero image updated\",\n  \"description\": \"Descripcion actualizada.\",\n  \"type\": \"IMAGE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/templates/{{templateId}}/assets/{{templateAssetId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "templates",
+                "{{templateId}}",
+                "assets",
+                "{{templateAssetId}}"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
