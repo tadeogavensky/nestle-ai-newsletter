@@ -1,7 +1,7 @@
 import { BlockDefinition } from '../block.definition';
 
 export class Example1Block extends BlockDefinition {
-  readonly type = 'example1' as const;
+  readonly type = 'LAYOUT' as const;
   readonly label = 'Ejemplo 1';
   readonly description = 'Bloque de texto enriquecido';
   readonly icon = 'text_fields';
