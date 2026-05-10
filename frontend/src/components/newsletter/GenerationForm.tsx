@@ -24,7 +24,6 @@ import {
 } from "../../utils/newsletterTemplates";
 import {
   listAssets,
-  listBrandKitAssets,
   uploadAssets,
   type AssetType,
   type UploadedAsset,
@@ -152,10 +151,7 @@ export function GenerationForm({
       setIsLoadingAssets(true);
       setAssetListError(null);
       try {
-        const res =
-          form.assetType === "SHAPE"
-            ? await listBrandKitAssets(selectedBrandKitId, form.assetType)
-            : await listAssets(form.assetType);
+        const res = await listAssets(form.assetType);
         if (mounted) setAvailableAssets(res.assets ?? []);
       } catch (err) {
         if (mounted) {
@@ -495,9 +491,7 @@ export function GenerationForm({
       ) : availableAssets.length > 0 ? (
         <Stack spacing={1}>
           <Typography variant="subtitle2">
-            {form.assetType === "SHAPE"
-              ? "Assets de la marca"
-              : "Assets existentes"}
+            Assets existentes
           </Typography>
           <Stack
             direction="row"
