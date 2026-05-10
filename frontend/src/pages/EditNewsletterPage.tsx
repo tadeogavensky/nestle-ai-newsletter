@@ -17,7 +17,6 @@ import {
 } from '@mui/material'
 import { useAuth } from '../contexts/AuthContext'
 import type { UserRole } from '../contexts/AuthContext'
-import { brandKitLabels, templates } from '../utils/newsletterTemplates'
 import { getNewsletter, updateNewsletter } from '../api/newsletters'
 import { BlockList } from '../components/newsletter/BlockList'
 import { EditPanel } from '../components/newsletter/EditPanel'
@@ -28,12 +27,15 @@ import type {
   Newsletter,
   NewsletterBlock,
   NewsletterState,
+  NewsletterTemplate,
 } from '../types/newsletter'
 import {
   improveText,
   generateNewsletter,
   type GenerateNewsletterRequest,
 } from '../api/ai'
+import { listTemplates } from '../api/templates'
+import { listBrandKits, type BrandKit } from '../api/brand-kits'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -120,6 +122,8 @@ function EditPage() {
   const [newsletter, setNewsletter] = useState<Newsletter | null>(null)
   const [isLoadingNewsletter, setIsLoadingNewsletter] = useState(true)
   const [loadError, setLoadError] = useState<string | null>(null)
+  const [templates, setTemplates] = useState<NewsletterTemplate[]>([])
+  const [brandKits, setBrandKits] = useState<BrandKit[]>([])
 
   const [selectedBlockId, setSelectedBlockId] = useState('')
   const [exportOptions, setExportOptions] = useState<ExportOption[]>([])
@@ -168,11 +172,41 @@ function EditPage() {
     }
   }, [newsletterId, navigate])
 
+  useEffect(() => {
+    let mounted = true
+
+    const loadCatalogs = async () => {
+      try {
+        const [templateData, brandKitData] = await Promise.all([
+          listTemplates(),
+          listBrandKits(),
+        ])
+
+        if (mounted) {
+          setTemplates(templateData)
+          setBrandKits(brandKitData)
+        }
+      } catch {
+        if (mounted) {
+          setTemplates([])
+          setBrandKits([])
+        }
+      }
+    }
+
+    void loadCatalogs()
+
+    return () => {
+      mounted = false
+    }
+  }, [])
+
   // ── Derived ──
   const selectedBlock = newsletter?.blocks.find((b) => b.id === selectedBlockId) ?? newsletter?.blocks[0]
-  const selectedTemplate = templates.find((t) => t.id === newsletter?.templateId) ?? templates[0]
-  const selectedBrandKitId = newsletter?.brandKitId ?? selectedTemplate.brandKitId
-  const selectedBrandKitLabel = brandKitLabels[selectedBrandKitId]
+  const selectedTemplate = templates.find((template) => template.id === newsletter?.templateId) ?? null
+  const selectedBrandKitId = newsletter?.brandKitId ?? ''
+  const selectedBrandKitLabel =
+    brandKits.find((brandKit) => brandKit.id === selectedBrandKitId)?.name ?? selectedBrandKitId
 
   const allCommentaries = useMemo(() => {
     const comments: string[] = [
@@ -394,7 +428,7 @@ function EditPage() {
           <Stack spacing={0.75}>
             <Typography variant="overline">Estado: {newsletter?.state}</Typography>
             <Typography variant="h4">Builder de newsletter</Typography>
-            {newsletter && (
+            {newsletter && selectedTemplate && (
               <Typography variant="body2" color="text.secondary">
                 Plantilla: {selectedTemplate.name} · BrandKit: {selectedBrandKitLabel}
               </Typography>
@@ -544,11 +578,12 @@ function EditPage() {
           <Tab label="Editar" />
         </Tabs>
 
-        {showRegenerationForm ? (
+        {showRegenerationForm && selectedTemplate ? (
           <Stack spacing={1}>
             <Alert severity="info">Modificá los datos y volvé a generar. Los bloques actuales serán reemplazados.</Alert>
             <GenerationForm
               selectedTemplate={selectedTemplate}
+              selectedBrandKitId={selectedBrandKitId}
               isGenerating={isRegeneratingAll}
               aiError={aiError}
               initialValues={newsletter.generationRequest ? requestToFormValues(newsletter.generationRequest) : undefined}
@@ -557,6 +592,8 @@ function EditPage() {
               cancelLabel="Volver a editar"
             />
           </Stack>
+        ) : showRegenerationForm ? (
+          <Alert severity="warning">No se pudo cargar la plantilla asociada a este newsletter.</Alert>
         ) : selectedBlock ? (
           <EditPanel
             selectedBlock={selectedBlock}

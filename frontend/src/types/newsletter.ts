@@ -27,9 +27,12 @@ export type NewsletterBlock = {
 export type NewsletterTemplate = {
   id: string
   name: string
-  imageUrl: string
+  description: string | null
   area: AreaName
-  brandKitId: string
+  layout: string | null
+  stateCode: string
+  stateName: string
+  createdAt: string
   requiredGenerationFields: TemplateGenerationField[]
   optionalGenerationFields: TemplateGenerationField[]
 }

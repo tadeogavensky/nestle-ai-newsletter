@@ -87,6 +87,7 @@ const validateDate = (v: string): string | null =>
 
 type Props = {
   selectedTemplate: NewsletterTemplate;
+  selectedBrandKitId: string;
   isGenerating: boolean;
   aiError: string | null;
   // Prefilled values when regenerating globally
@@ -98,6 +99,7 @@ type Props = {
 
 export function GenerationForm({
   selectedTemplate,
+  selectedBrandKitId,
   isGenerating,
   aiError,
   initialValues,
@@ -152,7 +154,7 @@ export function GenerationForm({
       try {
         const res =
           form.assetType === "SHAPE"
-            ? await listBrandKitAssets(selectedTemplate.brandKitId, form.assetType)
+            ? await listBrandKitAssets(selectedBrandKitId, form.assetType)
             : await listAssets(form.assetType);
         if (mounted) setAvailableAssets(res.assets ?? []);
       } catch (err) {
@@ -173,7 +175,7 @@ export function GenerationForm({
     return () => {
       mounted = false;
     };
-  }, [form.assetType, selectedTemplate.brandKitId]);
+  }, [form.assetType, selectedBrandKitId]);
 
   const isAssetSelected = (assetId: string) =>
     selectedExistingAssets.some((asset) => asset.id === assetId);
@@ -246,7 +248,7 @@ export function GenerationForm({
     await onGenerate({
       area: selectedTemplate.area,
       templateId: selectedTemplate.id,
-      brandKitId: selectedTemplate.brandKitId,
+      brandKitId: selectedBrandKitId,
       topic: form.topic.trim(),
       objective: form.objective.trim(),
       audience: form.audience.trim(),
@@ -432,7 +434,12 @@ export function GenerationForm({
       {selectedExistingAssets.length > 0 && (
         <Stack spacing={1}>
           <Typography variant="subtitle2">Assets seleccionados</Typography>
-          <Stack direction="row" spacing={1.5} useFlexGap sx={{ flexWrap: "wrap" }}>
+          <Stack
+            direction="row"
+            spacing={1.5}
+            useFlexGap
+            sx={{ flexWrap: "wrap" }}
+          >
             {selectedExistingAssets.map((asset) => (
               <Card
                 key={asset.id}
@@ -450,8 +457,12 @@ export function GenerationForm({
                   alt={asset.name}
                   sx={{ objectFit: "cover", bgcolor: "grey.100" }}
                 />
-                  <CardContent sx={{ py: 1.25, "&:last-child": { pb: 1.25 } }}>
-                  <Stack direction="row" spacing={1} sx={{ alignItems: "flex-start" }}>
+                <CardContent sx={{ py: 1.25, "&:last-child": { pb: 1.25 } }}>
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    sx={{ alignItems: "flex-start" }}
+                  >
                     <Stack spacing={0.25} sx={{ minWidth: 0, flex: 1 }}>
                       <Typography
                         variant="body2"
@@ -506,11 +517,7 @@ export function GenerationForm({
                     boxShadow: isSelected ? 3 : 0,
                   }}
                 >
-                  <CardActionArea
-                    onClick={() =>
-                      toggleExistingAsset(asset)
-                    }
-                  >
+                  <CardActionArea onClick={() => toggleExistingAsset(asset)}>
                     <CardMedia
                       component="img"
                       height="112"
@@ -518,16 +525,6 @@ export function GenerationForm({
                       alt={asset.name}
                       sx={{ objectFit: "cover", bgcolor: "grey.100" }}
                     />
-                    <CardContent sx={{ py: 1.25, "&:last-child": { pb: 1.25 } }}>
-                      <Typography
-                        variant="body2"
-                        sx={{ fontWeight: 700 }}
-                        noWrap
-                        title={asset.name}
-                      >
-                        {asset.name}
-                      </Typography>
-                    </CardContent>
                   </CardActionArea>
                 </Card>
               );
