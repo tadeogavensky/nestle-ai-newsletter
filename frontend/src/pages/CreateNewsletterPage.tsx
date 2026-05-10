@@ -22,7 +22,7 @@ import { createNewsletter } from '../api/newsletters'
   ]
 }*/
 
-function CreatePage() {
+function CreateNewsletterPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
   const currentUserId = user?.id ?? 'anonymous'
@@ -109,4 +109,4 @@ function CreatePage() {
   )
 }
 
-export default CreatePage
+export default CreateNewsletterPage

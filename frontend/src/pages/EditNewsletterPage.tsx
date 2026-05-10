@@ -323,6 +323,7 @@ function EditNewsletterPage() {
       handleRenderHtml,
       navigate,
       transitionState,
+      notifySuccess,
     ])
 
   const handleRegenerateBlock = useCallback(
