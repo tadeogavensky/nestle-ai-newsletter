@@ -16,6 +16,7 @@ import { AnalyticsPage } from './pages/AnalyticsPage'
 import { ReviewsPage } from './pages/ReviewsPage'
 import { UsersPage } from './pages/UsersPage'
 import { SettingsPage } from './pages/SettingsPage'
+import TestBlockRegistry from './pages/TestBlockRegistry'
 import './App.css'
 
 // Legacy demo pages
@@ -700,7 +701,7 @@ function AppRouter() {
   const { notifications, removeNotification } = useNotification()
 
   return (
-    <Box sx={{ position: 'relative' }}>
+    <Box sx={{ position: "relative" }}>
       <Router>
         <Routes>
           {/* Public routes */}
@@ -723,7 +724,7 @@ function AppRouter() {
             element={
               <ProtectedRoute>
                 <ProtectedLayout>
-                  <CreatePage />
+                  <TestBlockRegistry />
                 </ProtectedLayout>
               </ProtectedRoute>
             }
@@ -741,7 +742,7 @@ function AppRouter() {
           <Route
             path="/templates"
             element={
-              <ProtectedRoute allowedRoles={['ADMIN', 'FUNCTIONAL']}>
+              <ProtectedRoute allowedRoles={["ADMIN", "FUNCTIONAL"]}>
                 <ProtectedLayout>
                   <TemplatesPage />
                 </ProtectedLayout>
@@ -751,7 +752,7 @@ function AppRouter() {
           <Route
             path="/analytics"
             element={
-              <ProtectedRoute allowedRoles={['ADMIN', 'FUNCTIONAL']}>
+              <ProtectedRoute allowedRoles={["ADMIN", "FUNCTIONAL"]}>
                 <ProtectedLayout>
                   <AnalyticsPage />
                 </ProtectedLayout>
@@ -761,7 +762,7 @@ function AppRouter() {
           <Route
             path="/reviews"
             element={
-              <ProtectedRoute >
+              <ProtectedRoute>
                 <ProtectedLayout>
                   <ReviewsPage />
                 </ProtectedLayout>
@@ -771,7 +772,7 @@ function AppRouter() {
           <Route
             path="/users"
             element={
-              <ProtectedRoute allowedRoles={['ADMIN']}>
+              <ProtectedRoute allowedRoles={["ADMIN"]}>
                 <ProtectedLayout>
                   <UsersPage />
                 </ProtectedLayout>
@@ -876,6 +877,16 @@ function AppRouter() {
               </h1>
             }
           />
+          <Route
+            path="/testblockregistry"
+            element={
+              <ProtectedRoute>
+                <ProtectedLayout>
+                  <TestBlockRegistry />
+                </ProtectedLayout>
+              </ProtectedRoute>
+            }
+          />
           {/* Redirect to login by default */}
           <Route path="/" element={<LoginPage />} />
         </Routes>
@@ -887,7 +898,7 @@ function AppRouter() {
         onClose={removeNotification}
       />
     </Box>
-  )
+  );
 }
 
 function App() {

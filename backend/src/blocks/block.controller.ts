@@ -1,21 +1,20 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { BlockService } from './block.service';
-import { BlockInstance } from '../../../packages/shared/src/types/block.types.js';
+import { RequirePermission } from '../modules/auth/decorators/permissions.decorator';
+import { Action } from '../modules/auth/enum/actions';
+import { Resource } from '../modules/auth/enum/resources';
+import { MockAuthGuard } from '../modules/auth/guards/mockup.guard';
+import { PermissionsGuard } from '../modules/auth/guards/permissions.guard';
+import type { BlockDefinitionDTO } from '../../../packages/shared/src/types/block.types.js';
 
-@Controller()
+@Controller('blocks')
+@UseGuards(MockAuthGuard, PermissionsGuard)
 export class BlockController {
-    constructor(private readonly blockService: BlockService) {}
+  constructor(private readonly blockService: BlockService) {}
 
-    @Get('blocks/definitions')
-    listDefinitions() {
-        return this.blockService.listDefinitions();
-    }
-
-    @Post('templates/:id/blocks')
-    saveBlocks(
-        @Param('id') templateId: string,
-        @Body() body: { blocks: Omit<BlockInstance, 'localId'>[] },
-    ) {
-        return this.blockService.saveBlocks(templateId, body.blocks);
-    }
+  @Get('definitions')
+  @RequirePermission(Action.TEMPLATE_VIEW_COPY, Resource.TEMPLATES)
+  listDefinitions(): BlockDefinitionDTO[] {
+    return this.blockService.listDefinitions();
+  }
 }

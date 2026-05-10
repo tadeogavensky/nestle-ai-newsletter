@@ -1,8 +1,13 @@
 import { Injectable } from '@nestjs/common';
+import {
+  BlockService,
+  type SaveTemplateBlocksResponse,
+} from '../blocks/block.service';
+import type { DefineTemplateBlocksBody } from './templates.schemas';
 
 @Injectable()
 export class TemplatesService {
-  constructor() {}
+  constructor(private readonly blockService: BlockService) {}
 
   getAll(): string {
     return 'Desde templates';
@@ -28,8 +33,11 @@ export class TemplatesService {
     return 'Desde update status templates con ID' + id;
   }
 
-  defineBlocks(id: string) {
-    return 'Desde define blocks templates con ID' + id;
+  defineBlocks(
+    id: string,
+    body: DefineTemplateBlocksBody,
+  ): Promise<SaveTemplateBlocksResponse> {
+    return this.blockService.saveTemplateBlocks(id, body.blocks);
   }
 
   getAssets(templateId: string) {

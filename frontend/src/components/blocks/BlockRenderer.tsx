@@ -4,11 +4,11 @@ import { Example2Renderer } from "./renderers/Example2Renderer";
 
 interface Props {block: BlockInstance; editMode?: boolean;}
 
-export function BlockRenderer({ block }: { block: BlockInstance }) {
+export function BlockRenderer({ block }: Props) {
   switch (block.type) {
-    case "example1":
+    case "LAYOUT":
       return <Example1Renderer block={block} />;
-    case "example2":
+    case "BASE":
       return <Example2Renderer block={block} />;
     default:
       return null;

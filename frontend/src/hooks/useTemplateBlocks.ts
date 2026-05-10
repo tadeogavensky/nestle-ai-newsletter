@@ -1,36 +1,53 @@
-import { useState, useCallback } from "react";
-import { saveBlocks } from "../api/blocks";
-import type { BlockDefinitionDTO, BlockInstance } from "../../../packages/shared/src/types/block.types";
+import { useCallback, useState } from 'react'
+import { saveBlocks } from '../api/blocks'
+import type {
+  BlockDefinitionDTO,
+  BlockInstance,
+} from '../../../packages/shared/src/types/block.types'
 
-    export function useTemplateBlocks() {
-    const [blocks, setBlocks] = useState<BlockInstance[]>([]);
+type UseTemplateBlocksResult = {
+  blocks: BlockInstance[]
+  addBlock: (definition: BlockDefinitionDTO) => void
+  removeBlock: (localId: string) => void
+  saveTemplate: (templateId: string) => Promise<void>
+}
 
-    const addBlock = useCallback((def: BlockDefinitionDTO) => {
-        setBlocks((prev) => [
-        ...prev,
-        {
-            localId: crypto.randomUUID(),
-            type: def.type,
-            content: def.defaultContent,
-            mustFill: def.mustFill,
-            displayOrder: prev.length,
-        },
-        ]);
-    }, []);
+export function useTemplateBlocks(): UseTemplateBlocksResult {
+  const [blocks, setBlocks] = useState<BlockInstance[]>([])
 
-    const removeBlock = useCallback((localId: string) => {
-        setBlocks((prev) => prev.filter((b) => b.localId !== localId));
-    }, []);
+  const addBlock = useCallback((definition: BlockDefinitionDTO) => {
+    setBlocks((previousBlocks) => [
+      ...previousBlocks,
+      {
+        localId: crypto.randomUUID(),
+        type: definition.type,
+        content: definition.defaultContent,
+        mustFill: definition.mustFill,
+        displayOrder: previousBlocks.length,
+      },
+    ])
+  }, [])
 
-    const saveTemplate = useCallback(
-        async (templateId: string) => {
-        await saveBlocks(
-            templateId,
-            blocks.map(({ localId, ...rest }) => rest),
-        );
-        },
-        [blocks],
-    );
+  const removeBlock = useCallback((localId: string) => {
+    setBlocks((previousBlocks) =>
+      previousBlocks.filter((block) => block.localId !== localId),
+    )
+  }, [])
 
-    return { blocks, addBlock, removeBlock, saveTemplate };
+  const saveTemplate = useCallback(
+    async (templateId: string): Promise<void> => {
+      await saveBlocks(
+        templateId,
+        blocks.map((block) => ({
+          type: block.type,
+          content: block.content,
+          mustFill: block.mustFill,
+          displayOrder: block.displayOrder,
+        })),
+      )
+    },
+    [blocks],
+  )
+
+  return { blocks, addBlock, removeBlock, saveTemplate }
 }

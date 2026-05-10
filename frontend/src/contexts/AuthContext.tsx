@@ -128,13 +128,19 @@ const clearStoredSession = () => {
   localStorage.removeItem(SESSION_STORAGE_KEY)
 }
 
-const setAxiosAccessToken = (accessToken?: string) => {
-  if (accessToken) {
-    axios.defaults.headers.common.Authorization = `Bearer ${accessToken}`
+const setAxiosSessionHeaders = (session?: StoredSession) => {
+  if (session) {
+    axios.defaults.headers.common.Authorization = `Bearer ${session.accessToken}`
+    axios.defaults.headers.common['x-user-id'] = session.user.id
+    axios.defaults.headers.common['x-user-role'] = session.user.role
+    axios.defaults.headers.common['x-area'] = session.user.area
     return
   }
 
   delete axios.defaults.headers.common.Authorization
+  delete axios.defaults.headers.common['x-user-id']
+  delete axios.defaults.headers.common['x-user-role']
+  delete axios.defaults.headers.common['x-area']
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -143,13 +149,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const commitSession = useCallback((session: StoredSession) => {
     saveStoredSession(session)
-    setAxiosAccessToken(session.accessToken)
+    setAxiosSessionHeaders(session)
     setUser(session.user)
   }, [])
 
   const logout = useCallback(() => {
     clearStoredSession()
-    setAxiosAccessToken()
+    setAxiosSessionHeaders()
     setUser(null)
   }, [])
 
@@ -175,7 +181,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       clearStoredSession()
-      setAxiosAccessToken()
+      setAxiosSessionHeaders()
       setLoading(false)
     }, 0)
 
