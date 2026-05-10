@@ -3,15 +3,12 @@ import { useEffect, useState, type ChangeEvent } from "react";
 import {
   Alert,
   Button,
-  Card,
-  CardActionArea,
-  CardContent,
-  CardMedia,
+  Collapse,
   Divider,
   FormControl,
   InputLabel,
-  IconButton,
   MenuItem,
+  Pagination,
   Select,
   Stack,
   TextField,
@@ -29,8 +26,11 @@ import {
   type UploadedAsset,
 } from "../../api/assets";
 import type { GenerateNewsletterRequest } from "../../api/ai";
-import type { NewsletterTemplate } from "../../types/newsletter";
-import CloseIcon from "@mui/icons-material/Close";
+import type {
+  NewsletterAssetSelection,
+  NewsletterTemplate,
+} from "../../types/newsletter";
+import { AssetImageCard } from "./AssetImageCard";
 
 type FormValues = {
   topic: string;
@@ -54,6 +54,18 @@ const assetTypeLabels: Record<AssetType, string> = {
   SHAPE: "Forma",
   LOCKUP: "Lockup",
   KEYWORD: "Keyword",
+};
+
+const assetsPerPage = 12;
+
+const dedupeAssets = (assets: UploadedAsset[]): UploadedAsset[] => {
+  const assetsById = new Map<string, UploadedAsset>();
+
+  assets.forEach((asset) => {
+    assetsById.set(asset.id, asset);
+  });
+
+  return Array.from(assetsById.values());
 };
 
 const splitLines = (v: string) =>
@@ -91,7 +103,11 @@ type Props = {
   aiError: string | null;
   // Prefilled values when regenerating globally
   initialValues?: Partial<Omit<FormValues, "files">>;
-  onGenerate: (request: GenerateNewsletterRequest) => Promise<void>;
+  initialAssetSelection?: NewsletterAssetSelection | null;
+  onGenerate: (
+    request: GenerateNewsletterRequest,
+    assetSelection: NewsletterAssetSelection,
+  ) => Promise<void>;
   onCancel: () => void;
   cancelLabel?: string;
 };
@@ -102,10 +118,13 @@ export function GenerationForm({
   isGenerating,
   aiError,
   initialValues,
+  initialAssetSelection,
   onGenerate,
   onCancel,
   cancelLabel = "Cancelar",
 }: Props) {
+  const initialAssetType =
+    initialAssetSelection?.assetType ?? initialValues?.assetType ?? "IMAGE";
   const [form, setForm] = useState<FormValues>({
     topic: initialValues?.topic ?? "",
     objective: initialValues?.objective ?? "",
@@ -117,7 +136,7 @@ export function GenerationForm({
     contact: initialValues?.contact ?? "",
     linksOrSources: initialValues?.linksOrSources ?? "",
     additionalContext: initialValues?.additionalContext ?? "",
-    assetType: initialValues?.assetType ?? "IMAGE",
+    assetType: initialAssetType,
     files: [],
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -125,11 +144,14 @@ export function GenerationForm({
   const [uploadedAssets, setUploadedAssets] = useState<UploadedAsset[]>([]);
   const [selectedExistingAssets, setSelectedExistingAssets] = useState<
     UploadedAsset[]
-  >([]);
+  >(initialAssetSelection?.selectedAssets ?? []);
   const [assetListError, setAssetListError] = useState<string | null>(null);
   const [isLoadingAssets, setIsLoadingAssets] = useState(false);
   const [assetUploadError, setAssetUploadError] = useState<string | null>(null);
   const [isUploadingAssets, setIsUploadingAssets] = useState(false);
+  const [isAvailableAssetsCollapsed, setIsAvailableAssetsCollapsed] =
+    useState(false);
+  const [availableAssetsPage, setAvailableAssetsPage] = useState(1);
 
   const visibleFields = new Set([
     ...selectedTemplate.requiredGenerationFields,
@@ -212,9 +234,23 @@ export function GenerationForm({
     return Object.keys(errors).length === 0;
   };
 
+  const availableAssetsPageCount = Math.max(
+    1,
+    Math.ceil(availableAssets.length / assetsPerPage),
+  );
+  const currentAvailableAssetsPage = Math.min(
+    availableAssetsPage,
+    availableAssetsPageCount,
+  );
+  const paginatedAvailableAssets = availableAssets.slice(
+    (currentAvailableAssetsPage - 1) * assetsPerPage,
+    currentAvailableAssetsPage * assetsPerPage,
+  );
+
   const submit = async () => {
     if (!validate()) return;
-    let assetIds = selectedExistingAssets.map((asset) => asset.id);
+    let selectedAssets = dedupeAssets(selectedExistingAssets);
+    let assetIds = selectedAssets.map((asset) => asset.id);
     setAssetUploadError(null);
 
     if (form.files.length > 0) {
@@ -222,10 +258,12 @@ export function GenerationForm({
       try {
         const res = await uploadAssets(form.files, form.assetType);
         setUploadedAssets(res.assets);
-        assetIds = [
-          ...selectedExistingAssets.map((asset) => asset.id),
-          ...res.assets.map((a) => a.id),
-        ];
+        selectedAssets = dedupeAssets([
+          ...selectedExistingAssets,
+          ...res.assets,
+        ]);
+        setSelectedExistingAssets(selectedAssets);
+        assetIds = selectedAssets.map((asset) => asset.id);
       } catch (err) {
         setAssetUploadError(
           axios.isAxiosError(err)
@@ -241,7 +279,7 @@ export function GenerationForm({
       setUploadedAssets([]);
     }
 
-    await onGenerate({
+    const request: GenerateNewsletterRequest = {
       area: selectedTemplate.area,
       templateId: selectedTemplate.id,
       brandKitId: selectedBrandKitId,
@@ -256,6 +294,11 @@ export function GenerationForm({
       linksOrSources: splitLines(form.linksOrSources),
       additionalContext: form.additionalContext.trim() || undefined,
       assetIds,
+    };
+
+    await onGenerate(request, {
+      assetType: form.assetType,
+      selectedAssets,
     });
   };
 
@@ -416,6 +459,7 @@ export function GenerationForm({
           onChange={(e: SelectChangeEvent<AssetType>) => {
             update("assetType", e.target.value);
             setAssetUploadError(null);
+            setAvailableAssetsPage(1);
           }}
         >
           {Object.entries(assetTypeLabels).map(([v, l]) => (
@@ -437,51 +481,13 @@ export function GenerationForm({
             sx={{ flexWrap: "wrap" }}
           >
             {selectedExistingAssets.map((asset) => (
-              <Card
+              <AssetImageCard
                 key={asset.id}
-                variant="outlined"
-                sx={{
-                  width: 176,
-                  borderColor: "primary.main",
-                  boxShadow: 3,
-                }}
-              >
-                <CardMedia
-                  component="img"
-                  height="112"
-                  image={asset.url}
-                  alt={asset.name}
-                  sx={{ objectFit: "cover", bgcolor: "grey.100" }}
-                />
-                <CardContent sx={{ py: 1.25, "&:last-child": { pb: 1.25 } }}>
-                  <Stack
-                    direction="row"
-                    spacing={1}
-                    sx={{ alignItems: "flex-start" }}
-                  >
-                    <Stack spacing={0.25} sx={{ minWidth: 0, flex: 1 }}>
-                      <Typography
-                        variant="body2"
-                        sx={{ fontWeight: 700 }}
-                        noWrap
-                        title={asset.name}
-                      >
-                        {asset.name}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {asset.type}
-                      </Typography>
-                    </Stack>
-                    <IconButton
-                      size="small"
-                      aria-label={`Quitar ${asset.name}`}
-                      onClick={() => removeSelectedAsset(asset.id)}
-                    >
-                      <CloseIcon fontSize="small" />
-                    </IconButton>
-                  </Stack>
-                </CardContent>
-              </Card>
+                alt={asset.name}
+                imageUrl={asset.url}
+                isSelected
+                onRemove={() => removeSelectedAsset(asset.id)}
+              />
             ))}
           </Stack>
         </Stack>
@@ -490,40 +496,57 @@ export function GenerationForm({
         <Alert severity="info">Cargando assets existentes...</Alert>
       ) : availableAssets.length > 0 ? (
         <Stack spacing={1}>
-          <Typography variant="subtitle2">
-            Assets existentes
-          </Typography>
           <Stack
-            direction="row"
-            spacing={1.5}
-            useFlexGap
-            sx={{ flexWrap: "wrap" }}
+            direction={{ xs: "column", sm: "row" }}
+            spacing={1}
+            sx={{
+              alignItems: { xs: "stretch", sm: "center" },
+              justifyContent: "space-between",
+            }}
           >
-            {availableAssets.map((asset) => {
-              const isSelected = isAssetSelected(asset.id);
-              return (
-                <Card
-                  key={asset.id}
-                  variant="outlined"
-                  sx={{
-                    width: 176,
-                    borderColor: isSelected ? "primary.main" : "divider",
-                    boxShadow: isSelected ? 3 : 0,
-                  }}
-                >
-                  <CardActionArea onClick={() => toggleExistingAsset(asset)}>
-                    <CardMedia
-                      component="img"
-                      height="112"
-                      image={asset.url}
-                      alt={asset.name}
-                      sx={{ objectFit: "cover", bgcolor: "grey.100" }}
-                    />
-                  </CardActionArea>
-                </Card>
-              );
-            })}
+            <Typography variant="subtitle2">Assets existentes</Typography>
+            <Button
+              variant="text"
+              size="small"
+              onClick={() =>
+                setIsAvailableAssetsCollapsed((current) => !current)
+              }
+            >
+              {isAvailableAssetsCollapsed ? "Expandir" : "Colapsar"}
+            </Button>
           </Stack>
+          <Collapse in={!isAvailableAssetsCollapsed}>
+            <Stack spacing={1.5}>
+              <Stack
+                direction="row"
+                spacing={1.5}
+                useFlexGap
+                sx={{ flexWrap: "wrap" }}
+              >
+                {paginatedAvailableAssets.map((asset) => {
+                  const isSelected = isAssetSelected(asset.id);
+                  return (
+                    <AssetImageCard
+                      key={asset.id}
+                      alt={asset.name}
+                      imageUrl={asset.url}
+                      isSelected={isSelected}
+                      onClick={() => toggleExistingAsset(asset)}
+                    />
+                  );
+                })}
+              </Stack>
+              {availableAssets.length > assetsPerPage && (
+                <Pagination
+                  count={availableAssetsPageCount}
+                  page={currentAvailableAssetsPage}
+                  onChange={(_event, page) => setAvailableAssetsPage(page)}
+                  color="primary"
+                  size="small"
+                />
+              )}
+            </Stack>
+          </Collapse>
         </Stack>
       ) : (
         <Alert severity="info">No hay assets existentes para este tipo.</Alert>

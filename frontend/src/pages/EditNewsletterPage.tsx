@@ -22,7 +22,9 @@ import { BlockList } from '../components/newsletter/BlockList'
 import { EditPanel } from '../components/newsletter/EditPanel'
 import { ReviewCommentControls } from '../components/newsletter/ReviewCommentControls'
 import { GenerationForm } from '../components/newsletter/GenerationForm'
+import { BrandKitResourcesPanel } from '../components/newsletter/BrandKitResourcesPanel'
 import type {
+  NewsletterAssetSelection,
   ExportOption,
   Newsletter,
   NewsletterBlock,
@@ -35,7 +37,12 @@ import {
   type GenerateNewsletterRequest,
 } from '../api/ai'
 import { listTemplates } from '../api/templates'
-import { listBrandKits, type BrandKit } from '../api/brand-kits'
+import {
+  getBrandKitResources,
+  listBrandKits,
+  type BrandKit,
+  type BrandKitResources,
+} from '../api/brand-kits'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -124,6 +131,9 @@ function EditPage() {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [templates, setTemplates] = useState<NewsletterTemplate[]>([])
   const [brandKits, setBrandKits] = useState<BrandKit[]>([])
+  const [brandKitResources, setBrandKitResources] = useState<BrandKitResources | null>(null)
+  const [isLoadingBrandKitResources, setIsLoadingBrandKitResources] = useState(false)
+  const [brandKitResourcesError, setBrandKitResourcesError] = useState<string | null>(null)
 
   const [selectedBlockId, setSelectedBlockId] = useState('')
   const [exportOptions, setExportOptions] = useState<ExportOption[]>([])
@@ -207,6 +217,7 @@ function EditPage() {
   const selectedBrandKitId = newsletter?.brandKitId ?? ''
   const selectedBrandKitLabel =
     brandKits.find((brandKit) => brandKit.id === selectedBrandKitId)?.name ?? selectedBrandKitId
+  const selectedAssets = newsletter?.assetSelection?.selectedAssets ?? []
 
   const allCommentaries = useMemo(() => {
     const comments: string[] = [
@@ -216,6 +227,44 @@ function EditPage() {
 
     return comments.filter((c) => !emptyComment(c))
   }, [newsletter])
+
+  useEffect(() => {
+    if (!selectedBrandKitId) {
+      return
+    }
+
+    let mounted = true
+
+    const loadBrandKitResources = async () => {
+      setIsLoadingBrandKitResources(true)
+      setBrandKitResourcesError(null)
+
+      try {
+        const resources = await getBrandKitResources(selectedBrandKitId)
+
+        if (mounted) {
+          setBrandKitResources(resources)
+        }
+      } catch {
+        if (mounted) {
+          setBrandKitResources(null)
+          setBrandKitResourcesError(
+            'No se pudieron cargar los recursos del brandkit.',
+          )
+        }
+      } finally {
+        if (mounted) {
+          setIsLoadingBrandKitResources(false)
+        }
+      }
+    }
+
+    void loadBrandKitResources()
+
+    return () => {
+      mounted = false
+    }
+  }, [selectedBrandKitId])
 
 
   // ── State machine ──
@@ -331,7 +380,10 @@ function EditPage() {
   )
 
   const handleRegenerateAll = useCallback(
-    async (request: GenerateNewsletterRequest) => {
+    async (
+      request: GenerateNewsletterRequest,
+      assetSelection: NewsletterAssetSelection,
+    ) => {
       if (!newsletterId) return
 
       setIsRegeneratingAll(true)
@@ -354,6 +406,8 @@ function EditPage() {
 
         const updated = await updateNewsletter(newsletterId, {
           blocks: newBlocks,
+          generationRequest: request,
+          assetSelection,
         })
         setNewsletter(updated)
         setSelectedBlockId(newBlocks[0].id)
@@ -577,6 +631,13 @@ function EditPage() {
           <Tab label="Regenerar todo" />
           <Tab label="Editar" />
         </Tabs>
+        <BrandKitResourcesPanel
+          selectedAssets={selectedAssets}
+          resources={brandKitResources}
+          isLoading={isLoadingBrandKitResources}
+          loadError={brandKitResourcesError}
+          defaultCollapsed
+        />
 
         {showRegenerationForm && selectedTemplate ? (
           <Stack spacing={1}>
@@ -587,6 +648,7 @@ function EditPage() {
               isGenerating={isRegeneratingAll}
               aiError={aiError}
               initialValues={newsletter.generationRequest ? requestToFormValues(newsletter.generationRequest) : undefined}
+              initialAssetSelection={newsletter.assetSelection}
               onGenerate={handleRegenerateAll}
               onCancel={() => setShowRegenerationForm(false)}
               cancelLabel="Volver a editar"
