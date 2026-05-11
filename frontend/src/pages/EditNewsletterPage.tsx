@@ -23,6 +23,7 @@ import { BlockList } from '../components/newsletter/BlockList'
 import { EditPanel } from '../components/newsletter/EditPanel'
 import { ReviewCommentControls } from '../components/newsletter/ReviewCommentControls'
 import { GenerationForm } from '../components/newsletter/GenerationForm'
+import { NewsletterStepper } from '../components/newsletter/NewsletterStepper'
 import type {
   ExportOption,
   Newsletter,
@@ -38,6 +39,21 @@ import {
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 const emptyComment = (v: string | null) => !v || v.trim().length === 0
+
+function getStepFromState(state: NewsletterState | undefined): number {
+  switch (state) {
+    case 'DRAFT':
+    case 'CHANGES_REQUESTED':
+      return 1
+    case 'IN_REVIEW':
+    case 'RESUBMITTED':
+      return 2
+    case 'APPROVED':
+      return 3
+    default:
+      return 1
+  }
+}
 
 function logStateChange(payload: unknown) {
   console.info('Newsletter state changed', payload)
@@ -367,15 +383,14 @@ function EditPage() {
   // ──────────────────────────────────────────────────────────────────────────
 
   const pageLayout = (left: React.ReactNode, right: React.ReactNode) => (
-    <Box
-      component="main"
-      sx={{
-        minHeight: 'calc(100vh - 64px)',
-        bgcolor: 'background.default',
-        display: 'grid',
-        gridTemplateColumns: { xs: '1fr', lg: 'minmax(0, 1fr) minmax(380px, 0.72fr)' },
-      }}
-    >
+    <Box component="main" sx={{ minHeight: 'calc(100vh - 64px)', bgcolor: 'background.default' }}>
+      <NewsletterStepper activeStep={getStepFromState(newsletter?.state)} />
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', lg: 'minmax(0, 1fr) minmax(380px, 0.72fr)' },
+        }}
+      >
       <Box
         sx={{
           p: { xs: 2, md: 3 },
@@ -395,6 +410,7 @@ function EditPage() {
           </Stack>
           {right}
         </Stack>
+      </Box>
       </Box>
     </Box>
   )

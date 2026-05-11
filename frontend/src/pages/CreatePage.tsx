@@ -4,6 +4,7 @@ import { Box, Stack, Typography } from '@mui/material'
 import { useAuth } from '../contexts/AuthContext'
 import { TemplateCarousel } from '../components/newsletter/TemplateCarousel'
 import { GenerationForm } from '../components/newsletter/GenerationForm'
+import { NewsletterStepper } from '../components/newsletter/NewsletterStepper'
 import { templates } from '../utils/newsletterTemplates'
 import {
   generateNewsletter,
@@ -72,15 +73,14 @@ function CreatePage() {
   )
 
   return (
-    <Box
-      component="main"
-      sx={{
-        minHeight: 'calc(100vh - 64px)',
-        bgcolor: 'background.default',
-        display: 'grid',
-        gridTemplateColumns: { xs: '1fr', lg: 'minmax(0, 1fr) minmax(380px, 0.72fr)' },
-      }}
-    >
+    <Box component="main" sx={{ minHeight: 'calc(100vh - 64px)', bgcolor: 'background.default' }}>
+      <NewsletterStepper activeStep={0} />
+      <Box
+        sx={{
+          display: 'grid',
+          gridTemplateColumns: { xs: '1fr', lg: 'minmax(0, 1fr) minmax(380px, 0.72fr)' },
+        }}
+      >
       <Box
         sx={{
           p: { xs: 2, md: 3 },
@@ -104,6 +104,7 @@ function CreatePage() {
             onCancel={() => navigate('/dashboard')}
           />
         </Stack>
+      </Box>
       </Box>
     </Box>
   )
