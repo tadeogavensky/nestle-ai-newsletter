@@ -20,13 +20,13 @@ export async function listBlockDefinitions(): Promise<BlockDefinitionDTO[]> {
 }
 
 export async function saveBlocks(
-  templateId: string,
-  blocks: Omit<BlockInstance, 'localId'>[],
-): Promise<SaveBlocksResponse> {
-  const response = await axios.post<SaveBlocksResponse>(
-    `/templates/${templateId}/blocks`,
-    { blocks } satisfies SaveBlocksRequest,
-  )
+    templateId: string,
+    blocks: Omit<BlockInstance, 'localId'>[],
+    ): Promise<SaveBlocksResponse> {
+    const response = await axios.post<SaveBlocksResponse>(
+        `/templates/${templateId}/blocks`,
+        { blocks } satisfies SaveBlocksRequest,
+    )
 
-  return response.data
+    return response.data
 }

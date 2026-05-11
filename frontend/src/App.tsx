@@ -16,7 +16,6 @@ import { AnalyticsPage } from './pages/AnalyticsPage'
 import { ReviewsPage } from './pages/ReviewsPage'
 import { UsersPage } from './pages/UsersPage'
 import { SettingsPage } from './pages/SettingsPage'
-import TestBlockRegistry from './pages/TestBlockRegistry'
 import './App.css'
 
 // Legacy demo pages
@@ -724,7 +723,7 @@ function AppRouter() {
             element={
               <ProtectedRoute>
                 <ProtectedLayout>
-                  <TestBlockRegistry />
+                  <CreatePage />
                 </ProtectedLayout>
               </ProtectedRoute>
             }
@@ -875,16 +874,6 @@ function AppRouter() {
               <h1 className="titulo-templates">
                 Página de branding en construcción
               </h1>
-            }
-          />
-          <Route
-            path="/testblockregistry"
-            element={
-              <ProtectedRoute>
-                <ProtectedLayout>
-                  <TestBlockRegistry />
-                </ProtectedLayout>
-              </ProtectedRoute>
             }
           />
           {/* Redirect to login by default */}

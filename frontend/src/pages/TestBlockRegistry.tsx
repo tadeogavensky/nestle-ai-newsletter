@@ -26,7 +26,7 @@ export default function TestBlockRegistry(): ReactElement {
     data: definitions,
     error: definitionsError,
     isLoading,
-  } = useBlockDefinitions()
+  } = useBlockDefinitions() // BLOCK DEFINITIONS FROM BACKEND, IT PULLS ALL THE AVAILABLE BLOCKS TO RENDER IN THE PICKER
   const { blocks, addBlock, removeBlock, saveTemplate } = useTemplateBlocks()
 
   const definitionsByType = useMemo(
@@ -76,7 +76,7 @@ export default function TestBlockRegistry(): ReactElement {
   }
 
   return (
-    <Box sx={{ bgcolor: 'background.default', minHeight: '100vh', py: 4 }}>
+    <Box sx={{ bgcolor: "background.default", minHeight: "100vh", py: 4 }}>
       <Container maxWidth="lg">
         <Stack spacing={3}>
           <Stack spacing={1}>
@@ -97,7 +97,7 @@ export default function TestBlockRegistry(): ReactElement {
               {!definitionsError && isLoading && (
                 <Typography variant="body2">Cargando bloques...</Typography>
               )}
-              <BlockPicker onSelect={handleSelectBlock} />
+              <BlockPicker onSelect={handleSelectBlock} /> // THIS COMPONENT RENDERS THE BLOCKS AVAILABLE IN THE BACKEND. WHEN YOU SELECT ONE, IT IS ADDED TO THE LIST OF SELECTED BLOCKS
             </Stack>
           </Paper>
 
@@ -110,15 +110,15 @@ export default function TestBlockRegistry(): ReactElement {
                 </Typography>
               ) : (
                 <Stack spacing={2}>
-                  {blocks.map((block) => (
+                  {blocks.map((block) => ( // THIS RENDERS THE BLOCKS THAT WERE SELECTED, IT USES THE SAME BLOCK RENDERER THAT THE NEWSLETTER PAGE USES, BUT IN EDIT MODE
                     <Paper key={block.localId} variant="outlined" sx={{ p: 2 }}>
                       <Stack spacing={1.5}>
                         <Stack
-                          direction={{ xs: 'column', sm: 'row' }}
+                          direction={{ xs: "column", sm: "row" }}
                           spacing={1}
                           sx={{
-                            alignItems: { xs: 'flex-start', sm: 'center' },
-                            justifyContent: 'space-between',
+                            alignItems: { xs: "flex-start", sm: "center" },
+                            justifyContent: "space-between",
                           }}
                         >
                           <Typography variant="subtitle1">
@@ -128,7 +128,7 @@ export default function TestBlockRegistry(): ReactElement {
                             color="error"
                             size="small"
                             variant="outlined"
-                            onClick={() => removeBlock(block.localId)}
+                            onClick={() => removeBlock(block.localId)} // THIS BUTTON REMOVES THE BLOCK FROM THE SELECTED BLOCKS LIST
                           >
                             Quitar
                           </Button>
@@ -154,10 +154,10 @@ export default function TestBlockRegistry(): ReactElement {
               />
               <Button
                 variant="contained"
-                onClick={() => void handleSave()}
+                onClick={() => void handleSave()} // THIS BUTTON SAVES THE SELECTED BLOCKS TO THE BACKEND, ASSOCIATED TO THE TEMPLATE ID THAT YOU INPUT. IT SHOWS A SUCCESS OR ERROR MESSAGE DEPENDING ON THE RESULT
                 disabled={isSaving}
               >
-                {isSaving ? 'Guardando...' : 'Guardar bloques'}
+                {isSaving ? "Guardando..." : "Guardar bloques"}
               </Button>
               {saveStatus && <Alert severity="success">{saveStatus}</Alert>}
               {saveError && <Alert severity="error">{saveError}</Alert>}
@@ -166,5 +166,5 @@ export default function TestBlockRegistry(): ReactElement {
         </Stack>
       </Container>
     </Box>
-  )
+  );
 }
