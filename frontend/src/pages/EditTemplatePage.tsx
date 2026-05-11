@@ -17,7 +17,7 @@ import { EditorControl } from '../components/canvas/EditorControl'
 
 const TAB_LABELS = ['Crear', 'Editar', 'Revisar']
 
-export function EditPage() {
+export function EditTemplatePage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState(0)
