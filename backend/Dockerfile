@@ -1,16 +1,15 @@
 FROM node:20
 
-WORKDIR /app
-
 RUN corepack enable && corepack prepare pnpm@10.33.0 --activate
 
-COPY backend/package.json backend/pnpm-lock.yaml ./
-
-RUN pnpm install --frozen-lockfile
+WORKDIR /app
 
 COPY packages/shared ./packages/shared
+COPY backend ./backend
 
-COPY backend .
+WORKDIR /app/backend
+
+RUN pnpm install --frozen-lockfile
 
 RUN pnpm run build
 
