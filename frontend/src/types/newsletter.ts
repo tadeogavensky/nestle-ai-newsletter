@@ -1,5 +1,6 @@
 import type { GenerateNewsletterRequest } from '../api/ai'
 import type { AssetType, UploadedAsset } from '../api/assets'
+import type { UUID } from '../interfaces/interfaces.newsletters'
 
 export type NewsletterState =
   | 'DRAFT'
@@ -43,10 +44,14 @@ export type NewsletterTemplate = {
   optionalGenerationFields: TemplateGenerationField[]
 }
 
+export type ExportFormat =
+  | 'PNG'
+  | 'EML'
+
 export type ExportOption = {
   id: string
   label: string
-  format: 'PNG'
+  format: ExportFormat
 }
 
 // Modelo completo de Newsletter persistido
@@ -84,4 +89,15 @@ export type UpdateNewsletterPayload = {
   generationRequest?: GenerateNewsletterRequest | null
   assetSelection?: NewsletterAssetSelection | null
   renderedHtml?: string | null
+}
+
+export type RowType = {
+    id: UUID;
+    rowIndex: number,
+}
+
+export type ColumnType = {
+    id: UUID,
+    type: string | undefined | null,
+    displayOrder: number
 }
