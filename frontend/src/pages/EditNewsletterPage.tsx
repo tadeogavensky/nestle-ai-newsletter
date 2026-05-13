@@ -17,7 +17,7 @@ import { BlockList } from '../components/newsletter/BlockList'
 import { EditPanel } from '../components/newsletter/EditPanel'
 import { ReviewCommentControls } from '../components/newsletter/ReviewCommentControls'
 import { GenerationForm } from '../components/newsletter/GenerationForm'
-import { NewsletterStepper } from '../components/newsletter/NewsletterStepper'
+import { NewsletterStepper, getStepFromState } from '../components/newsletter/NewsletterStepper'
 import type {
   ExportFormat,
   ExportOption,
@@ -39,20 +39,6 @@ import { useNotification } from '../hooks/useNotification'
 
 const emptyComment = (v: string | null) => !v || v.trim().length === 0
 
-function getStepFromState(state: NewsletterState | undefined): number {
-  switch (state) {
-    case 'DRAFT':
-    case 'CHANGES_REQUESTED':
-      return 1
-    case 'IN_REVIEW':
-    case 'RESUBMITTED':
-      return 2
-    case 'APPROVED':
-      return 3
-    default:
-      return 1
-  }
-}
 
 function logStateChange(payload: unknown) {
   console.info('Newsletter state changed', payload)
@@ -348,6 +334,20 @@ function EditNewsletterPage() {
     }
   }, [handleRenderHtml, navigate, transitionState, notifySuccess])
 
+  const handleResubmit = useCallback(async () => {
+    setIsSendingForReview(true)
+    try {
+      await handleRenderHtml()
+      await transitionState('RESUBMITTED')
+      notifySuccess('Newsletter reenviado con éxito')
+      navigate('/dashboard')
+    } catch {
+      setAiError('No se pudo reenviar a revisión. Intenta de nuevo.')
+    } finally {
+      setIsSendingForReview(false)
+    }
+  }, [handleRenderHtml, navigate, transitionState, notifySuccess])
+
   const handleRegenerateBlock = useCallback(
     async (blockId: string) => {
       if (!newsletter) return
@@ -455,24 +455,44 @@ function EditNewsletterPage() {
   }, [navigate, transitionState])
 
   // ── Derived states ──
-  //const isEditableState = newsletter?.state === 'DRAFT' || newsletter?.state === 'CHANGES_REQUESTED'
   const isReviewState = newsletter?.state === 'IN_REVIEW' || newsletter?.state === 'RESUBMITTED'
   const canReview = ['ADMIN', 'FUNCTIONAL'].includes(currentUserRole)
   const isCreator = currentUserId === newsletter?.creatorUserId
 
+  // Si el newsletter está en revisión y el usuario no puede revisar, ir al dashboard
+  useEffect(() => {
+    if (newsletter && isReviewState && !canReview) {
+      navigate('/dashboard')
+    }
+  }, [newsletter, isReviewState, canReview, navigate])
+
   const submitLabel = newsletter?.state === 'CHANGES_REQUESTED' ? 'Reenviar a revision' : 'Enviar a revision'
   const handleSubmit =
     newsletter?.state === 'CHANGES_REQUESTED'
-      ? () => void transitionState('RESUBMITTED')
+      ? () => void handleResubmit()
       : () => void handleSendForReview()
+
+  const handleStepClick = useCallback((step: number) => {
+    const stateMap: Partial<Record<number, NewsletterState>> = {
+      0: 'DRAFT',
+      1: 'CHANGES_REQUESTED',
+    }
+    const target = stateMap[step]
+    if (target) void transitionState(target)
+  }, [transitionState])
 
   // ──────────────────────────────────────────────────────────────────────────
   // RENDER
   // ──────────────────────────────────────────────────────────────────────────
 
-  const pageLayout = (left: React.ReactNode, right: React.ReactNode) => (
+  const pageLayout = (left: React.ReactNode, right: React.ReactNode, showStepper = true) => (
     <Box component="main" sx={{ minHeight: 'calc(100vh - 64px)', bgcolor: 'background.default' }}>
-      <NewsletterStepper activeStep={getStepFromState(newsletter?.state)} />
+      {showStepper && (
+        <NewsletterStepper
+          activeStep={getStepFromState(newsletter?.state)}
+          onStepClick={handleStepClick}
+        />
+      )}
       <Box
         sx={{
           display: 'grid',
@@ -583,6 +603,7 @@ function EditNewsletterPage() {
           </Button>
         ))}
       </Stack>,
+      false,
     )
   }
 
