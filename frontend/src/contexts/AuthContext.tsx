@@ -40,7 +40,7 @@ export interface AuthContextType {
 
 export const MICROSOFT_SSO_USERS: User[] = [
   {
-    id: "1",
+    id: "1ce0d1e9-85ba-4b88-9a17-582414d7ee99",
     email: "superadmin@example.com",
     name: "Administrador",
     role: "ADMIN",
@@ -48,20 +48,20 @@ export const MICROSOFT_SSO_USERS: User[] = [
     state: "ACTIVE",
   },
   {
-    id: "2",
+    id: "a1e21954-62ea-4e65-a2f1-97d27fd1c9c7",
     email: "funcional@example.com",
     name: "Funcional",
     role: "FUNCTIONAL",
     state: "ACTIVE",
-    area: "COMUNICACION_CORPORATIVA",
+    area: "COMUNICACION_INTERNA",
   },
   {
-    id: "3",
+    id: "17b864c8-c286-46f5-8119-272d915e2247",
     email: "user@example.com",
     name: "Usuario Normal",
     role: "USER",
-    state: "INACTIVE",
-    area: "COMUNICACION_INTERNA",
+    state: "ACTIVE",
+    area: "COMUNICACION_CORPORATIVA",
   },
 ];
 
@@ -148,6 +148,19 @@ const setAxiosAccessToken = (accessToken?: string) => {
   delete axios.defaults.headers.common.Authorization;
 };
 
+const setAxiosMockHeaders = (user?: User) => {
+  if (user) {
+    axios.defaults.headers.common["x-user-id"] = user.id;
+    axios.defaults.headers.common["x-user-role"] = user.role;
+    axios.defaults.headers.common["x-area"] = user.area ?? "";
+    return;
+  }
+
+  delete axios.defaults.headers.common["x-user-id"];
+  delete axios.defaults.headers.common["x-user-role"];
+  delete axios.defaults.headers.common["x-area"];
+};
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -155,12 +168,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const commitSession = useCallback((session: StoredSession) => {
     saveStoredSession(session);
     setAxiosAccessToken(session.accessToken);
+    setAxiosMockHeaders(session.user);
     setUser(session.user);
   }, []);
 
   const logout = useCallback(() => {
     clearStoredSession();
     setAxiosAccessToken();
+    setAxiosMockHeaders();
     setUser(null);
   }, []);
 

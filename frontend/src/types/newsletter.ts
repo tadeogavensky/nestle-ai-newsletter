@@ -65,11 +65,12 @@ export type Newsletter = {
 
 // Para crear un nuevo newsletter
 export type CreateNewsletterPayload = {
-  creatorUserId: string
+  title?: string
+  creatorUserId?: string
   templateId: string
   brandKitId: string
   blocks: NewsletterBlock[]
-  generationRequest: GenerateNewsletterRequest
+  generationRequest?: GenerateNewsletterRequest
 }
 
 // Para actualizar
