@@ -9,22 +9,14 @@ import {
   Divider,
   IconButton
 } from '@mui/material';
-import { useNewsletterStore } from '../../stores/templates.store';
+import { useTemplateStore } from '../../stores/templates.store';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import ViewStreamIcon from '@mui/icons-material/ViewStream';
 import ViewWeekIcon from '@mui/icons-material/ViewWeek';
 
 export const StructureControl: React.FC<{ onConfirm: () => void }> = ({ onConfirm }) => {
-  const { 
-    layoutMode, 
-    setMode, 
-    rows, 
-    addRow, 
-    removeRow, 
-    addColumn, 
-    removeColumn 
-  } = useNewsletterStore();
+  const { layoutMode, setMode, rows, addRow, removeRow, addColumn, removeColumn } = useTemplateStore();
 
   return (
     <Stack spacing={3}>

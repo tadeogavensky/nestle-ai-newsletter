@@ -1,70 +1,17 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
-import { useNewsletterStore } from '../../stores/templates.store';
-import ImageOutlinedIcon from '@mui/icons-material/ImageOutlined';
+import { useTemplateStore } from '../../stores/templates.store';
+import { BlockRenderer } from '../blocks/BlockRenderer';
 import { constants } from '../../utils/constants';
+import { useBlockDefinitions } from '../../hooks/useBlockDefinitions';
+import type { ColumnObject } from '../../interfaces/interfaces.templates';
 
-const MOCK_REGISTRY: Record<string, { type: string; label: string; content: string }> = {
-  'content-1': { type: 'CONTENT', label: 'Mockup 1', content: 'Bienvenidos a nuestra newsletter semanal.' },
-  'image-1': { type: 'MULTIMEDIA', label: 'Mockup 2', content: 'Imagen de cabecera' },
-  'content-2': { type: 'CONTENT', label: 'Mockup 3', content: 'Gracias por leernos.' },
-};
+export const TemplateCanvas: React.FC = () => {
+  const { rows, isSkeletonView, selectedBlockId, setSelectedBlockId } = useTemplateStore();
+  const { data: definitions } = useBlockDefinitions();
 
-export const NewsletterCanvas: React.FC = () => {
-  const { rows, isSkeletonView, selectedBlockId, setSelectedBlockId } = useNewsletterStore();
-
-  const renderBlock = (col: { type: string | null; id: string }) => {
-    const block = MOCK_REGISTRY[col.type || ''];
-    if (!block) {
-      return (
-        <Box sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          height: '100%',
-          width: '100%',
-          minHeight: '100px',
-          color: 'text.disabled',
-          border: isSkeletonView ? 'none' : '1px dashed #ccc'
-        }}>
-          <Typography variant="caption">Vacío</Typography>
-        </Box>
-      );
-    }
-    return (
-      <Box sx={{
-        height: '100%',
-        width: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        p: 2,
-        bgcolor: block.type === 'MULTIMEDIA' ? '#F5F5F5' : 'transparent',
-        overflow: 'hidden',
-        position: 'relative'
-      }}>
-        {block.type === 'MULTIMEDIA' && (
-          <ImageOutlinedIcon sx={{ color: '#bbb', fontSize: 32}} />
-        )}
-        <Typography 
-          variant={block.type === 'CONTENT' ? 'body2' : 'caption'}
-          color={block.type === 'CONTENT' ? 'text.primary' : 'text.disabled'}
-          sx={{ 
-            width: '100%',
-            textAlign: 'center',
-            wordBreak: 'break-word',
-            display: '-webkit-box',
-            WebkitLineClamp: 3,
-            WebkitBoxOrient: 'vertical',
-            overflow: 'hidden'
-          }}
-        >
-          {block.content}
-        </Typography>
-      </Box>
-    );
+  const renderBlock = (col: ColumnObject) => {
+    return <BlockRenderer block={col} />;
   };
   return (
     <Box sx={{
@@ -87,6 +34,7 @@ export const NewsletterCanvas: React.FC = () => {
           {row.columns.map((col) => {
             const isSelected = selectedBlockId === col.id;
             const n_columns = row.columns.length;
+            const blockDef = definitions?.find(d => d.type === col.type);
 
             
             return (
@@ -122,11 +70,11 @@ export const NewsletterCanvas: React.FC = () => {
                       p: 1
                     }}>
                       <Typography variant="caption" sx={{ fontWeight: 700, fontSize: '0.7rem' }}>
-                        COL {col.displayOrder + 1}
+                        COLUMNA {col.displayOrder + 1}
                       </Typography>
                       {col.type && (
                         <Typography variant="caption" color="primary" sx={{ fontSize: '0.65rem' }}>
-                          {MOCK_REGISTRY[col.type]?.label || 'Asignado'}
+                          {blockDef?.label || col.type}
                         </Typography>
                       )}
                     </Box>
