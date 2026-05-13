@@ -353,10 +353,11 @@ function EditPage() {
   // ── Derived states ──
   const isReviewState = newsletter?.state === 'IN_REVIEW' || newsletter?.state === 'RESUBMITTED'
   const isCreator = currentUserId === newsletter?.creatorUserId
-  // KAN-119: ADMIN accede a creación y edición
-  // KAN-120: FUNCTIONAL accede a edición y revisión
+  const isAdmin = currentUserRole === 'ADMIN'
+  // KAN-119: ADMIN puede editar cualquier newsletter, USUARIO solo los propios
+  // KAN-120: FUNCTIONAL solo accede a revisión (IN_REVIEW/RESUBMITTED), no a edición
   const canReview = currentUserRole === 'ADMIN' || currentUserRole === 'FUNCTIONAL'
-  const canEdit = currentUserRole === 'ADMIN' || currentUserRole === 'FUNCTIONAL' || isCreator
+  const canEdit = isAdmin || isCreator
 
   const submitLabel = newsletter?.state === 'CHANGES_REQUESTED' ? 'Reenviar a revision' : 'Enviar a revision'
   const handleSubmit =
