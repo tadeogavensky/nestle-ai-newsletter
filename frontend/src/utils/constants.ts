@@ -15,3 +15,5 @@ export const TYPE_LABELS: Record<string, string> = {
   ICONS: 'ICONOS',
   SPECIAL: 'ESPECIALES'
 };
+
+export const TAB_LABELS: string[] = ['Crear', 'Editar', 'Revisar']

@@ -129,7 +129,7 @@ export function CreateTemplate() {
                 '& .Mui-selected': { color: 'brand.red !important' },
               }}
             >
-              {TAB_LABELS.map((label, i) => (
+              {TAB_LABELS.map((label: string, i: number) => (
                 <Tab key={label} label={label} value={i} />
               ))}
             </Tabs>
