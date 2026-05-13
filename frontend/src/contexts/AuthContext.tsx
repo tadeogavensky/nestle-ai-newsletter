@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import axios from "axios";
+import type { AreaName } from "../../../packages/shared/src/enums/area-name.enum";
 
 export type UserRole = "ADMIN" | "FUNCTIONAL" | "USER";
 
@@ -16,7 +17,7 @@ export interface User {
   email: string;
   name: string;
   role: UserRole;
-  area?: string;
+  area: AreaName;
   state: "ACTIVE" | "INACTIVE" | "REMOVED";
 }
 
@@ -125,6 +126,7 @@ const readStoredSession = (): StoredSession | null => {
 
     if (
       !parsedSession.user ||
+      !parsedSession.user.area ||
       !parsedSession.accessToken ||
       !parsedSession.refreshToken
     ) {
