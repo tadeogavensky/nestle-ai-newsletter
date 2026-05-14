@@ -7,10 +7,8 @@ import {
   Patch,
   Post,
   Query,
-  Req,
   UseGuards,
 } from '@nestjs/common';
-import type { Request as ExpressRequest } from 'express';
 import { NewsLettersService } from './newsletters.service';
 import {
   idAndCommentIdParamSchema,
@@ -64,12 +62,11 @@ export class NewslettersController {
   @Post()
   @RequirePermission(Action.CONTENT_UPLOAD, Resource.NEWSLETTERS)
   create(
-    @Req() req: ExpressRequest & { user?: { id?: string } },
     @Body(new ZodValidationPipe(createNewsletterBodySchema))
     body: CreateNewsletterBody,
   ) {
-    const userId = req.user?.id;
-    return this.newslettersService.create(body, userId);
+    void body;
+    return this.newslettersService.create();
   }
 
   @Get(':id')
@@ -83,7 +80,8 @@ export class NewslettersController {
     @Body(new ZodValidationPipe(updateNewsletterBodySchema))
     body: UpdateNewsletterBody,
   ) {
-    return this.newslettersService.update(params.id, body);
+    void body;
+    return this.newslettersService.update(params.id);
   }
 
   @Delete(':id')
@@ -97,7 +95,8 @@ export class NewslettersController {
     @Body(new ZodValidationPipe(updateNewsletterStatusBodySchema))
     body: UpdateNewsletterStatusBody,
   ) {
-    return this.newslettersService.updateStatus(params.id, body);
+    void body;
+    return this.newslettersService.updateStatus(params.id);
   }
 
   @Post(':id/logs')
