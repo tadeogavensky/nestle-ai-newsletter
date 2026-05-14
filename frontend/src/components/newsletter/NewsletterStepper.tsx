@@ -55,12 +55,13 @@ export function NewsletterStepper({ activeStep, onStepClick }: Props) {
         {STEPS.map((label, index) => {
           const clickable = !!onStepClick && index < activeStep
           return (
-            <Step key={label} completed={index < activeStep}>
-              <StepLabel
-                slots={{ stepIcon: StepNumberIcon }}
-                onClick={clickable ? () => onStepClick(index) : undefined}
-                sx={clickable ? { cursor: 'pointer' } : undefined}
-              >
+            <Step
+              key={label}
+              completed={index < activeStep}
+              onClick={clickable ? () => onStepClick(index) : undefined}
+              sx={clickable ? { cursor: 'pointer', '&:hover .MuiStepLabel-root': { opacity: 0.75 } } : undefined}
+            >
+              <StepLabel slots={{ stepIcon: StepNumberIcon }}>
                 {label}
               </StepLabel>
             </Step>

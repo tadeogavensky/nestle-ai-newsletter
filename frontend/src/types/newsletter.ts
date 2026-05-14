@@ -83,6 +83,7 @@ export type CreateNewsletterPayload = {
 
 // Para actualizar
 export type UpdateNewsletterPayload = {
+  templateId?: string
   brandKitId?: string
   blocks?: NewsletterBlock[]
   comment?: string | null

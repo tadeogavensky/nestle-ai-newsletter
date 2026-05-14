@@ -371,7 +371,7 @@ function EditNewsletterPage() {
 
   // ── Render HTML ──
   const handleRenderHtml = useCallback(async () => {
-    if (!newsletter || !newsletterId) return;
+    if (!newsletter || !newsletterId || newsletter.renderedHtml) return;
 
     setIsRenderingHtml(true);
     try {
@@ -559,8 +559,19 @@ function EditNewsletterPage() {
       : () => void handleSendForReview()
 
   const handleStepClick = useCallback((step: number) => {
-    if (step === 1) void transitionState('CHANGES_REQUESTED')
-  }, [transitionState])
+    if (step === 0 && !isReviewState) navigate('/crearNewsletter', {
+      state: {
+        newsletterId,
+        templateId: newsletter?.templateId,
+        brandKitId: newsletter?.brandKitId,
+        generationRequest: newsletter?.generationRequest,
+      },
+    })
+    if (step === 1 && isReviewState) {
+      void transitionState('CHANGES_REQUESTED')
+      if (!isCreator) navigate('/dashboard')
+    }
+  }, [isCreator, isReviewState, navigate, newsletterId, newsletter, transitionState])
 
   // ──────────────────────────────────────────────────────────────────────────
   // RENDER
@@ -571,7 +582,7 @@ function EditNewsletterPage() {
       {showStepper && (
         <NewsletterStepper
           activeStep={Math.max(1, getStepFromState(newsletter?.state))}
-          onStepClick={isReviewState ? handleStepClick : undefined}
+          onStepClick={handleStepClick}
         />
       )}
       <Box
