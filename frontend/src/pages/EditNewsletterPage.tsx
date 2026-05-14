@@ -227,7 +227,7 @@ function EditPage() {
 
   // ── Render HTML ──
   const handleRenderHtml = useCallback(async () => {
-    if (!newsletter || !newsletterId) return
+    if (!newsletter || !newsletterId || newsletter.renderedHtml) return
 
     setIsRenderingHtml(true)
     try {
