@@ -151,6 +151,7 @@ export async function deleteNewsletter(
 export async function updateNewsletterStatus(
   newsletterId: string,
   state: NewsletterStatus,
+  comment?: string | null,
 ): Promise<Newsletter> {
 
   await new Promise<void>((resolve) => window.setTimeout(resolve, 200))
@@ -168,6 +169,7 @@ export async function updateNewsletterStatus(
   const updated: Newsletter = {
     ...newsletter,
     state,
+    comment: comment !== undefined ? comment : newsletter.comment,
     updatedAt: new Date().toISOString(),
   }
 

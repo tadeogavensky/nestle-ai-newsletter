@@ -269,7 +269,7 @@ export function ReviewsPage() {
                               <IconButton
                                 size="small"
                                 color="primary"
-                                onClick={() => navigate(`/reviews/${review.id}`)}
+                                onClick={() => navigate(`/reviews/${review.id}`, { state: { review } })}
                               >
                                 <ReviewIcon fontSize="small" />
                               </IconButton>
