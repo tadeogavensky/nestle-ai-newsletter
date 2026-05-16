@@ -150,7 +150,7 @@ function CreateNewsletterPage() {
         setIsGenerating(false)
       }
     },
-    [currentUserId, navigate],
+    [backState.newsletterId, currentUserId, navigate],
   )
 
   if (isLoadingTemplates) {
@@ -181,6 +181,7 @@ function CreateNewsletterPage() {
       >
         <TemplateCarousel
           templates={templates}
+          selectedTemplateId={selectedTemplateId}
           selectedBrandKitId={selectedBrandKitId}
           onSelectTemplate={setSelectedTemplateId}
           onSelectBrandKit={setSelectedBrandKitId}

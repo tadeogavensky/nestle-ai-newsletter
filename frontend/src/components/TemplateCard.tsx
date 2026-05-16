@@ -1,6 +1,6 @@
 import {
   Card, CardContent, CardActions, CardMedia,
-  Typography, Chip, Button, Box, Stack
+  Typography, Chip, Button, Stack
 } from '@mui/material'
 import {
   VisibilityOutlined as ViewIcon,
@@ -20,7 +20,7 @@ interface TemplateCardProps {
   name: string
   area_id: string
   state_id: string
-  description: string
+  description: string | null
   orientation: 'Portrait' | 'Landscape'
   onPreview: (id: string) => void
   onSelect: (id: string) => void
@@ -66,9 +66,11 @@ export function TemplateCard({
           </Typography>
 
           {/* Descripción */}
-          <Typography variant="body2" color="text.secondary">
-            {description}
-          </Typography>
+          {description && (
+            <Typography variant="body2" color="text.secondary">
+              {description}
+            </Typography>
+          )}
 
         </Stack>
       </CardContent>

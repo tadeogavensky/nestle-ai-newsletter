@@ -37,6 +37,7 @@ export type NewsletterTemplate = {
   description: string | null
   area: AreaName
   layout: string | null
+  orientation: 'PORTRAIT' | 'LANDSCAPE'
   stateCode: string
   stateName: string
   createdAt: string
