@@ -63,7 +63,7 @@ export function seedNewsletterIfMissing(id: string, state: NewsletterStatus): vo
     creatorUserId: '',
     state,
     templateId: '',
-    brandKitId: null,
+    brandKitId: '',
     blocks: [],
     comment: null,
     generationRequest: null,
