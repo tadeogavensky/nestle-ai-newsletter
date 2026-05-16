@@ -17,7 +17,7 @@ export class AreasService {
     });
   }
 
-  findOne(id: string) {
+  findOne(id: string): Promise<{ id: string; name: string } | null> {
     return this.prisma.areas.findUnique({
       where: { id },
       select: {

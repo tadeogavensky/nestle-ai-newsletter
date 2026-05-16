@@ -99,7 +99,7 @@ export function ReviewDetailPage() {
       const label = newStatus === 'APPROVED' ? 'aprobado' : 'enviado con ajustes pendientes'
       success(`Newsletter "${review.title}" ${label} correctamente`)
 
-      navigate('/reviews')
+      navigate('/reviews', { state: { updatedId: review.id, newStatus } })
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error al actualizar el estado'
       error(message)
@@ -203,7 +203,7 @@ export function ReviewDetailPage() {
                     variant="outlined"
                     color="warning"
                     onClick={() => handleAction('CHANGES_REQUESTED')}
-                    disabled={loading}
+                    disabled={loading || !comment.trim()}
                   >
                     Solicitar ajustes
                   </Button>
