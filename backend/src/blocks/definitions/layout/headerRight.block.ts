@@ -1,7 +1,8 @@
 import { BlockDefinition } from '../../block.definition';
 
 export class HeaderRightBlock extends BlockDefinition {
-  readonly type = 'LAYOUT' as const;
+  readonly type = 'headerRight' as const;
+  readonly category = 'LAYOUT' as const;
   readonly label = 'Header Solo Derecha';
   readonly description = 'Esta es la cabecera con el logo a la derecha';
   readonly icon = 'text_fields';

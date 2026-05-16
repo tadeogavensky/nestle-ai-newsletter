@@ -1,7 +1,8 @@
 import { BlockDefinition } from '../../block.definition';
 
 export class LabelLeftBackgroundSmallBlock extends BlockDefinition {
-  readonly type = 'CONTENT' as const;
+  readonly type = 'labelLeftBackgroundSmall' as const;
+  readonly category = 'CONTENT' as const;
   readonly label = 'Etiqueta Izquierda Pequeña con Fondo';
   readonly description =
     'Etiqueta destacada pequeña alineada a la izquierda con fondo';

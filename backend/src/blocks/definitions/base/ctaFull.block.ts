@@ -1,7 +1,8 @@
 import { BlockDefinition } from '../../block.definition';
 
 export class CTAFullBlock extends BlockDefinition {
-  readonly type = 'BASE' as const;
+  readonly type = 'ctaFull' as const;
+  readonly category = 'BASE' as const;
   readonly label = 'CTA Principal';
   readonly description = 'Call to Action principal';
   readonly icon = 'text_fields';

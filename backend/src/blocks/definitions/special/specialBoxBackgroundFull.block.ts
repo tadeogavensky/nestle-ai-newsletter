@@ -1,7 +1,8 @@
 import { BlockDefinition } from '../../block.definition';
 
 export class SpecialBoxBackgroundFullBlock extends BlockDefinition {
-  readonly type = 'SPECIAL' as const;
+  readonly type = 'specialBoxBackgroundFull' as const;
+  readonly category = 'SPECIAL' as const;
   readonly label = 'Bloque Especial con Fondo';
   readonly description = 'Bloque de tres columnas con etiqueta, textos e imagen con fondo';
   readonly icon = 'text_fields';

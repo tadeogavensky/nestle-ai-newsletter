@@ -1,7 +1,8 @@
 import { BlockDefinition } from '../../block.definition';
 
 export class LabelTextLabelCenterFullBlock extends BlockDefinition {
-  readonly type = 'CONTENT' as const;
+  readonly type = 'labelTextLabelCenterFull' as const;
+  readonly category = 'CONTENT' as const;
   readonly label = 'Etiqueta Texto Etiqueta Centrado';
   readonly description =
     'Bloque con etiqueta, texto central y etiqueta inferior';

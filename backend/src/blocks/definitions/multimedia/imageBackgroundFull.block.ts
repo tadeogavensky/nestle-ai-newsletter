@@ -1,7 +1,8 @@
 import { BlockDefinition } from '../../block.definition';
 
 export class ImageBackgroundFullBlock extends BlockDefinition {
-  readonly type = 'MULTIMEDIA' as const;
+  readonly type = 'imageBackgroundFull' as const;
+  readonly category = 'MULTIMEDIA' as const;
   readonly label = 'Imagen con Fondo';
   readonly description = 'Imagen centrada al 80% con fondo visible';
   readonly icon = 'text_fields';

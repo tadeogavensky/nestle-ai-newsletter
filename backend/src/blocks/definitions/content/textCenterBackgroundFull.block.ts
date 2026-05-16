@@ -1,7 +1,8 @@
 import { BlockDefinition } from '../../block.definition';
 
 export class TextCenterBackgroundFullBlock extends BlockDefinition {
-  readonly type = 'CONTENT' as const;
+  readonly type = 'textCenterBackgroundFull' as const;
+  readonly category = 'CONTENT' as const;
   readonly label = 'Texto Centrado con Fondo';
   readonly description = 'Texto centrado horizontalmente con fondo';
   readonly icon = 'text_fields';
