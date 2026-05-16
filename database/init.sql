@@ -293,11 +293,14 @@ CREATE TABLE public.templates (
 );
 
 CREATE TABLE public.assets_block (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
     block_id uuid NOT NULL,
     asset_id uuid NOT NULL,
+    keyword_text text,
     created_at timestamp with time zone NOT NULL DEFAULT now(),
+    updated_at timestamp with time zone NOT NULL DEFAULT now(),
     deleted_at timestamp with time zone,
-    CONSTRAINT assets_block_pkey PRIMARY KEY (block_id, asset_id)
+    CONSTRAINT assets_block_pkey PRIMARY KEY (id)
 );
 
 CREATE TABLE public.brandkit_assets (
