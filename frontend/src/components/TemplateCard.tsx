@@ -10,16 +10,16 @@ import {
 type StatusChipColor = 'default' | 'success' | 'warning'
 
 const STATE_MAP: Record<string, { label: string; color: StatusChipColor }> = {
-  'state_1': { label: 'Publicado', color: 'success' },
-  'state_2': { label: 'En borrador', color: 'warning' },
-  'state_3': { label: 'Publicado', color: 'success' },
+  ACTIVE: { label: 'Activa', color: 'success' },
+  DRAFT: { label: 'Borrador', color: 'warning' },
 }
 
 interface TemplateCardProps {
   id: string
   name: string
   area_id: string
-  state_id: string
+  state_code: string
+  state_name: string
   description: string | null
   orientation: 'Portrait' | 'Landscape'
   onPreview: (id: string) => void
@@ -27,7 +27,7 @@ interface TemplateCardProps {
 }
 
 export function TemplateCard({
-  id, name, area_id, state_id, description, orientation, onPreview, onSelect
+  id, name, area_id, state_code, state_name, description, orientation, onPreview, onSelect
 }: TemplateCardProps) {
   return (
     <Card variant="outlined" sx={{ borderRadius: 2, display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -55,8 +55,8 @@ export function TemplateCard({
             </Typography>
             <Chip
               size="small"
-              label={STATE_MAP[state_id]?.label}
-              color={STATE_MAP[state_id]?.color ?? 'default'}
+              label={STATE_MAP[state_code]?.label ?? state_name}
+              color={STATE_MAP[state_code]?.color ?? 'default'}
             />
           </Stack>
 

@@ -27,6 +27,7 @@ const AREA_LABELS: Record<NewsletterTemplate['area'], string> = {
 type TemplateDisplay = Omit<NewsletterTemplate, 'orientation'> & {
   area_id: NewsletterTemplate['area']
   state_id: string
+  state_name: string
   orientation: 'Portrait' | 'Landscape'
 }
 
@@ -53,6 +54,7 @@ export function TemplateLibraryPage() {
           ...template,
           area_id: template.area,
           state_id: template.stateCode,
+          state_name: template.stateName,
           orientation:
             template.orientation === 'PORTRAIT' ? 'Portrait' : 'Landscape',
         }))
@@ -217,7 +219,8 @@ export function TemplateLibraryPage() {
                     id={template.id}
                     name={template.name}
                     area_id={template.area_id}
-                    state_id={template.state_id}
+                    state_code={template.state_id}
+                    state_name={template.state_name}
                     description={template.description}
                     orientation={template.orientation}
                     onPreview={() => handlePreview(template.id)}
