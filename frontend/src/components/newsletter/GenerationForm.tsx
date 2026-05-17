@@ -31,6 +31,10 @@ import type {
   NewsletterTemplate,
 } from "../../types/newsletter";
 import { AssetImageCard } from "./AssetImageCard";
+import {
+  ASSETS_PER_PAGE,
+  KEYWORD_MAX_CHARS,
+} from "../../../../packages/shared/src/enums/assets-config";
 
 type FormValues = {
   topic: string;
@@ -55,9 +59,6 @@ const assetTypeLabels: Record<AssetType, string> = {
   LOCKUP: "Lockup",
   KEYWORD: "Keyword",
 };
-
-const assetsPerPage = 12;
-const keywordDefaultMaxChars = 20;
 
 const dedupeAssets = (assets: UploadedAsset[]): UploadedAsset[] => {
   const assetsById = new Map<string, UploadedAsset>();
@@ -264,10 +265,7 @@ export function GenerationForm({
         asset.id === assetId
           ? {
               ...asset,
-              keywordText: value.slice(
-                0,
-                asset.maxChars ?? keywordDefaultMaxChars,
-              ),
+              keywordText: value.slice(0, asset.maxChars ?? KEYWORD_MAX_CHARS),
             }
           : asset,
       ),
@@ -305,15 +303,15 @@ export function GenerationForm({
 
   const availableAssetsPageCount = Math.max(
     1,
-    Math.ceil(availableAssets.length / assetsPerPage),
+    Math.ceil(availableAssets.length / ASSETS_PER_PAGE),
   );
   const currentAvailableAssetsPage = Math.min(
     availableAssetsPage,
     availableAssetsPageCount,
   );
   const paginatedAvailableAssets = availableAssets.slice(
-    (currentAvailableAssetsPage - 1) * assetsPerPage,
-    currentAvailableAssetsPage * assetsPerPage,
+    (currentAvailableAssetsPage - 1) * ASSETS_PER_PAGE,
+    currentAvailableAssetsPage * ASSETS_PER_PAGE,
   );
 
   const submit = async () => {
@@ -632,7 +630,7 @@ export function GenerationForm({
                   );
                 })}
               </Stack>
-              {availableAssets.length > assetsPerPage && (
+              {availableAssets.length > ASSETS_PER_PAGE && (
                 <Pagination
                   count={availableAssetsPageCount}
                   page={currentAvailableAssetsPage}

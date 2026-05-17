@@ -15,6 +15,7 @@ import type {
   UploadedAssetDto,
   UploadAssetsResponseDto,
 } from './dto/upload-asset.dto';
+import { KEYWORD_MAX_CHARS } from '../../../packages/shared/src/enums/assets-config';
 
 type PersistedAsset = {
   id: string;
@@ -36,7 +37,6 @@ type SeededAssetInput = {
 
 const userStorageObjectSource: storage_object_source = 'USER';
 const systemStorageObjectSource: storage_object_source = 'SYSTEM';
-const keywordMaxChars = 20;
 
 @Injectable()
 export class AssetsService {
@@ -49,6 +49,7 @@ export class AssetsService {
     'image/svg+xml',
   ]);
   private readonly maxAssetSizeBytes = 5 * 1024 * 1024;
+  private readonly keywordSvgTemplateCache = new Map<string, Promise<string>>();
 
   constructor(
     private readonly prisma: PrismaService,
@@ -145,7 +146,10 @@ export class AssetsService {
   }
 
   async getBlockPreviewAsset(previewKey: string): Promise<UploadedAssetDto> {
-    return this.getSeededAsset(`assets/blocks/${this.normalizePreviewKey(previewKey)}`, asset_type.IMAGE);
+    return this.getSeededAsset(
+      `assets/blocks/${this.normalizePreviewKey(previewKey)}`,
+      asset_type.IMAGE,
+    );
   }
 
   async getSeededAsset(
@@ -165,9 +169,16 @@ export class AssetsService {
     });
   }
 
-  async upsertSeededAsset(
-    input: SeededAssetInput,
-  ): Promise<UploadedAssetDto> {
+  async upsertSeededAsset(input: SeededAssetInput): Promise<UploadedAssetDto> {
+    if (input.type === asset_type.KEYWORD) {
+      this.keywordSvgTemplateCache.delete(
+        this.getKeywordSvgTemplateCacheKey(
+          this.getAssetBucketName(),
+          input.storageKey,
+        ),
+      );
+    }
+
     const existingAsset = await this.prisma.assets.findFirst({
       where: {
         bucket: this.getAssetBucketName(),
@@ -242,9 +253,7 @@ export class AssetsService {
     }
 
     if (file.size > this.maxAssetSizeBytes) {
-      throw new BadRequestException(
-        'Cada archivo debe pesar 5 MB o menos.',
-      );
+      throw new BadRequestException('Cada archivo debe pesar 5 MB o menos.');
     }
 
     if (!file.buffer?.length) {
@@ -264,9 +273,12 @@ export class AssetsService {
       id: asset.id,
       name: asset.name,
       type: asset.type,
-      url: await this.storageService.getSignedUrl(asset.bucket, asset.object_key),
+      url: await this.storageService.getSignedUrl(
+        asset.bucket,
+        asset.object_key,
+      ),
       svgTemplate: keywordSvgTemplate,
-      maxChars: keywordSvgTemplate ? keywordMaxChars : null,
+      maxChars: keywordSvgTemplate ? KEYWORD_MAX_CHARS : null,
     };
   }
 
@@ -274,7 +286,30 @@ export class AssetsService {
     bucket: string,
     objectKey: string,
   ): Promise<string> {
-    return this.storageService.getObjectText(bucket, objectKey);
+    const cacheKey = this.getKeywordSvgTemplateCacheKey(bucket, objectKey);
+    const cachedTemplate = this.keywordSvgTemplateCache.get(cacheKey);
+
+    if (cachedTemplate) {
+      return cachedTemplate;
+    }
+
+    // Cache promises to deduplicate concurrent reads for the same keyword SVG.
+    const templatePromise = this.storageService
+      .getObjectText(bucket, objectKey)
+      .catch((error: unknown) => {
+        this.keywordSvgTemplateCache.delete(cacheKey);
+        throw error;
+      });
+
+    this.keywordSvgTemplateCache.set(cacheKey, templatePromise);
+    return templatePromise;
+  }
+
+  private getKeywordSvgTemplateCacheKey(
+    bucket: string,
+    objectKey: string,
+  ): string {
+    return `${bucket}:${objectKey}`;
   }
 
   private getAssetBucketName(): string {
@@ -293,25 +328,33 @@ export class AssetsService {
   }
 
   private normalizePathSegment(value: string): string {
-    return value
-      .trim()
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-      .slice(0, 80) || 'asset';
+    return (
+      value
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 80) || 'asset'
+    );
   }
 
   private normalizePreviewKey(previewKey: string): string {
     const normalizedPreviewKey = basename(previewKey.trim());
 
     if (!normalizedPreviewKey || normalizedPreviewKey !== previewKey.trim()) {
-      throw new BadRequestException('Debe indicar una imagen de preview valida.');
+      throw new BadRequestException(
+        'Debe indicar una imagen de preview valida.',
+      );
     }
 
     const extension = extname(normalizedPreviewKey).toLowerCase();
 
-    if (!['.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg'].includes(extension)) {
-      throw new BadRequestException('Debe indicar una imagen de preview valida.');
+    if (
+      !['.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg'].includes(extension)
+    ) {
+      throw new BadRequestException(
+        'Debe indicar una imagen de preview valida.',
+      );
     }
 
     return normalizedPreviewKey;
@@ -331,7 +374,9 @@ export class AssetsService {
 
     const extension = extname(normalizedStorageKey).toLowerCase();
 
-    if (!['.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg'].includes(extension)) {
+    if (
+      !['.jpg', '.jpeg', '.png', '.webp', '.gif', '.svg'].includes(extension)
+    ) {
       throw new BadRequestException('Debe indicar un asset valido.');
     }
 

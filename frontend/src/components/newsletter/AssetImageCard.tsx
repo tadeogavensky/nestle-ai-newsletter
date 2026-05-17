@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import {
   Box,
   Card,
@@ -9,6 +10,7 @@ import {
 } from '@mui/material'
 import CloseIcon from '@mui/icons-material/Close'
 import type { AssetType } from '../../api/assets'
+import { KEYWORD_MAX_CHARS } from '../../../../packages/shared/src/enums/assets-config'
 
 type AssetImageCardProps = {
   alt: string
@@ -199,6 +201,13 @@ export function AssetImageCard({
     width,
     Math.min(420, 148 + keywordPreviewText.length * 10),
   )
+  const keywordSvgMarkup = useMemo(() => {
+    if (!isKeywordAsset) {
+      return null
+    }
+
+    return buildKeywordSvgMarkup(svgTemplate, keywordPreviewText, alt)
+  }, [alt, isKeywordAsset, keywordPreviewText, svgTemplate])
 
   const preview = isKeywordAsset ? (
     <Box sx={{ px: 1.5, pt: 1.5 }}>
@@ -215,7 +224,7 @@ export function AssetImageCard({
           },
         }}
         dangerouslySetInnerHTML={{
-          __html: buildKeywordSvgMarkup(svgTemplate, keywordPreviewText, alt),
+          __html: keywordSvgMarkup ?? '',
         }}
       />
     </Box>
@@ -258,17 +267,17 @@ export function AssetImageCard({
             onClick={(event) => event.stopPropagation()}
             slotProps={{
               htmlInput: {
-                maxLength: maxChars ?? 20,
+                maxLength: maxChars ?? KEYWORD_MAX_CHARS,
               },
             }}
-            helperText={`${(keywordText ?? '').length}/${maxChars ?? 20}`}
+            helperText={`${(keywordText ?? '').length}/${maxChars ?? KEYWORD_MAX_CHARS}`}
           />
         </CardContent>
       )}
       {isKeywordAsset && !isKeywordEditing && !readOnlyKeyword && (
         <Box sx={{ px: 1.5, pb: 1.5 }}>
           <Typography variant="caption" color="text.secondary">
-            Hace click para editar el texto.
+            Hacé click para editar el texto.
           </Typography>
         </Box>
       )}
