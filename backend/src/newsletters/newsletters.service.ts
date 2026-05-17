@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {Injectable, NotFoundException, BadRequestException} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import type { UpdateNewsletterStatusBody } from './newsletters.schemas';
 import { newsletter_state } from '@prisma/client';
@@ -55,8 +55,11 @@ export class NewsLettersService {
   }
 
   async updateStatus(id: string, body: UpdateNewsletterStatusBody) {
-    const newsletter = await this.prisma.newsletters.findUnique({ where: { id } });
-    if (!newsletter) throw new NotFoundException(`Newsletter ${id} no encontrado`);
+    const newsletter = await this.prisma.newsletters.findUnique({
+      where: { id },
+    });
+    if (!newsletter)
+      throw new NotFoundException(`Newsletter ${id} no encontrado`);
 
     const [updated] = await Promise.all([
       this.prisma.newsletters.update({
@@ -81,16 +84,25 @@ export class NewsLettersService {
     return 'Desde logs newsletters con ID' + id;
   }
 
-  async addLog(id: string, logData: { previousState?: newsletter_state, newState?: newsletter_state, reviewedByUserId?: string, allCommentaries?: string }) {
-
-    const newsletter = await this.prisma.newsletters.findUnique({ where: { id } });
+  async addLog(
+    id: string,
+    logData: {
+      previousState?: newsletter_state;
+      newState?: newsletter_state;
+      reviewedByUserId?: string;
+      allCommentaries?: string;
+    },
+  ) {
+    const newsletter = await this.prisma.newsletters.findUnique({
+      where: { id },
+    });
 
     if (!newsletter) {
       throw new BadRequestException('Newsletter no encontrada');
     }
 
     validateNewsletterStateLogTransition(newsletter.state, logData);
-        
+
     return this.prisma.newsletter_state_log.create({
       data: {
         newsletter_id: id,
@@ -101,7 +113,7 @@ export class NewsLettersService {
       },
     });
   }
-  
+
   getComments(id: string) {
     return 'Desde comments newsletters con ID' + id;
   }
