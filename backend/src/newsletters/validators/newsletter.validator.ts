@@ -24,9 +24,6 @@ export function validateNewsletterStateLogTransition(
     }
     
   }
-
-
-  // [TAREA 3]: Registrar cada exportación (APPROVED -> APPROVED)
   if (logData.previousState === 'APPROVED' && logData.newState === 'APPROVED') {
     if (currentNewsletterState !== 'APPROVED') {
       throw new BadRequestException(
